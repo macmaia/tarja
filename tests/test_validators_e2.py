@@ -45,26 +45,44 @@ class TestCNS(unittest.TestCase):
     def test_valid(self):
         # [TEST-CNS] EN: provisional (7, 8) and definitive (1) prefixes, spaced and compact
         # [TEST-CNS] PT: prefixo provisorio (7, 8) e definitivo (1), c/ espaco e compacto
-        for v in ["729141777631701", "866 9074 3915 0002", "180636083778351"]:
+        for v in ["729141777631701", "866 9074 3915 0002", "898 0000 0004 3208", "180636083770008"]:
             self.assertTrue(cns.is_valid(v), v)
 
     def test_invalid(self):
         # [TEST-CNS] EN: wrong digit, bad prefix (3), short, wrong type / PT: DV errado, prefixo ruim (3), curto, tipo
-        for v in ["729141777631702", "329141777631701", "72914177763170", "", None, 729141777631701]:
+        for v in ["729141777631702", "329141777631701", "72914177763170", "180636083778351", "", None, 1]:
             self.assertFalse(cns.is_valid(v), v)
 
-    def test_property(self):
-        # [TEST-CNS] EN: generate valid CNS, any single-digit change in the last position must fail
-        # [TEST-CNS] PT: gera CNS valido, qq troca no ultimo digito tem q falhar
+    def test_official_example(self):
+        # [TEST-CNS] EN: example printed in the Anvisa/MS doc / PT: exemplo impresso no doc da Anvisa/MS
+        self.assertTrue(cns.is_valid("898 0000 0004 3208"))
+
+    def test_definitive_structure(self):
+        # [TEST-CNS] EN: 1/2 cards are pis + 000|001 + dv, a mod-11-only number with other middle digits fails
+        # [TEST-CNS] PT: cartao 1/2 e pis + 000|001 + dv, numero q so passa no mod 11 c/ outro meio falha
         rng = random.Random(5)
+        branches = set()
+        for _ in range(3000):
+            pis = rng.choice("12") + "".join(rng.choice("0123456789") for _ in range(10))
+            full = cns.definitive_from_pis(pis)
+            branches.add(full[11:14])
+            self.assertEqual(len(full), 15)
+            self.assertTrue(cns.is_valid(full))
+            self.assertFalse(cns.is_valid(full[:14] + str((int(full[14]) + 1) % 10)))
+        self.assertEqual(branches, {"000", "001"})
+        with self.assertRaises(ValueError):
+            cns.definitive_from_pis("3" * 11)
+
+    def test_provisional_property(self):
+        # [TEST-CNS] EN: provisional 7/8/9, any change in the last digit fails / PT: provisorio, trocar o ultimo falha
+        rng = random.Random(6)
         made = 0
         while made < 500:
-            base = rng.choice("12789") + "".join(rng.choice("0123456789") for _ in range(13))
+            base = rng.choice("789") + "".join(rng.choice("0123456789") for _ in range(13))
             ok = [d for d in "0123456789" if cns.weighted_sum(base + d) % 11 == 0]
             if not ok:
                 continue
-            full = base + ok[0]
-            self.assertTrue(cns.is_valid(full))
+            self.assertTrue(cns.is_valid(base + ok[0]))
             for d in "0123456789":
                 if d != ok[0]:
                     self.assertFalse(cns.is_valid(base + d))

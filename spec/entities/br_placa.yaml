@@ -39,6 +39,9 @@ score:
   invalid_dv: null
 
 sources:
+  - title: "Contran, Resolucao 969/2022 (PIV/Mercosul, substituicao do 2o caractere numerico, Anexo II)"
+    url: https://www.gov.br/transportes/pt-br/assuntos/transito/conteudo-contran/resolucoes/resolucao9692022.pdf
+    accessed: "2026-09-19"
   - title: "Contran, Resolucao 780/2019"
     url: https://www.gov.br/transportes/pt-br/assuntos/transito/conteudo-contran/resolucoes
     accessed: "2026-09-19"

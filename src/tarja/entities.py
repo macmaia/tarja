@@ -320,8 +320,8 @@ ENTITIES: dict[str, EntitySpec] = {
     # [ENTITIES-CIB]
     "BR_CIB": EntitySpec(
         id="BR_CIB",
-        tier="N2",
-        patterns=(_p("cib", r"\b[0-9A-Z]{7}-?\d\b", 0.2),),
+        tier="N1",
+        patterns=(_p("cib", r"\b[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{7}-?[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]\b", 0.2),),
         validator=cib.is_valid,
         context_words=(
             "cib",
@@ -330,8 +330,8 @@ ENTITIES: dict[str, EntitySpec] = {
         ),
         context_window=50,
         context_required=True,
-        score_with_context=0.7,
-        score_without_context=0.5,
+        score_with_context=0.95,
+        score_without_context=0.9,
     ),
     # [ENTITIES-IPTU]
     "BR_IPTU": EntitySpec(

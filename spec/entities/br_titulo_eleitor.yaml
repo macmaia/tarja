@@ -8,7 +8,7 @@ description: "Brazilian voter ID (\"titulo de eleitor\"). 12 digits: 8 sequence,
 description_pt: "Titulo de eleitor. 12 digitos: 8 sequencial, 2 codigo da UF, 2 DVs mod 11."
 country_code: br
 tier: N1
-status: experimental  # EN: until the official TSE check-digit doc is attached / PT: ate anexar o doc oficial do TSE
+status: beta  # EN: TSE Res. 23.659/2021 art. 36 confirms layout + mod 11; weights and SP/MG rule not in the text / PT: Res. TSE 23.659/2021 art. 36 confirma layout + mod 11; pesos e regra SP/MG nao estao no texto
 since: "0.3"
 lgpd:
   category: pessoal
@@ -35,6 +35,9 @@ score:
   invalid_dv: null
 
 sources:
+  - title: "TSE, Resolucao 23.659/2021, art. 36 (estrutura da inscricao, DV modulo 11)"
+    url: https://www.tse.jus.br/legislacao/compilada/res/2021/resolucao-no-23-659-de-26-de-outubro-de-2021
+    accessed: "2026-09-19"
   - title: "Wikipedia, Titulo de eleitor (regra do DV e excecao SP/MG, nao oficial)"
     url: https://pt.wikipedia.org/wiki/T%C3%ADtulo_de_eleitor
     accessed: "2026-09-19"

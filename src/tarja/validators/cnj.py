@@ -11,7 +11,8 @@
 #   Regra: ISO 7064 mod 97-10. DD = 98 - (int(N AAAA J TR OOOO "00") % 97).
 #   Checagem equivalente: int(N AAAA J TR OOOO DD) % 97 == 1.
 #
-# EN: Source: CNJ Resolution 65/2008, annex / PT: Fonte: Resolucao CNJ 65/2008, anexo
+# EN: Source (read and checked): CNJ Resolution 65/2008, Annex VIII, items II, III and VI, J values 1..9 in art. 1 par. 4
+# PT: Fonte (lida e conferida): Resolucao CNJ 65/2008, Anexo VIII, itens II, III e VI, valores de J 1..9 no art. 1 par. 4
 #   https://atos.cnj.jus.br/atos/detalhar/119
 
 from __future__ import annotations

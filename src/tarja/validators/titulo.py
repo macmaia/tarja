@@ -13,9 +13,13 @@
 #   DV2 = (uf[0]*7 + uf[1]*8 + DV1*9) % 11, 10 -> 0
 #   pegadinha: p/ SP (01) e MG (02), resto 0 vira 1, nos 2 DVs
 #
-# EN: Source: TSE (Brazilian electoral court), Res. 21.538/2003 / PT: Fonte: TSE, Res. 21.538/2003
-#   TODO EN: attach official TSE doc for the check-digit rule / PT: anexar doc oficial do TSE da regra do DV
-#   https://www.tse.jus.br/legislacao/compilada/res/2003/resolucao-no-21-538-de-14-de-outubro-de-2003
+# EN: Source: TSE Res. 23.659/2021, art. 36 (read): 12 digits, 8 sequence + state code table 01..28 + 2 DVs
+#     "com base no Modulo 11", DV1 over the sequence, DV2 over state code + DV1. Weights and the SP/MG rule are
+#     NOT in the text, they come from the long-standing public routine (e.g. Wikipedia / Ghiorzi).
+# PT: Fonte: Res. TSE 23.659/2021, art. 36 (lida): 12 digitos, 8 sequencial + tabela de UF 01..28 + 2 DVs
+#     "com base no Modulo 11", DV1 sobre o sequencial, DV2 sobre UF + DV1. Pesos e regra SP/MG NAO estao no
+#     texto, vem da rotina publica usada ha anos (ex: Wikipedia / Ghiorzi).
+#   https://www.tse.jus.br/legislacao/compilada/res/2021/resolucao-no-23-659-de-26-de-outubro-de-2021
 
 from __future__ import annotations
 

@@ -4,7 +4,9 @@
 # [PLACA] PT: checagem de FORMATO da placa (nao existe DV). 2 layouts:
 #   antiga: ABC1234 (ou ABC-1234)             Mercosul (desde 2018): ABC1D23
 #
-# EN: Source: Contran Res. 780/2019 (Mercosur plate) / PT: Fonte: Resolucao Contran 780/2019 (placa Mercosul)
+# EN: Source: Contran Res. 969/2022 (replaced 780/2019): old "AAA-1111" layout, 2nd digit swapped on conversion (Annex II)
+# PT: Fonte: Res. Contran 969/2022 (substituiu a 780/2019): layout "AAA-1111", 2o digito trocado na conversao (Anexo II)
+#   https://www.gov.br/transportes/pt-br/assuntos/transito/conteudo-contran/resolucoes/resolucao9692022.pdf
 
 from __future__ import annotations
 

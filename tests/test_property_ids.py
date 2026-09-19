@@ -39,11 +39,29 @@ class TestCNM(unittest.TestCase):
 
 class TestLoose(unittest.TestCase):
     def test_cib(self):
-        # [TEST-CIB] EN: needs a letter and a digit in the first 7 / PT: precisa de letra e digito nos 7 primeiros
-        for v in ["ABC1234-5", "abc12345"]:
+        # [TEST-CIB] EN: official example, lowercase, legacy numeric NIRF / PT: exemplo oficial, minusculo, NIRF numerico
+        for v in ["A3N8Z4F-Y", "a3n8z4fy", "ABC1234-J"]:
             self.assertTrue(cib.is_valid(v), v)
-        for v in ["ABCDEFG-5", "1234567-5", "ABC1234-X", None]:
+        for v in ["A3N8Z4F-X", "ABC1234-5", "1234567-5", "AAAAAAAA", None]:
             self.assertFalse(cib.is_valid(v), v)
+        self.assertEqual(cib.compute_check_char("A3N8Z4F"), "Y")
+        self.assertEqual(cib.format("a3n8z4fy"), "A3N8Z4F-Y")
+        with self.assertRaises(ValueError):
+            cib.format("A3N8Z4F-X")
+        with self.assertRaises(ValueError):
+            cib.compute_check_char("AB")
+
+    def test_cib_numeric_nirf_rule(self):
+        # [TEST-CIB] EN: numeric: weights 8..2, mod 11, remainder 0/1 -> 0 / PT: numerico: pesos 8..2, mod 11, resto 0/1 -> 0
+        rng = random.Random(12)
+        for _ in range(2000):
+            b = "".join(rng.choice("0123456789") for _ in range(7))
+            r = sum(int(c) * w for c, w in zip(b, (8, 7, 6, 5, 4, 3, 2), strict=True)) % 11
+            self.assertEqual(cib.compute_check_char(b), "0" if r < 2 else str(11 - r))
+
+    def test_cib_aliases(self):
+        # [TEST-CIB] EN: I/L read as 1, O as 0 (Crockford) / PT: I/L viram 1, O vira 0 (Crockford)
+        self.assertEqual(cib.normalise("ilo"), "110")
 
     def test_iptu(self):
         # [TEST-IPTU] EN: 6-20 digits, not all equal / PT: 6-20 digitos, nao todos iguais
@@ -67,7 +85,7 @@ class TestInFind(unittest.TestCase):
     def test_property_ids_with_context(self):
         # [TEST-PROPERTY-FIND] EN: each one shows up with its context word / PT: cada um aparece c/ a palavra de contexto
         self.assertEqual(self.ents("CNM 123456.2.1234567-44"), [("BR_CNM", "123456.2.1234567-44")])
-        self.assertEqual(self.ents("CIB ABC1234-5"), [("BR_CIB", "ABC1234-5")])
+        self.assertEqual(self.ents("CIB A3N8Z4F-Y"), [("BR_CIB", "A3N8Z4F-Y")])
         self.assertEqual(self.ents("IPTU 012.345.6789-0"), [("BR_IPTU", "012.345.6789-0")])
         self.assertEqual(self.ents("matricula n 12.345"), [("BR_MATRICULA_IMOVEL", "12.345")])
 

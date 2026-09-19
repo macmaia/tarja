@@ -57,10 +57,10 @@ PT: exit code 1 qdo acha algo, 0 qdo limpo, 2 em erro. Útil em CI.
 |---|---|---|---|
 | `BR_CPF` | individual taxpayer ID / CPF | N1 | beta |
 | `BR_CNPJ` | company ID, numeric + alphanumeric / CNPJ numérico + alfanum | N1 | beta |
-| `BR_CNS` | national health card / cartão SUS | N1 | experimental |
+| `BR_CNS` | national health card / cartão SUS | N1 | beta |
 | `BR_NIS` | NIS / PIS / PASEP / NIT | N1 | experimental |
 | `BR_CNJ` | court case number / nº de processo CNJ | N1 | beta |
-| `BR_TITULO_ELEITOR` | voter ID / título de eleitor | N1 | experimental |
+| `BR_TITULO_ELEITOR` | voter ID / título de eleitor | N1 | beta |
 | `BR_CNH` | driving licence / CNH (needs context / exige contexto) | N1 | experimental |
 | `BR_RENAVAM` | vehicle registry / RENAVAM (needs context / exige contexto) | N1 | beta |
 | `BR_PLACA` | number plate, old + Mercosur / placa antiga + Mercosul | N2 | beta |
@@ -68,7 +68,7 @@ PT: exit code 1 qdo acha algo, 0 qdo limpo, 2 em erro. Útil em CI.
 | `BR_TELEFONE` | phone / telefone | N2 | beta |
 | `BR_CEP` | postcode / CEP (needs context / exige contexto) | N3 | beta |
 | `BR_CNM` | national property registry number / Código Nacional de Matrícula | N1 | beta |
-| `BR_CIB` | national property cadastre / Cadastro Imobiliário Brasileiro (needs context / exige contexto) | N2 | experimental |
+| `BR_CIB` | national property cadastre / Cadastro Imobiliário Brasileiro (needs context / exige contexto) | N1 | beta |
 | `BR_IPTU` | municipal property tax ID / inscrição do IPTU (needs context / exige contexto) | N3 | experimental |
 | `BR_MATRICULA_IMOVEL` | property registry number / matrícula do imóvel (needs context / exige contexto) | N3 | experimental |
 

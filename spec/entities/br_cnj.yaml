@@ -39,6 +39,9 @@ score:
   invalid_dv: null
 
 sources:
+  - title: "CNJ, Resolucao 65/2008 compilada, Anexo VIII (calculo do DV, lido e conferido)"
+    url: https://atos.cnj.jus.br/atos/detalhar/119
+    accessed: "2026-09-19"
   - title: CNJ, Resolucao 65/2008 (numeracao unica de processos)
     url: https://atos.cnj.jus.br/atos/detalhar/119
     accessed: "2026-09-19"
