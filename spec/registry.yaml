@@ -1,0 +1,21 @@
+# spec/registry.yaml
+# [SPEC-REGISTRY] registry order for tools/gen_entities.py. Order is the LAST tie-breaker when two
+#   matches overlap with equal tier, score and length, so keep stronger/more common IDs first.
+order:
+  - BR_CPF
+  - BR_CNPJ
+  - BR_CNS
+  - BR_NIS
+  - BR_CNJ
+  - BR_TITULO_ELEITOR
+  - BR_CNH
+  - BR_RENAVAM
+  - BR_PLACA
+  - BR_PIX_EVP
+  - BR_TELEFONE
+  - BR_CEP
+  - BR_CNM
+  - BR_CIB
+  - BR_IPTU
+  - BR_MATRICULA_IMOVEL
+  - BR_CARTAO

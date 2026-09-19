@@ -22,6 +22,9 @@ patterns:
   - name: cnm_compact  # 1234562123456744
     regex: '\b\d{6}[23]\d{9}\b'
     score: 0.1
+  - name: cnm_spaced  # 123456 2 1234567 44
+    regex: '\b\d{6}[\s.][23][\s.]\d{7}[\s-]\d{2}\b'
+    score: 0.3
 
 validator:
   function: tarja.validators.cnm.is_valid

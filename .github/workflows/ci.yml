@@ -26,6 +26,9 @@ jobs:
       - run: pip install "ruff==0.15.11"
       - run: ruff check .
       - run: ruff format --check .
+      # [CI-GEN-ENTITIES] src/tarja/entities.py must match spec/*.yaml (single source of truth)
+      - run: pip install "pyyaml>=6"
+      - run: python tools/gen_entities.py --check
 
   # [CI-TEST] EN: test matrix, 4 Python versions / PT: matriz de teste, 4 versoes do Python
   test:
@@ -44,6 +47,8 @@ jobs:
       # EN: pytest config (coverage >= 90%) lives in pyproject.toml / PT: config do pytest (cobertura >= 90%) fica no pyproject.toml
       # EN: TARJA_NO_SKIP=1 -> a missing test dependency is an error, never a silent skip
       # PT: TARJA_NO_SKIP=1 -> dependencia de teste faltando e erro, nunca pulo silencioso
+      # [CI-DEV-DIRS] proves the editable install exposes bench/ without pytest's pythonpath (run outside the repo)
+      - run: cd /tmp && python -c "import bench.reference, tarja; print('bench importable')"
       - run: pytest tests
         env:
           TARJA_NO_SKIP: "1"
@@ -86,3 +91,14 @@ jobs:
       - run: pytest packages/presidio-br/tests -p no:cacheprovider --no-cov
         env:
           TARJA_REQUIRE_PRESIDIO: "1"
+
+  # [CI-CONTRIB] the Presidio PR kit's tests against the real presidio-analyzer. Delete after the PR merges.
+  contrib:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install presidio-analyzer pytest
+      - run: python tools/ci_contrib.py

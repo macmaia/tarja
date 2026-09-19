@@ -21,7 +21,7 @@ from tarja.detect import Match, find
 # [VAULT-TOKEN-LEN] 24 hex = 96 bits. 12 hex (48 bits) made collisions plausible at millions of values
 TOKEN_HEX = 24
 # [VAULT-TOKEN-RE] vault tokens (24 hex) and mask(strategy="hash") tokens (12 hex), both blanked by residual()
-TOKEN_RE = re.compile(r"<(BR_[A-Z0-9_]+):([0-9a-f]{12}(?:[0-9a-f]{12})?)>")
+TOKEN_RE = re.compile(r"<([A-Z][A-Z0-9_]+):([0-9a-f]{12}(?:[0-9a-f]{12})?)>")
 
 
 class VaultCollisionError(ValueError):
@@ -91,7 +91,7 @@ def residual(text: str, min_score: float = 0.0) -> list[Match]:
     """
     # [VAULT-RESIDUAL] blank tokens out (same length) so offsets still point at the original text
     blanked = TOKEN_RE.sub(lambda m: " " * len(m.group(0)), text)
-    blanked = re.sub(r"<BR_[A-Z0-9_]+(?:_\d+)?>", lambda m: " " * len(m.group(0)), blanked)
+    blanked = re.sub(r"<[A-Z][A-Z0-9_]+>", lambda m: " " * len(m.group(0)), blanked)
     found = find(blanked, min_score=min_score)
     return [Match(m.entity, m.start, m.end, text[m.start : m.end], m.score, m.tier, m.pattern, m.has_context)
             for m in found]  # fmt: skip

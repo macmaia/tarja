@@ -61,8 +61,24 @@ def _context_regex(words: tuple[str, ...]) -> re.Pattern[str]:
     return re.compile(rf"(?<![0-9a-z])(?:{alternatives})(?![0-9a-z])")
 
 
+@lru_cache(maxsize=64)
+def _adjacent_regexes(before: tuple[str, ...], after: tuple[str, ...], gap: int) -> tuple[re.Pattern[str], re.Pattern[str]]:
+    # [DETECT-ADJACENT-RE] word + up to gap non-alphanumerics (+ an optional "o" from a folded "nº") at the END of the
+    #   text before, and up to gap non-alphanumerics + one optional 1-3 letter linking word ("no", "do") + word at the
+    #   START of the text after
+    alt = lambda ws: "|".join(re.escape(w) for w in sorted(ws, key=len, reverse=True)) or "(?!)"  # noqa: E731
+    pre = re.compile(rf"(?<![0-9a-z])(?:{alt(before)})[^0-9a-z]{{0,{gap}}}(?:o[^0-9a-z]{{1,2}})?$")
+    post = re.compile(rf"^[^0-9a-z]{{0,{gap}}}(?:[a-z]{{1,3}}[^0-9a-z]{{1,2}})?(?:{alt(after)})(?![0-9a-z])")
+    return pre, post
+
+
 def _has_context(folded: str, start: int, end: int, spec: EntitySpec) -> bool:
     # [DETECT-CONTEXT] search window before and after the match in the folded (lowercase, no accent) text
+    if spec.context_before or spec.context_after:
+        # [DETECT-ADJACENT] tight mode, see EntitySpec.context_gap
+        pre, post = _adjacent_regexes(spec.context_before, spec.context_after, spec.context_gap)
+        reach = max((len(w) for w in spec.context_before), default=0) + spec.context_gap + 3
+        return bool(pre.search(folded[max(0, start - reach) : start])) or bool(post.search(folded[end : end + 40]))
     lo = max(0, start - spec.context_window)
     hi = min(len(folded), end + spec.context_window)
     # blank out the match itself so the number can't count as its own context

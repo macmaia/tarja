@@ -18,13 +18,23 @@ class TestMask(unittest.TestCase):
         out = tarja.mask(T, strategy="pseudonym")
         self.assertEqual(out, "cpf <BR_CPF_1> e de novo cpf <BR_CPF_1>, cnpj <BR_CNPJ_1>")
 
+    def test_short_salt_warns(self):
+        # [TEST-MASK-SALT] under 16 bytes -> warning, 16+ -> silent
+        with self.assertWarns(UserWarning):
+            tarja.mask(T, strategy="hash", salt="short")
+        import warnings
+
+        with warnings.catch_warnings():
+            warnings.simplefilter("error")
+            tarja.mask(T, strategy="hash", salt="x" * 16)
+
     def test_hash_needs_salt_and_is_stable(self):
         # [TEST-MASK] no salt -> error, same salt -> same output, other salt -> different
         with self.assertRaises(ValueError):
             tarja.mask(T, strategy="hash")
-        a = tarja.mask(T, strategy="hash", salt="s1")
-        self.assertEqual(a, tarja.mask(T, strategy="hash", salt=b"s1"))
-        self.assertNotEqual(a, tarja.mask(T, strategy="hash", salt="s2"))
+        a = tarja.mask(T, strategy="hash", salt="s1" * 8)
+        self.assertEqual(a, tarja.mask(T, strategy="hash", salt=b"s1" * 8))
+        self.assertNotEqual(a, tarja.mask(T, strategy="hash", salt="s2" * 8))
         self.assertNotIn("529", a)
         # both CPF spellings hash the same
         tags = [w for w in a.split() if w.startswith("<BR_CPF:")]

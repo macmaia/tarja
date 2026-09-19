@@ -23,6 +23,9 @@ patterns:
   - name: cnpj_compact     # 12ABC34501DE35
     regex: '\b[0-9A-Za-z]{12}\d{2}\b'
     score: 0.1
+  - name: cnpj_spaced      # 12 ABC 345 01DE 35 (PDF/OCR text, spaces for separators)
+    regex: '\b[0-9A-Za-z]{2}[\s.][0-9A-Za-z]{3}[\s.][0-9A-Za-z]{3}[\s/][0-9A-Za-z]{4}[\s-]\d{2}\b'
+    score: 0.3
 
 # EN: check-digit function / PT: funcao q valida o DV
 validator:

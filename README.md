@@ -34,6 +34,13 @@ tarja.mask(text, strategy="hash", salt="your-secret")  # <BR_CPF:3f9a1c0b2e7d>
 
 tarja.validate("BR_CNPJ", "12.ABC.345/01DE-35")  # True (alphanumeric CNPJ / CNPJ alfanum)
 
+# EN: your own entity, no fork needed / PT: entidade própria, sem fork
+tarja.register_entity(
+    "ACME_EMPLOYEE_ID",
+    [("acme", r"\bAC-\d{6}\b", 0.3)],
+    context_words=["matricula acme"],  # EN: lowercase, no accents / PT: minúsculo, sem acento
+)
+
 # EN: typos with a wrong check digit, score 0, valid_dv=False / PT: digitacao c/ DV errado, score 0, valid_dv=False
 tarja.find("cpf 529.982.247-24", report_invalid=True)
 
@@ -47,8 +54,8 @@ tarja.residual(safe)  # [] = nothing leaked / nada vazou
 EN: tokens are 96-bit HMACs, and a clash raises `VaultCollisionError` instead of mixing two people up. `reveal()` restores any token the vault issued, so use one vault per user or session. `Vault` keeps the mapping in memory for one process. For multi-tenant production use (key in KMS, per-session rehydration, probing quotas, audit trail) see the paid Tarja Gateway.
 PT: token é HMAC de 96 bits, e colisão levanta `VaultCollisionError` em vez de trocar uma pessoa por outra. O `reveal()` devolve qq token q o cofre emitiu, então use um cofre por usuário ou sessão. O `Vault` guarda o mapa em memória num processo só. P/ produção multi-tenant (chave em KMS, reidratação por sessão, quota anti-sondagem, trilha de auditoria) veja o Tarja Gateway pago.
 
-EN: `hash` is pseudonymisation, not anonymisation under the LGPD: whoever has the salt can link it back.
-PT: `hash` é pseudonimização, não anonimização na LGPD: quem tem o salt consegue religar.
+EN: `hash` is pseudonymisation, not anonymisation under the LGPD: whoever has the salt can link it back. **Treat the salt as a secret key.** There are only 10⁹ possible CPFs, so anyone holding the salt can hash all of them in minutes and reverse every token. Use a random salt of at least 16 bytes (e.g. `python -c "import secrets; print(secrets.token_hex(32))"`), keep it in a secrets manager, never in code or logs, and rotate it if it leaks. tarja warns when the salt is shorter than 16 bytes.
+PT: `hash` é pseudonimização, não anonimização na LGPD: quem tem o salt consegue religar. **Trate o salt como chave secreta.** Só existem 10⁹ CPFs possíveis, então quem tiver o salt calcula o hash de todos em minutos e reverte qq token. Use salt aleatório de pelo menos 16 bytes, guarde num cofre de segredos, nunca em código ou log, e troque se vazar. O tarja avisa qdo o salt tem menos de 16 bytes.
 
 ### command line / linha de comando
 

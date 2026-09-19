@@ -1,12 +1,13 @@
 # tarja/__init__.py
 # Public API: find() (search), mask() (replace), validate() (check one value), Vault (reversible
-#     tokens), residual() (second-pass check).
+#     tokens), residual() (second-pass check), register_entity() (your own entities).
 # author/autoria: https://github.com/macmaia
 
 # import the validator modules (one file per document type in validators/)
 from tarja.detect import Match, find, resolve_overlaps
 from tarja.entities import ENTITIES
 from tarja.mask import mask
+from tarja.registry import register_entity, unregister_entity
 from tarja.validators import cartao, cnj, cnpj, cns, cpf, nis
 from tarja.vault import Vault, VaultCollisionError, residual
 
@@ -24,8 +25,10 @@ __all__ = [
     "find",
     "mask",
     "nis",
+    "register_entity",
     "residual",
     "resolve_overlaps",
+    "unregister_entity",
     "validate",
 ]
 

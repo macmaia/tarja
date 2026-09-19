@@ -171,6 +171,33 @@
         "required": {
           "type": "boolean",
           "default": false
+        },
+        "adjacent": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "gap"
+          ],
+          "properties": {
+            "before": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "after": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "gap": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 20
+            }
+          },
+          "description": "EN: optional tight context, replaces the window search: a word right before or right after the value, at most gap characters away (one short linking word like 'no'/'do' is also allowed after). PT: contexto colado opcional, substitui a janela."
         }
       },
       "description": "EN: words that raise the score when nearby (window in characters). Words are in Portuguese on purpose: they are matched against Brazilian text. PT: palavras q sobem o score se estao perto (janela em caracteres). Ficam em PT de proposito, pq sao buscadas em texto BR."

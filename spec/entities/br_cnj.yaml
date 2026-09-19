@@ -21,6 +21,9 @@ patterns:
   - name: cnj_compact    # 00000018320178260100
     regex: '\b\d{20}\b'
     score: 0.1
+  - name: cnj_spaced     # 0000001 83 2017 8 26 0100
+    regex: '\b\d{7}[\s-]\d{2}[\s.]\d{4}[\s.]\d[\s.]\d{2}[\s.]\d{4}\b'
+    score: 0.3
 
 validator:
   function: tarja.validators.cnj.is_valid

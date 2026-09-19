@@ -22,6 +22,9 @@ patterns:
   - name: nis_compact    # 12037567083
     regex: '\b\d{11}\b'
     score: 0.1
+  - name: nis_spaced     # 120 37567 08 3
+    regex: '\b\d{3}[\s.]\d{5}[\s.]\d{2}[\s-]\d\b'
+    score: 0.3
 
 validator:
   function: tarja.validators.nis.is_valid

@@ -66,11 +66,11 @@ PT: P/R/F1 por span, 3 modos (`exact`, `partial`, `untyped`), por entidade e por
 
 | subset | exact F1 | partial F1 | EN: weakest level / PT: nível mais fraco |
 |---|---|---|---|
-| controlled | 0.950 | 0.954 | D1 0.874 (D0 1.000) |
-| adversarial | 0.797 | 0.815 | D4 0.252 (OCR noise / ruído de OCR) |
+| controlled | 0.980 | 0.984 | D1 0.958 (D0 1.000) |
+| adversarial | 0.822 | 0.839 | D4 0.255 (OCR noise / ruído de OCR) |
 
-EN: the benchmark already shows where tarja needs work: spaced alphanumeric CNPJ (D1) and OCR noise (D4).
-PT: o benchmark já mostra onde o tarja precisa melhorar: CNPJ alfanum c/ espaço (D1) e ruído de OCR (D4).
+EN: history. Before 19/09/2026: controlled 0.950 / adversarial 0.797 exact F1 (D1 0.874, D2 0.890). The fixes for spaced separators (CNPJ, CNJ, NIS, CNM, CIB) and tighter matricula context were tuned on the dev split only, and the test split was run once afterwards. OCR noise (D4) is left as a stated limitation on purpose: fixing the level where tarja is weakest, on a benchmark its author built, would not be credible.
+PT: histórico. Antes de 19/09/2026: controlado 0,950 / adversarial 0,797 de F1 exato (D1 0,874, D2 0,890). As correções de separador c/ espaço (CNPJ, CNJ, NIS, CNM, CIB) e do contexto da matrícula foram ajustadas só no dev, e o teste rodou 1 vez no fim. O ruído de OCR (D4) fica como limitação declarada de propósito: corrigir o nível mais fraco do tarja num benchmark feito pela mesma autora não seria crível.
 
 ## independence of the gold / independência do gold
 

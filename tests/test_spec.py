@@ -95,6 +95,10 @@ class TestSpec(unittest.TestCase):
                 self.assertEqual(rt.context_required, spec["context"]["required"])
                 self.assertEqual(rt.score_with_context, spec["score"]["valid_with_context"])
                 self.assertEqual(rt.score_without_context, spec["score"]["valid_without_context"])
+                adj = spec["context"].get("adjacent") or {}
+                self.assertEqual(list(rt.context_before), adj.get("before", []))
+                self.assertEqual(list(rt.context_after), adj.get("after", []))
+                self.assertEqual(rt.context_gap, adj.get("gap", 0))
                 fn = spec["validator"]["function"].rsplit(".", 1)[1]
                 self.assertEqual(rt.validator.__name__, fn)
                 self.assertEqual(rt.validator.__module__, spec["validator"]["function"].rsplit(".", 1)[0])

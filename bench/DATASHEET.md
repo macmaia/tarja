@@ -11,7 +11,7 @@ PT: estrutura segue Gebru et al., "Datasheets for Datasets" (CACM 64(12), 2021, 
 
 - **Purpose.** Measure how well tools find Brazilian personal identifiers (CPF, CNPJ incl. the alphanumeric CNPJ, CNS, NIS, court case numbers, voter ID, CNH, RENAVAM, plates, PIX keys, phones, CEP, property records, payment cards) in Portuguese free text. No public benchmark covered these identifiers, their check digits or the noise found in real Brazilian documents.
 - **Creators.** Maria Alice Maia (https://github.com/macmaia), FGV EBAPE and Micah 6 AI.
-- **Funding.** None. [VERIFICAR before submission]
+- **Funding.** The author holds a CAPES doctoral scholarship (Coordenação de Aperfeiçoamento de Pessoal de Nível Superior, Brasil, Finance Code 001). No project-specific funding. Conflict of interest: the author runs Micah 6 AI, which may sell services built on tarja (see the paid line in the planning doc).
 
 ### 2. Composition
 
@@ -71,7 +71,7 @@ PT: estrutura segue Gebru et al., "Datasheets for Datasets" (CACM 64(12), 2021, 
 
 - **Finalidade.** Medir quão bem as ferramentas acham identificadores pessoais brasileiros (CPF, CNPJ inclusive alfanumérico, CNS, NIS, processo CNJ, título, CNH, RENAVAM, placa, chave PIX, telefone, CEP, registros de imóvel, cartão) em texto livre em português. Nenhum benchmark público cobria esses identificadores, seus DVs nem o ruído de documento brasileiro real.
 - **Autoria.** Maria Alice Maia (https://github.com/macmaia), FGV EBAPE e Micah 6 AI.
-- **Financiamento.** Nenhum. [VERIFICAR antes da submissão]
+- **Financiamento.** A autora é bolsista de doutorado CAPES (Coordenação de Aperfeiçoamento de Pessoal de Nível Superior, Brasil, Código de Financiamento 001). Sem financiamento específico do projeto. Conflito de interesse: a autora dirige a Micah 6 AI, q pode vender serviços baseados no tarja.
 
 ### 2. Composição
 

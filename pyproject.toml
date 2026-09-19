@@ -47,6 +47,11 @@ path = "src/tarja/__init__.py"
 [tool.hatch.build.targets.wheel]
 packages = ["src/tarja"]
 
+# [HATCH-DEV] editable installs (pip install -e .) also put the repo root on sys.path, so bench/ and tools/
+#   import without the pytest pythonpath shortcut. The published wheel still ships src/tarja only.
+[tool.hatch.build]
+dev-mode-dirs = ["src", "."]
+
 [tool.pytest.ini_options]
 # EN: minimum 90% coverage (same bar as Presidio) / PT: cobertura min. 90% (mesma regua do Presidio)
 testpaths = ["tests"]

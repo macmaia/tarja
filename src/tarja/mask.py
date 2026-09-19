@@ -11,11 +11,15 @@ from __future__ import annotations
 import hashlib
 import hmac
 import re
+import warnings
 from collections.abc import Iterable
 
 from tarja.detect import Match, find
 
 STRATEGIES = ("redact", "hash", "pseudonym")
+# [MASK-SALT] the salt is a secret key: CPF has only 10^9 values, so a leaked salt lets anyone rebuild the whole
+#   table and reverse every token. Short salts trigger a warning.
+MIN_SALT_BYTES = 16
 
 # [MASK-KEY] canonical form used for hashing/pseudonyms, so "529.982.247-25" == "52998224725"
 _NON_ALNUM = re.compile(r"[^0-9A-Za-z]")
@@ -42,6 +46,11 @@ def mask(
         raise ValueError(f"strategy must be one of / strategy tem q ser uma de: {STRATEGIES}")
     if strategy == "hash" and not salt:
         raise ValueError("hash needs a salt / hash precisa de salt")
+    if strategy == "hash" and salt and len(salt.encode() if isinstance(salt, str) else salt) < MIN_SALT_BYTES:
+        warnings.warn(
+            f"salt shorter than {MIN_SALT_BYTES} bytes: tokens can be reversed by brute force if it leaks",
+            stacklevel=2,
+        )
     key = salt.encode() if isinstance(salt, str) else salt
     found = list(matches) if matches is not None else find(text, **find_kwargs)
 

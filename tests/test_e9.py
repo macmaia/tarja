@@ -133,7 +133,7 @@ class TestVaultHardening(unittest.TestCase):
         self.assertEqual(v.reveal(v.protect(text, matches=both)), text)
 
     def test_residual_blanks_mask_hash_tokens(self):
-        self.assertEqual(residual(tarja.mask(f"cpf {VALID_CPF}", strategy="hash", salt="s")), [])
+        self.assertEqual(residual(tarja.mask(f"cpf {VALID_CPF}", strategy="hash", salt="s" * 16)), [])
 
 
 class TestResidual(unittest.TestCase):

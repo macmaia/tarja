@@ -33,6 +33,12 @@ context:
   words: ["matricula do imovel", "matricula imobiliaria", "matricula n", "matricula no", "registro de imoveis", "cartorio de registro de imoveis"]
   window: 30
   required: true
+  # tight context: the number must sit right after "matricula ..." or right before "... registro de imoveis".
+  # A 30-char window caught article and law numbers near those words (semi-real pilot, 19/09/2026).
+  adjacent:
+    before: ["matricula", "matricula do imovel", "matricula imobiliaria", "matricula n", "matricula no", "matricula sob o n"]
+    after: ["registro de imoveis", "cartorio de registro de imoveis", "rgi", "cri"]
+    gap: 4
 
 score:
   valid_with_context: 0.4

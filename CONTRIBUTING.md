@@ -19,6 +19,9 @@ EN:
 3. `sources` must point to the official standard for the algorithm (Receita, TSE, Ministry of Health, CNJ...). No official source = goes in as `experimental`.
 4. Validator in `src/tarja/validators/<name>.py`: pure function, stdlib only, source repeated at the top, every block commented in short English with a `[NAME-THING]` tag. Public docstrings are bilingual, EN first then PT.
 5. Tests: official case, wrong check digit, bad format, repeated digits (where it makes sense) and one property test (generate, validate, mutate).
+6. Add the id to `spec/registry.yaml` and run `python tools/gen_entities.py`. Never edit `src/tarja/entities.py` by hand: it is generated and CI checks it.
+
+EN: an identifier that only matters to you (a company ID, one state's IE) does not need a PR: use `tarja.register_entity()` at start-up.
 
 PT:
 1. Abre uma issue antes, c/ a entidade, a norma oficial e uns exemplos.
@@ -26,6 +29,9 @@ PT:
 3. `sources` c/ a norma oficial do algoritmo (Receita, TSE, MS, CNJ...). Sem fonte oficial entra como `experimental`.
 4. Validador em `src/tarja/validators/<nome>.py`: função pura, só stdlib, fonte repetida no topo, todo bloco comentado em inglês curto c/ tag `[NOME-ALGO]`. Docstring pública bilíngue, EN primeiro e PT dps.
 5. Testes: caso oficial, DV errado, formato ruim, repetidos (qdo fizer sentido) e 1 teste de propriedade (gera, valida, muta).
+6. Põe o id no `spec/registry.yaml` e roda `python tools/gen_entities.py`. Nunca edite o `src/tarja/entities.py` à mão: ele é gerado e o CI confere.
+
+PT: identificador q só importa p/ vc (matrícula de empresa, IE de 1 estado) não precisa de PR: use `tarja.register_entity()` na inicialização.
 
 ## real data: no / dado real: não
 

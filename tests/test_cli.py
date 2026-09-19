@@ -61,7 +61,7 @@ class TestCLI(unittest.TestCase):
         # [TEST-CLI] redact default, hash with salt
         code, out, _ = run(["mask", self.path])
         self.assertEqual((code, out), (0, "cpf <BR_CPF> e cnpj <BR_CNPJ>\n"))
-        _, out, _ = run(["mask", self.path, "--strategy", "hash", "--salt", "x"])
+        _, out, _ = run(["mask", self.path, "--strategy", "hash", "--salt", "x" * 16])
         self.assertIn("<BR_CPF:", out)
 
     def test_errors(self):
