@@ -4,6 +4,12 @@
 
 **PT** · Identificadores brasileiros p/ o Presidio, via tarja. 1 `PatternRecognizer` por entidade do tarja, c/ validação de DV e palavras de contexto em pt-BR.
 
+EN: until tarja is on PyPI, install both from the repo root / PT: ate o tarja estar no PyPI, instale os 2 da raiz do repo:
+
+```bash
+pip install -e . -e packages/presidio-br
+```
+
 ```python
 from presidio_analyzer import AnalyzerEngine, RecognizerRegistry
 import presidio_br

@@ -16,10 +16,10 @@ permissions:
 jobs:
   # [CI-LINT] EN: ruff lint + format check, once / PT: ruff lint + format, 1 vez so
   lint:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       # EN: pinned, same version as pre-commit / PT: versao fixa, igual ao pre-commit
@@ -29,14 +29,14 @@ jobs:
 
   # [CI-TEST] EN: test matrix, 4 Python versions / PT: matriz de teste, 4 versoes do Python
   test:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     strategy:
       fail-fast: false
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
       # EN: install package + dev extras / PT: instala o pacote + extras de dev
@@ -53,10 +53,10 @@ jobs:
   # [CI-MUTATION] EN: proves the tests catch real bugs: 27 deliberate bugs, all must make the suite fail
   # [CI-MUTATION] PT: prova q os testes pegam bug de verdade: 27 bugs de proposito, todos tem q derrubar a suite
   mutation:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - run: pip install -e ".[dev]"
@@ -65,10 +65,10 @@ jobs:
   # [CI-PRESIDIO-BR] EN: plugin tests against the REAL presidio-analyzer, skipping is forbidden here
   # [CI-PRESIDIO-BR] PT: testes do plugin contra o presidio-analyzer DE VERDADE, pular e proibido aqui
   presidio-br:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - run: pip install -e ".[dev]" -e packages/presidio-br

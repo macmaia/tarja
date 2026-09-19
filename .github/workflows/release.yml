@@ -23,10 +23,10 @@ jobs:
   # [RELEASE-BUILD] EN: tests again, checks tag == package version, builds sdist + wheel
   # [RELEASE-BUILD] PT: roda os testes de novo, confere tag == versao do pacote, gera sdist + wheel
   build:
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
       - run: pip install -e ".[dev]" build
@@ -40,7 +40,7 @@ jobs:
           echo "package=$PKG tag=$TAG"
           test "$PKG" = "$TAG"
       - run: python -m build
-      - uses: actions/upload-artifact@v4
+      - uses: actions/upload-artifact@v5
         with:
           name: dist
           path: dist/
@@ -49,14 +49,14 @@ jobs:
   # [RELEASE-PUBLISH] PT: sobe p/ o PyPI via OIDC (id-token), protegido pelo environment "pypi"
   publish:
     needs: build
-    runs-on: ubuntu-latest
+    runs-on: ubuntu-24.04
     environment:
       name: pypi
       url: https://pypi.org/project/tarja/
     permissions:
       id-token: write
     steps:
-      - uses: actions/download-artifact@v4
+      - uses: actions/download-artifact@v5
         with:
           name: dist
           path: dist/
