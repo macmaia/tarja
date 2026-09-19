@@ -74,6 +74,30 @@ class TestSpec(unittest.TestCase):
             for v in spec["examples"]["valid"]:
                 self.assertTrue(any(p.search(v) for p in pats), (name, v))
 
+    def test_registry_matches_yaml(self):
+        # [TEST-SPEC] EN: tarja/entities.py (runtime) must mirror the yaml (source of truth)
+        # [TEST-SPEC] PT: tarja/entities.py (runtime) tem q espelhar o yaml (fonte da verdade)
+        from tarja.entities import ENTITIES
+
+        specs = {spec["id"]: spec for _name, spec in load_specs()}
+        self.assertEqual(set(specs), set(ENTITIES))
+        for eid, spec in specs.items():
+            with self.subTest(entity=eid):
+                rt = ENTITIES[eid]
+                self.assertEqual(rt.tier, spec["tier"])
+                self.assertEqual(
+                    [(p.name, p.regex.pattern, p.score) for p in rt.patterns],
+                    [(p["name"], p["regex"], p["score"]) for p in spec["patterns"]],
+                )
+                self.assertEqual(list(rt.context_words), spec["context"]["words"])
+                self.assertEqual(rt.context_window, spec["context"]["window"])
+                self.assertEqual(rt.context_required, spec["context"]["required"])
+                self.assertEqual(rt.score_with_context, spec["score"]["valid_with_context"])
+                self.assertEqual(rt.score_without_context, spec["score"]["valid_without_context"])
+                fn = spec["validator"]["function"].rsplit(".", 1)[1]
+                self.assertEqual(rt.validator.__name__, fn)
+                self.assertEqual(rt.validator.__module__, spec["validator"]["function"].rsplit(".", 1)[0])
+
 
 if __name__ == "__main__":
     unittest.main()
