@@ -13,14 +13,15 @@ import tarja
 # EN: budget, can be tightened via env var in CI / PT: orcamento, da p/ apertar via variavel de ambiente na CI
 BUDGET_MS = float(os.environ.get("TARJA_PERF_BUDGET_MS", "50"))
 
-# EN: realistic ~70-token paragraph with a mix of identifiers and noise
-# PT: paragrafo realista de ~70 tokens c/ mistura de identificadores e ruido
+# EN: realistic ~90-token paragraph with a mix of identifiers and noise
+# PT: paragrafo realista de ~90 tokens c/ mistura de identificadores e ruido
 SAMPLE = (
     "Contrato de prestacao de servicos entre Fulano de Tal, CPF 529.982.247-25, residente na rua X, CEP 22290-140, "
     "telefone (21) 98765-4321, e a empresa Exemplo Ltda, CNPJ 12.ABC.345/01DE-35, com sede no Rio de Janeiro. "
     "Referente ao processo 0000001-83.2017.8.26.0100. Pagamento via chave pix 123e4567-e89b-42d3-a456-426614174000. "
     "Cartao SUS 729 1417 7763 1701, PIS 120.37567.08-3, titulo de eleitor 1023 4567 0388, veiculo placa ABC1D23, "
-    "renavam 00639724361, CNH 12345678900. Pedido 2024-00017, nota 000123456, valor R$ 1.234,56, protocolo 98765432."
+    "renavam 00639724361, CNH 12345678900. Pedido 2024-00017, nota 000123456, valor R$ 1.234,56, protocolo 98765432. "
+    "Imovel de matricula n 12.345 no registro de imoveis, CNM 123456.2.1234567-44, CIB ABC1234-5, IPTU 012.345.6789-0."
 )
 
 
@@ -35,7 +36,7 @@ class TestPerf(unittest.TestCase):
         self.assertLess(per_100, BUDGET_MS)
 
     def test_sample_finds_everything(self):
-        # [TEST-PERF] EN: the sample really exercises all 12 entities / PT: o exemplo exercita as 12 entidades mesmo
+        # [TEST-PERF] EN: the sample really exercises all entities / PT: o exemplo exercita todas as entidades mesmo
         self.assertEqual({m.entity for m in tarja.find(SAMPLE)}, set(tarja.ENTITIES))
 
     @staticmethod

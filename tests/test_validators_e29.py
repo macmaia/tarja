@@ -116,11 +116,9 @@ class TestInFind(unittest.TestCase):
         # [TEST-E29-FIND] PT: CEP, CNH, RENAVAM, PIX so aparecem c/ a palavra de contexto
         self.assertIn(("BR_CEP", "22290-140"), self.ents("CEP 22290-140"))
         self.assertNotIn("BR_CEP", [e for e, _ in self.ents("codigo 22290-140")])
-        self.assertIn(
-            ("BR_PIX_EVP", "123e4567-e89b-42d3-a456-426614174000"),
-            self.ents("chave pix 123e4567-e89b-42d3-a456-426614174000"),
-        )
-        self.assertEqual(self.ents("trace id 123e4567-e89b-42d3-a456-426614174000"), [])
+        uuid = "123e4567-e89b-42d3-a456-426614174000"
+        self.assertIn(("BR_PIX_EVP", uuid), self.ents(f"chave pix {uuid}"))
+        self.assertEqual(self.ents(f"trace id {uuid}"), [])
         self.assertIn(("BR_CNH", "12345678900"), self.ents("CNH 12345678900"))
         self.assertIn(("BR_RENAVAM", "00639724361"), self.ents("renavam 00639724361"))
 

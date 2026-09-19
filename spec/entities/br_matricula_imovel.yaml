@@ -1,0 +1,50 @@
+# spec/entities/br_matricula_imovel.yaml
+# [SPEC-MATRICULA] EN: Matricula do imovel spec. Follows spec/schema.json
+# [SPEC-MATRICULA] PT: spec de Matricula do imovel. Segue spec/schema.json
+
+id: BR_MATRICULA_IMOVEL
+name: "Matricula do imovel"
+description: "Traditional property registry number (matricula), a plain sequence per registry office, no check digit. Only with a required context word."
+description_pt: "Matricula tradicional do imovel, sequencial de cada cartorio, sem DV. So c/ palavra de contexto obrigatoria."
+country_code: br
+tier: N3
+status: experimental  # EN: no check digit, high false-positive risk / PT: sem DV, risco alto de falso positivo
+since: "0.4"
+lgpd:
+  category: pessoal
+  note: "EN: identifies a property. PT: identifica o imovel."
+
+# EN: candidate regexes / PT: regex de candidatos
+patterns:
+  - name: matricula_dotted  # 12.345
+    regex: '\b\d{1,3}(?:\.\d{3}){1,2}\b'
+    score: 0.2
+  - name: matricula_plain  # 12345
+    regex: '\b\d{1,7}\b'
+    score: 0.1
+
+validator:
+  function: tarja.validators.matricula.is_valid
+  algorithm: "1-7 digits, no DV / 1-7 digitos, sem DV"
+
+# EN: nearby words (Portuguese on purpose) / PT: palavras de contexto (em PT de proposito)
+# EN: required = no match without a context word / PT: required = sem palavra de contexto nao sai match
+context:
+  words: ["matricula do imovel", "matricula imobiliaria", "matricula n", "matricula no", "registro de imoveis", "cartorio de registro de imoveis"]
+  window: 30
+  required: true
+
+score:
+  valid_with_context: 0.4
+  valid_without_context: 0.3
+  invalid_dv: null
+
+sources:
+  - title: "Lei 6.015/1973 (Registros Publicos), art. 176"
+    url: https://www.planalto.gov.br/ccivil_03/leis/l6015compilada.htm
+    accessed: "2026-09-19"
+
+# EN: generated test examples / PT: exemplos gerados p/ teste
+examples:
+  valid: ["12.345", "12345"]
+  invalid: ["0", "12345678", "abc"]

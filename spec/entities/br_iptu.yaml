@@ -1,0 +1,47 @@
+# spec/entities/br_iptu.yaml
+# [SPEC-IPTU] EN: Inscricao imobiliaria (IPTU) spec. Follows spec/schema.json
+# [SPEC-IPTU] PT: spec de Inscricao imobiliaria (IPTU). Segue spec/schema.json
+
+id: BR_IPTU
+name: "Inscricao imobiliaria (IPTU)"
+description: "Municipal property tax registration (IPTU). Each city has its own format, so only a loose 6-20 digit check with a required context word."
+description_pt: "Inscricao imobiliaria do IPTU. Cada cidade tem seu formato, entao so checagem frouxa de 6-20 digitos c/ palavra de contexto obrigatoria."
+country_code: br
+tier: N3
+status: experimental  # EN: no national format / PT: sem formato nacional
+since: "0.4"
+lgpd:
+  category: pessoal
+  note: "EN: identifies a property. PT: identifica o imovel."
+
+# EN: candidate regexes / PT: regex de candidatos
+patterns:
+  - name: iptu  # 000.000.0000-0
+    regex: '\b\d[\d.\-/]{4,24}\d\b'
+    score: 0.2
+
+validator:
+  function: tarja.validators.iptu.is_valid
+  algorithm: "6-20 digits, no national DV / 6-20 digitos, sem DV nacional"
+
+# EN: nearby words (Portuguese on purpose) / PT: palavras de contexto (em PT de proposito)
+# EN: required = no match without a context word / PT: required = sem palavra de contexto nao sai match
+context:
+  words: ["iptu", "inscricao imobiliaria", "indice cadastral", "inscricao do imovel", "sql", "cadastro municipal"]
+  window: 40
+  required: true
+
+score:
+  valid_with_context: 0.5
+  valid_without_context: 0.3
+  invalid_dv: null
+
+sources:
+  - title: "Codigo Tributario Nacional, art. 32 (IPTU)"
+    url: https://www.planalto.gov.br/ccivil_03/leis/l5172compilado.htm
+    accessed: "2026-09-19"
+
+# EN: generated test examples / PT: exemplos gerados p/ teste
+examples:
+  valid: ["012.345.6789-0", "1.234.567-8"]
+  invalid: ["12345", "000.000.0000-0", "abc"]

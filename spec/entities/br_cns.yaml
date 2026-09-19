@@ -39,6 +39,12 @@ score:
   invalid_dv: null
 
 sources:
+  - title: "Anvisa RNI, regra de validacao do CNS"
+    url: https://rni-docs.anvisa.gov.br/docs/regras_gerais/validacoes/validacaoCNS/
+    accessed: "2026-09-19"
+  - title: "DATASUS, Cartao Nacional de Saude (rotina de validacao Java no Cartao Net)"
+    url: https://datasus.saude.gov.br/cartao-nacional-de-saude/
+    accessed: "2026-09-19"
   - title: Ministerio da Saude, Cartao Nacional de Saude
     url: https://www.gov.br/saude/pt-br/composicao/seidigi/cartao-nacional-de-saude
     accessed: "2026-09-19"

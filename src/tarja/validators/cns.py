@@ -15,8 +15,9 @@
 #
 # EN: Source: Ministerio da Saude / DATASUS, CNS validation routine (published with the CADSUS integration docs)
 # PT: Fonte: Ministerio da Saude / DATASUS, rotina de validacao do CNS (docs de integracao do CADSUS)
-#   TODO EN: attach the official DATASUS link and confirm with real-format test vectors
-#   TODO PT: anexar link oficial do DATASUS e confirmar c/ vetores de teste oficiais
+#   https://rni-docs.anvisa.gov.br/docs/regras_gerais/validacoes/validacaoCNS/
+#   https://datasus.saude.gov.br/cartao-nacional-de-saude/ (Java validation routine / rotina Java de validacao)
+#   TODO EN: compare with the DATASUS Java routine line by line / PT: comparar c/ a rotina Java do DATASUS linha a linha
 # EN: status in the spec stays "experimental" until that's done / PT: status na spec fica "experimental" ate isso
 
 from __future__ import annotations

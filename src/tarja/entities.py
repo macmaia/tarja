@@ -10,7 +10,24 @@ import re
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from tarja.validators import cep, cnh, cnj, cnpj, cns, cpf, nis, pix, placa, renavam, telefone, titulo
+from tarja.validators import (
+    cep,
+    cib,
+    cnh,
+    cnj,
+    cnm,
+    cnpj,
+    cns,
+    cpf,
+    iptu,
+    matricula,
+    nis,
+    pix,
+    placa,
+    renavam,
+    telefone,
+    titulo,
+)
 
 # [ENTITIES-TIERS] EN: tier order, lower = stronger evidence. Used to break overlaps.
 # [ENTITIES-TIERS] PT: ordem dos niveis, menor = evidencia mais forte. Usado p/ resolver sobreposicao.
@@ -277,6 +294,84 @@ ENTITIES: dict[str, EntitySpec] = {
         context_window=30,
         context_required=True,
         score_with_context=0.5,
+        score_without_context=0.3,
+    ),
+    # [ENTITIES-CNM]
+    "BR_CNM": EntitySpec(
+        id="BR_CNM",
+        tier="N1",
+        patterns=(
+            _p("cnm_formatted", r"\b\d{6}\.[23]\.\d{7}-?\d{2}\b", 0.6),
+            _p("cnm_compact", r"\b\d{6}[23]\d{9}\b", 0.1),
+        ),
+        validator=cnm.is_valid,
+        context_words=(
+            "cnm",
+            "codigo nacional de matricula",
+            "matricula",
+            "registro de imoveis",
+            "imovel",
+        ),
+        context_window=60,
+        context_required=False,
+        score_with_context=0.95,
+        score_without_context=0.9,
+    ),
+    # [ENTITIES-CIB]
+    "BR_CIB": EntitySpec(
+        id="BR_CIB",
+        tier="N2",
+        patterns=(_p("cib", r"\b[0-9A-Z]{7}-?\d\b", 0.2),),
+        validator=cib.is_valid,
+        context_words=(
+            "cib",
+            "cadastro imobiliario brasileiro",
+            "cadastro imobiliario",
+        ),
+        context_window=50,
+        context_required=True,
+        score_with_context=0.7,
+        score_without_context=0.5,
+    ),
+    # [ENTITIES-IPTU]
+    "BR_IPTU": EntitySpec(
+        id="BR_IPTU",
+        tier="N3",
+        patterns=(_p("iptu", r"\b\d[\d.\-/]{4,24}\d\b", 0.2),),
+        validator=iptu.is_valid,
+        context_words=(
+            "iptu",
+            "inscricao imobiliaria",
+            "indice cadastral",
+            "inscricao do imovel",
+            "sql",
+            "cadastro municipal",
+        ),
+        context_window=40,
+        context_required=True,
+        score_with_context=0.5,
+        score_without_context=0.3,
+    ),
+    # [ENTITIES-MATRICULA]
+    "BR_MATRICULA_IMOVEL": EntitySpec(
+        id="BR_MATRICULA_IMOVEL",
+        tier="N3",
+        patterns=(
+            _p("matricula_dotted", r"\b\d{1,3}(?:\.\d{3}){1,2}\b", 0.2),
+            _p("matricula_plain", r"\b\d{1,7}\b", 0.1),
+        ),
+        validator=matricula.is_valid,
+        context_words=(
+            "matricula do imovel",
+            "matricula imobiliaria",
+            "matricula n",
+            "matricula no",
+            "registro de imoveis",
+            "cartorio de registro de imoveis",
+        ),
+        context_window=30,
+        context_required=True,
+        score_with_context=0.4,
         score_without_context=0.3,
     ),
 }

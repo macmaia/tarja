@@ -9,8 +9,8 @@
 #     Obs: da o MESMO DV da regra do NIS/PIS, entao numero solto nao da p/ distinguir pelo DV.
 #     Por isso a spec exige palavra de contexto ("renavam") p/ essa entidade.
 #
-# EN: Source: Denatran/Senatran / PT: Fonte: Denatran/Senatran
-#   TODO EN/PT: official source link / link da fonte oficial
+# EN: Source: Denatran Portaria 27/2013 (11 digits, "modulo 11, peso 9") / PT: Fonte: Portaria Denatran 27/2013
+#   https://www.gov.br/transportes/pt-br/assuntos/transito/arquivos-senatran/portarias/2013/portaria0272013.pdf
 
 from __future__ import annotations
 

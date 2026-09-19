@@ -1,0 +1,47 @@
+# spec/entities/br_cib.yaml
+# [SPEC-CIB] EN: CIB (Cadastro Imobiliario Brasileiro) spec. Follows spec/schema.json
+# [SPEC-CIB] PT: spec de CIB (Cadastro Imobiliario Brasileiro). Segue spec/schema.json
+
+id: BR_CIB
+name: "CIB (Cadastro Imobiliario Brasileiro)"
+description: "Brazilian national property cadastre ID (CIB), 7 alphanumeric + 1 check digit (ABC1234-5). Format only: the check-digit algorithm isn't published."
+description_pt: "Cadastro Imobiliario Brasileiro (CIB), 7 alfanum + 1 DV (ABC1234-5). So formato: o algoritmo do DV nao e publicado."
+country_code: br
+tier: N2
+status: experimental  # EN: DV algorithm not published / PT: algoritmo do DV nao publicado
+since: "0.4"
+lgpd:
+  category: pessoal
+  note: "EN: identifies a property. PT: identifica o imovel."
+
+# EN: candidate regexes / PT: regex de candidatos
+patterns:
+  - name: cib  # ABC1234-5
+    regex: '\b[0-9A-Z]{7}-?\d\b'
+    score: 0.2
+
+validator:
+  function: tarja.validators.cib.is_valid
+  algorithm: "format only, DV not published / so formato, DV nao publicado"
+
+# EN: nearby words (Portuguese on purpose) / PT: palavras de contexto (em PT de proposito)
+# EN: required = no match without a context word / PT: required = sem palavra de contexto nao sai match
+context:
+  words: ["cib", "cadastro imobiliario brasileiro", "cadastro imobiliario"]
+  window: 50
+  required: true
+
+score:
+  valid_with_context: 0.7
+  valid_without_context: 0.5
+  invalid_dv: null
+
+sources:
+  - title: "Receita Federal, CIB"
+    url: https://www.gov.br/receitafederal/pt-br/acesso-a-informacao/acoes-e-programas/programas-e-atividades/sinter/cib
+    accessed: "2026-09-19"
+
+# EN: generated test examples / PT: exemplos gerados p/ teste
+examples:
+  valid: ["ABC1234-5", "ABC12345"]
+  invalid: ["ABCDEFG-5", "1234567-5", "ABC1234-X"]

@@ -40,6 +40,9 @@ score:
   invalid_dv: null
 
 sources:
+  - title: "Denatran, Portaria 27/2013 (novo codigo RENAVAM: 11 digitos, DV modulo 11 peso 9)"
+    url: https://www.gov.br/transportes/pt-br/assuntos/transito/arquivos-senatran/portarias/2013/portaria0272013.pdf
+    accessed: "2026-09-19"
   - title: "Senatran, RENAVAM"
     url: https://www.gov.br/transportes/pt-br/assuntos/transito/senatran
     accessed: "2026-09-19"

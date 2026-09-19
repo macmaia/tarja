@@ -8,7 +8,7 @@ description: Brazilian social identification number, shared by PIS, PASEP, NIT a
 description_pt: Numero de Identificacao Social, o mesmo numero do PIS, PASEP, NIT e NIS. 11 digitos, 1 DV mod 11.
 country_code: br
 tier: N1            # EN: strong check digit / PT: DV forte
-status: beta
+status: experimental  # EN: no official algorithm doc found / PT: sem doc oficial do algoritmo
 since: "0.2"
 lgpd:
   category: pessoal

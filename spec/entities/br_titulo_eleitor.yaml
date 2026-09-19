@@ -35,6 +35,9 @@ score:
   invalid_dv: null
 
 sources:
+  - title: "Wikipedia, Titulo de eleitor (regra do DV e excecao SP/MG, nao oficial)"
+    url: https://pt.wikipedia.org/wiki/T%C3%ADtulo_de_eleitor
+    accessed: "2026-09-19"
   - title: "TSE, Resolucao 21.538/2003"
     url: https://www.tse.jus.br/legislacao/compilada/res/2003/resolucao-no-21-538-de-14-de-outubro-de-2003
     accessed: "2026-09-19"
