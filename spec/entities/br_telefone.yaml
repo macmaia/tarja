@@ -1,0 +1,45 @@
+# spec/entities/br_telefone.yaml
+# [SPEC-TELEFONE] EN: Telefone spec. Follows spec/schema.json
+# [SPEC-TELEFONE] PT: spec de Telefone. Segue spec/schema.json
+
+id: BR_TELEFONE
+name: "Telefone"
+description: "Brazilian phone number: valid area code (DDD) + 9-digit mobile (starts with 9) or 8-digit landline (starts with 2-5). +55 optional."
+description_pt: "Telefone BR: DDD valido + celular de 9 digitos (comeca c/ 9) ou fixo de 8 (comeca c/ 2-5). +55 opcional."
+country_code: br
+tier: N2
+status: beta
+since: "0.3"
+lgpd:
+  category: pessoal
+
+# EN: candidate regexes / PT: regex de candidatos
+patterns:
+  - name: telefone  # (21) 98765-4321 / +55 21 2345-6789
+    regex: '(?<![\d+])(?:\+?55[\s-]?)?\(?\d{2}\)?[\s-]?9?\d{4}[\s-]?\d{4}(?!\d)'
+    score: 0.3
+
+validator:
+  function: tarja.validators.telefone.is_valid
+  algorithm: "DDD in Anatel list, mobile 9XXXXXXXX or landline [2-5]XXXXXXX"
+
+# EN: nearby words (Portuguese on purpose) / PT: palavras de contexto (em PT de proposito)
+context:
+  words: ["tel", "telefone", "celular", "cel", "whatsapp", "whats", "contato", "fone", "ligar"]
+  window: 40
+  required: false
+
+score:
+  valid_with_context: 0.7
+  valid_without_context: 0.5
+  invalid_dv: null
+
+sources:
+  - title: "Anatel, plano de numeracao"
+    url: https://www.gov.br/anatel/pt-br/regulado/numeracao
+    accessed: "2026-09-19"
+
+# EN: generated test examples / PT: exemplos gerados p/ teste
+examples:
+  valid: ["(21) 98765-4321", "+55 21 2345-6789", "21987654321"]
+  invalid: ["(20) 98765-4321", "(21) 18765-4321", "2198765432"]

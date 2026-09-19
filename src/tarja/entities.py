@@ -10,7 +10,7 @@ import re
 from collections.abc import Callable
 from dataclasses import dataclass
 
-from tarja.validators import cnj, cnpj, cns, cpf, nis
+from tarja.validators import cep, cnh, cnj, cnpj, cns, cpf, nis, pix, placa, renavam, telefone, titulo
 
 # [ENTITIES-TIERS] EN: tier order, lower = stronger evidence. Used to break overlaps.
 # [ENTITIES-TIERS] PT: ordem dos niveis, menor = evidencia mais forte. Usado p/ resolver sobreposicao.
@@ -142,5 +142,141 @@ ENTITIES: dict[str, EntitySpec] = {
         context_required=False,
         score_with_context=0.95,
         score_without_context=0.9,
+    ),
+    # [ENTITIES-TITULO]
+    "BR_TITULO_ELEITOR": EntitySpec(
+        id="BR_TITULO_ELEITOR",
+        tier="N1",
+        patterns=(_p("titulo_spaced", r"\b\d{4}\s?\d{4}\s?\d{4}\b", 0.3),),
+        validator=titulo.is_valid,
+        context_words=(
+            "titulo de eleitor",
+            "titulo eleitoral",
+            "inscricao eleitoral",
+            "eleitor",
+        ),
+        context_window=60,
+        context_required=False,
+        score_with_context=0.95,
+        score_without_context=0.8,
+    ),
+    # [ENTITIES-CNH]
+    "BR_CNH": EntitySpec(
+        id="BR_CNH",
+        tier="N1",
+        patterns=(_p("cnh_compact", r"\b\d{11}\b", 0.1),),
+        validator=cnh.is_valid,
+        context_words=(
+            "cnh",
+            "carteira de habilitacao",
+            "carteira nacional de habilitacao",
+            "habilitacao",
+            "registro da cnh",
+        ),
+        context_window=50,
+        context_required=True,
+        score_with_context=0.95,
+        score_without_context=0.85,
+    ),
+    # [ENTITIES-RENAVAM]
+    "BR_RENAVAM": EntitySpec(
+        id="BR_RENAVAM",
+        tier="N1",
+        patterns=(
+            _p("renavam_11", r"\b\d{11}\b", 0.1),
+            _p("renavam_9", r"\b\d{9}\b", 0.1),
+        ),
+        validator=renavam.is_valid,
+        context_words=(
+            "renavam",
+            "registro nacional de veiculos automotores",
+            "codigo renavam",
+        ),
+        context_window=50,
+        context_required=True,
+        score_with_context=0.95,
+        score_without_context=0.85,
+    ),
+    # [ENTITIES-PLACA]
+    "BR_PLACA": EntitySpec(
+        id="BR_PLACA",
+        tier="N2",
+        patterns=(
+            _p("placa_old", r"\b[A-Z]{3}-?\d{4}\b", 0.4),
+            _p("placa_mercosur", r"\b[A-Z]{3}\d[A-Z]\d{2}\b", 0.5),
+        ),
+        validator=placa.is_valid,
+        context_words=(
+            "placa",
+            "veiculo",
+            "carro",
+            "moto",
+            "automovel",
+        ),
+        context_window=50,
+        context_required=False,
+        score_with_context=0.7,
+        score_without_context=0.5,
+    ),
+    # [ENTITIES-PIX]
+    "BR_PIX_EVP": EntitySpec(
+        id="BR_PIX_EVP",
+        tier="N2",
+        patterns=(
+            _p(
+                "pix_uuid",
+                r"\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\b",
+                0.3,
+            ),  # noqa: E501
+        ),
+        validator=pix.is_valid,
+        context_words=(
+            "pix",
+            "chave pix",
+            "chave aleatoria",
+            "chave",
+        ),
+        context_window=50,
+        context_required=True,
+        score_with_context=0.7,
+        score_without_context=0.5,
+    ),
+    # [ENTITIES-TELEFONE]
+    "BR_TELEFONE": EntitySpec(
+        id="BR_TELEFONE",
+        tier="N2",
+        patterns=(_p("telefone", r"(?<![\d+])(?:\+?55[\s-]?)?\(?\d{2}\)?[\s-]?9?\d{4}[\s-]?\d{4}(?!\d)", 0.3),),
+        validator=telefone.is_valid,
+        context_words=(
+            "tel",
+            "telefone",
+            "celular",
+            "cel",
+            "whatsapp",
+            "whats",
+            "contato",
+            "fone",
+            "ligar",
+        ),
+        context_window=40,
+        context_required=False,
+        score_with_context=0.7,
+        score_without_context=0.5,
+    ),
+    # [ENTITIES-CEP]
+    "BR_CEP": EntitySpec(
+        id="BR_CEP",
+        tier="N3",
+        patterns=(_p("cep", r"\b\d{5}-?\d{3}\b", 0.2),),
+        validator=cep.is_valid,
+        context_words=(
+            "cep",
+            "codigo postal",
+            "codigo de enderecamento postal",
+        ),
+        context_window=30,
+        context_required=True,
+        score_with_context=0.5,
+        score_without_context=0.3,
     ),
 }

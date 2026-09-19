@@ -43,3 +43,5 @@ jobs:
       - run: pip install -e ".[dev]"
       # EN: pytest config (coverage >= 90%) lives in pyproject.toml / PT: config do pytest (cobertura >= 90%) fica no pyproject.toml
       - run: pytest
+      # [CI-PERF] EN: E2.8, print the speed number in the log (pytest hides prints) / PT: E2.8, mostra a velocidade no log
+      - run: python -m unittest tests.test_perf -v

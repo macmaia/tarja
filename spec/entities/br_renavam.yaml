@@ -1,0 +1,50 @@
+# spec/entities/br_renavam.yaml
+# [SPEC-RENAVAM] EN: RENAVAM spec. Follows spec/schema.json
+# [SPEC-RENAVAM] PT: spec de RENAVAM. Segue spec/schema.json
+
+id: BR_RENAVAM
+name: "RENAVAM"
+description: "Brazilian national vehicle registry code (RENAVAM). 11 digits (old 9-digit codes left-padded), 1 mod-11 check digit."
+description_pt: "Codigo RENAVAM. 11 digitos (antigos de 9 completados c/ zero), 1 DV mod 11."
+country_code: br
+tier: N1
+status: beta
+since: "0.3"
+lgpd:
+  category: pessoal
+  note: "EN: identifies a vehicle, and through it the owner. PT: identifica o veiculo e, por ele, o dono."
+
+# EN: candidate regexes / PT: regex de candidatos
+patterns:
+  - name: renavam_11  # 00639724361
+    regex: '\b\d{11}\b'
+    score: 0.1
+  - name: renavam_9  # 639724361
+    regex: '\b\d{9}\b'
+    score: 0.1
+
+validator:
+  function: tarja.validators.renavam.is_valid
+  algorithm: "(sum(base*(3,2,9,8,7,6,5,4,3,2)) * 10) % 11, 10 -> 0"
+
+# EN: nearby words (Portuguese on purpose) / PT: palavras de contexto (em PT de proposito)
+# EN: required = no match without a context word / PT: required = sem palavra de contexto nao sai match
+context:
+  words: ["renavam", "registro nacional de veiculos automotores", "codigo renavam"]
+  window: 50
+  required: true
+
+score:
+  valid_with_context: 0.95
+  valid_without_context: 0.85
+  invalid_dv: null
+
+sources:
+  - title: "Senatran, RENAVAM"
+    url: https://www.gov.br/transportes/pt-br/assuntos/transito/senatran
+    accessed: "2026-09-19"
+
+# EN: generated test examples / PT: exemplos gerados p/ teste
+examples:
+  valid: ["00639724361", "639724361"]
+  invalid: ["00639724362", "11111111111", "6397243"]

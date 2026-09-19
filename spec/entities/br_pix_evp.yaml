@@ -1,0 +1,47 @@
+# spec/entities/br_pix_evp.yaml
+# [SPEC-PIX] EN: Chave PIX aleatoria spec. Follows spec/schema.json
+# [SPEC-PIX] PT: spec de Chave PIX aleatoria. Segue spec/schema.json
+
+id: BR_PIX_EVP
+name: "Chave PIX aleatoria"
+description: "PIX random key (EVP), a UUID. Format only. Needs a context word, since UUIDs are everywhere in logs."
+description_pt: "Chave PIX aleatoria (EVP), um UUID. So formato. Exige palavra de contexto, pq UUID aparece em todo log."
+country_code: br
+tier: N2
+status: beta
+since: "0.3"
+lgpd:
+  category: pessoal
+  note: "EN: links to a bank account holder. PT: liga ao titular de uma conta."
+
+# EN: candidate regexes / PT: regex de candidatos
+patterns:
+  - name: pix_uuid  # 123e4567-e89b-42d3-a456-426614174000
+    regex: '\b[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[1-5][0-9a-fA-F]{3}-[89abAB][0-9a-fA-F]{3}-[0-9a-fA-F]{12}\b'
+    score: 0.3
+
+validator:
+  function: tarja.validators.pix.is_valid
+  algorithm: "UUID RFC 4122"
+
+# EN: nearby words (Portuguese on purpose) / PT: palavras de contexto (em PT de proposito)
+# EN: required = no match without a context word / PT: required = sem palavra de contexto nao sai match
+context:
+  words: ["pix", "chave pix", "chave aleatoria", "chave"]
+  window: 50
+  required: true
+
+score:
+  valid_with_context: 0.7
+  valid_without_context: 0.5
+  invalid_dv: null
+
+sources:
+  - title: "Banco Central do Brasil, Pix"
+    url: https://www.bcb.gov.br/estabilidadefinanceira/pix
+    accessed: "2026-09-19"
+
+# EN: generated test examples / PT: exemplos gerados p/ teste
+examples:
+  valid: ["123e4567-e89b-42d3-a456-426614174000"]
+  invalid: ["123e4567-e89b-02d3-a456-426614174000", "not-a-uuid"]

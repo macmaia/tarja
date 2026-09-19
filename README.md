@@ -4,13 +4,13 @@
 
 Built for anyone shipping software in Brazil, incl. foreign companies adapting to the LGPD (Brazil's GDPR). Plenty of CPF/CNPJ validators exist already (brutils, validate-docbr). What's missing is finding the ID *inside* text, scoring it with Portuguese context, and covering what paid DLPs skip: alphanumeric CNPJ (Jul/2026), CNS (health card), CNJ case numbers.
 
-Status: pre-alpha (`0.2.0.dev0`). API will change.
+Status: pre-alpha (`0.3.0.dev0`). API will change.
 
 **PT** · Detecta docs brasileiros (CPF, CNPJ etc) em texto livre, p/ mascarar antes de mandar dado p/ LLM, log, BI, onde for.
 
 Serve p/ qq um q desenvolve p/ o Brasil, inclusive empresa gringa se adaptando à LGPD. Validador de CPF/CNPJ já tem de monte (brutils, validate-docbr). O q falta é achar o doc *dentro* do texto, dar score c/ contexto em pt-BR e cobrir o q os DLPs pagos ignoram: CNPJ alfanumérico (jul/2026), CNS, nº de processo CNJ.
 
-Status: pré-alfa (`0.2.0.dev0`). A API ainda muda.
+Status: pré-alfa (`0.3.0.dev0`). A API ainda muda.
 
 ## install / instalar
 
@@ -60,9 +60,16 @@ PT: exit code 1 qdo acha algo, 0 qdo limpo, 2 em erro. Útil em CI.
 | `BR_CNS` | national health card / cartão SUS | N1 | experimental |
 | `BR_NIS` | NIS / PIS / PASEP / NIT | N1 | beta |
 | `BR_CNJ` | court case number / nº de processo CNJ | N1 | beta |
+| `BR_TITULO_ELEITOR` | voter ID / título de eleitor | N1 | experimental |
+| `BR_CNH` | driving licence / CNH (needs context / exige contexto) | N1 | experimental |
+| `BR_RENAVAM` | vehicle registry / RENAVAM (needs context / exige contexto) | N1 | beta |
+| `BR_PLACA` | number plate, old + Mercosur / placa antiga + Mercosul | N2 | beta |
+| `BR_PIX_EVP` | PIX random key / chave PIX aleatória (needs context / exige contexto) | N2 | beta |
+| `BR_TELEFONE` | phone / telefone | N2 | beta |
+| `BR_CEP` | postcode / CEP (needs context / exige contexto) | N3 | beta |
 
-EN: N1 = strong check digit, N2 = format only, N3 = needs context, N4 = NER. Scores: 0.95 valid + context word nearby, 0.8 to 0.9 valid without context. Wrong check digit = dropped.
-PT: N1 = DV forte, N2 = só formato, N3 = depende de contexto, N4 = NER. Score: 0.95 válido + palavra de contexto perto, 0.8 a 0.9 válido sem contexto. DV errado = descartado.
+EN: N1 = strong check digit, N2 = format only, N3 = needs context, N4 = NER. Scores: N1 0.95 with a context word nearby, 0.8 to 0.9 without. N2 0.7 / 0.5. N3 only with context, 0.5. Wrong check digit = dropped. Speed: ~1 ms per 100 tokens, all 12 entities.
+PT: N1 = DV forte, N2 = só formato, N3 = depende de contexto, N4 = NER. Score: N1 0.95 c/ palavra de contexto perto, 0.8 a 0.9 sem. N2 0.7 / 0.5. N3 só c/ contexto, 0.5. DV errado = descartado. Velocidade: ~1 ms por 100 tokens, 12 entidades.
 
 ## layout / organização
 

@@ -1,0 +1,47 @@
+# spec/entities/br_cep.yaml
+# [SPEC-CEP] EN: CEP spec. Follows spec/schema.json
+# [SPEC-CEP] PT: spec de CEP. Segue spec/schema.json
+
+id: BR_CEP
+name: "CEP"
+description: "Brazilian postcode (CEP), 8 digits. Format only, collides with many numbers, so a context word is required."
+description_pt: "CEP, 8 digitos. So formato, colide c/ muito numero, entao exige palavra de contexto."
+country_code: br
+tier: N3
+status: beta
+since: "0.3"
+lgpd:
+  category: pessoal
+  note: "EN: personal only combined with other address data. PT: so e pessoal junto c/ outros dados de endereco."
+
+# EN: candidate regexes / PT: regex de candidatos
+patterns:
+  - name: cep  # 22290-140
+    regex: '\b\d{5}-?\d{3}\b'
+    score: 0.2
+
+validator:
+  function: tarja.validators.cep.is_valid
+  algorithm: "8 digits, >= 01000-000"
+
+# EN: nearby words (Portuguese on purpose) / PT: palavras de contexto (em PT de proposito)
+# EN: required = no match without a context word / PT: required = sem palavra de contexto nao sai match
+context:
+  words: ["cep", "codigo postal", "codigo de enderecamento postal"]
+  window: 30
+  required: true
+
+score:
+  valid_with_context: 0.5
+  valid_without_context: 0.3
+  invalid_dv: null
+
+sources:
+  - title: "Correios"
+    url: https://www.correios.com.br
+    accessed: "2026-09-19"
+
+# EN: generated test examples / PT: exemplos gerados p/ teste
+examples:
+  valid: ["22290-140", "01310100"]
+  invalid: ["00000-000", "2229-014", "222901400"]
