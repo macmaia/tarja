@@ -1,0 +1,19 @@
+# EN: python / PT: python
+__pycache__/
+*.py[cod]
+.venv/
+dist/
+build/
+*.egg-info/
+# EN: tests/lint / PT: testes/lint
+.coverage
+htmlcov/
+.pytest_cache/
+.ruff_cache/
+# EN: macOS
+.DS_Store
+# EN: local pre-publish checklist, not versioned / PT: checklist local pre-publicacao, fora do git
+PENDING.md
+# EN: NEVER version real data / PT: NUNCA versionar dado real
+data/real/
+*.real.jsonl

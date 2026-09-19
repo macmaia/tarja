@@ -1,0 +1,44 @@
+# .github/workflows/ci.yml
+# [CI] EN: on every push/PR: lint + tests with coverage >= 90% on Python 3.10 to 3.13 (E1.2)
+# [CI] PT: em todo push/PR: lint + testes c/ cobertura >= 90% no Python 3.10 a 3.13 (E1.2)
+
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# EN: least privilege / PT: permissao minima
+permissions:
+  contents: read
+
+jobs:
+  # [CI-LINT] EN: ruff lint + format check, once / PT: ruff lint + format, 1 vez so
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - run: pip install ruff
+      - run: ruff check .
+      - run: ruff format --check .
+
+  # [CI-TEST] EN: test matrix, 4 Python versions / PT: matriz de teste, 4 versoes do Python
+  test:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        python-version: ["3.10", "3.11", "3.12", "3.13"]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: ${{ matrix.python-version }}
+      # EN: install package + dev extras / PT: instala o pacote + extras de dev
+      - run: pip install -e ".[dev]"
+      # EN: pytest config (coverage >= 90%) lives in pyproject.toml / PT: config do pytest (cobertura >= 90%) fica no pyproject.toml
+      - run: pytest

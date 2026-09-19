@@ -1,0 +1,55 @@
+# spec/entities/br_cpf.yaml
+# [SPEC-CPF] EN: CPF spec (Brazilian individual taxpayer ID). Follows spec/schema.json
+# [SPEC-CPF] PT: spec do CPF. Segue spec/schema.json
+
+id: BR_CPF
+name: CPF
+description: Brazilian individual taxpayer ID ("Cadastro de Pessoas Fisicas"). 11 digits, 2 mod-11 check digits.
+description_pt: Cadastro de Pessoas Fisicas. 11 digitos, 2 DVs mod 11.
+country_code: br
+tier: N1            # EN: strong check digit / PT: DV forte
+status: beta
+since: "0.1"
+lgpd:
+  category: pessoal  # EN: personal data / PT: dado pessoal
+
+# EN: candidate regexes (low score, check digit not validated yet)
+# PT: regex de candidatos (score baixo pq ainda nao validou DV)
+patterns:
+  - name: cpf_formatted            # 123.456.789-09
+    regex: '\b\d{3}\.\d{3}\.\d{3}-\d{2}\b'
+    score: 0.5
+  - name: cpf_compact              # 12345678909
+    regex: '\b\d{11}\b'
+    score: 0.1
+  - name: cpf_irregular_punctuation  # 123 456 789 09, 123.456.789/09...
+    regex: '\b\d{3}[\s.]?\d{3}[\s.]?\d{3}[\s\-./]?\d{2}\b'
+    score: 0.3
+
+# EN: check-digit function / PT: funcao q valida o DV
+validator:
+  function: tarja.validators.cpf.is_valid
+  algorithm: mod 11, weights/pesos 10..2 and/e 11..2
+
+# EN: nearby words that raise the score (within 50 chars). Portuguese on purpose, matched against BR text.
+# PT: palavras q sobem o score se estao perto (ate 50 caracteres). Em PT de proposito.
+context:
+  words: [cpf, "cadastro de pessoa fisica", "cadastro de pessoas fisicas", "inscrito no cpf", "portador do cpf", contribuinte]
+  window: 50
+  required: false
+
+# EN: final score / PT: score final
+score:
+  valid_with_context: 0.95     # EN: digit ok + word nearby / PT: DV ok + palavra perto
+  valid_without_context: 0.85  # EN: digit ok, no word / PT: DV ok sem palavra
+  invalid_dv: null             # EN: wrong digit -> dropped / PT: DV errado -> descarta
+
+sources:
+  - title: Receita Federal, CPF
+    url: https://www.gov.br/receitafederal/pt-br/assuntos/meu-cpf
+    accessed: "2026-09-18"
+
+# EN: test examples (generated, belong to nobody) / PT: exemplos p/ teste (gerados, nao sao de ninguem)
+examples:
+  valid: ["529.982.247-25", "52998224725"]
+  invalid: ["529.982.247-24", "111.111.111-11", "123.456.789"]

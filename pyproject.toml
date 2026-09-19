@@ -1,0 +1,55 @@
+# pyproject.toml
+# EN: build (hatch), tests (pytest), lint (ruff) config
+# PT: config de build (hatch), testes (pytest), lint (ruff)
+
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "tarja"
+dynamic = ["version"]
+description = "Finds Brazilian personal identifiers (CPF, CNPJ incl. alphanumeric, CNS, CNJ case numbers...) in free text. / Detecta CPF, CNPJ (inclusive alfanum), CNS, processo CNJ e outros docs BR em texto."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+license-files = ["LICENSE", "NOTICE"]
+authors = [{ name = "Maria Alice Maia", email = "tarja@micah6ai.com" }]  # https://github.com/macmaia
+keywords = ["pii", "lgpd", "gdpr", "brazil", "cpf", "cnpj", "anonymisation", "presidio", "dlp"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Natural Language :: English",
+  "Natural Language :: Portuguese (Brazilian)",
+  "Programming Language :: Python :: 3",
+  "Topic :: Security",
+  "Topic :: Text Processing",
+]
+# EN: core has zero dependencies, on purpose / PT: core sem dependencia, de proposito
+dependencies = []
+
+[project.optional-dependencies]
+dev = ["pytest>=8", "pytest-cov>=5", "hypothesis>=6", "jsonschema>=4.20", "pyyaml>=6", "ruff>=0.6"]
+
+[project.urls]
+Source = "https://github.com/macmaia/tarja"
+Issues = "https://github.com/macmaia/tarja/issues"
+
+[tool.hatch.version]
+path = "src/tarja/__init__.py"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/tarja"]
+
+[tool.pytest.ini_options]
+# EN: minimum 90% coverage (same bar as Presidio) / PT: cobertura min. 90% (mesma regua do Presidio)
+testpaths = ["tests"]
+addopts = "--cov=tarja --cov-report=term-missing --cov-fail-under=90"
+
+[tool.ruff]
+# EN: 125 because comments are bilingual / PT: 125 pq os comentarios sao bilingues
+line-length = 125
+target-version = "py310"
+
+[tool.ruff.lint]
+select = ["E", "F", "W", "I", "B", "UP", "A", "N", "SIM"]
