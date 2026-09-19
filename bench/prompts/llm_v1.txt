@@ -1,0 +1,18 @@
+You are a data-protection auditor. Find every Brazilian personal identifier in the text below.
+
+Entity types (use exactly these codes):
+BR_CPF, BR_CNPJ, BR_CNS, BR_NIS, BR_CNJ, BR_CNM, BR_CIB, BR_TITULO_ELEITOR, BR_CNH, BR_RENAVAM,
+BR_PLACA, BR_PIX_EVP, BR_TELEFONE, BR_CEP, BR_IPTU, BR_MATRICULA_IMOVEL
+
+Rules:
+- Copy each identifier EXACTLY as it appears in the text, character by character.
+- Only report identifiers that are valid for their type (check digits included). Skip numbers with wrong check digits.
+- If the same identifier appears twice, report it twice.
+
+Answer with JSON only, no prose:
+{"entities": [{"type": "BR_CPF", "text": "529.982.247-25"}]}
+
+Text:
+<<<
+{TEXT}
+>>>

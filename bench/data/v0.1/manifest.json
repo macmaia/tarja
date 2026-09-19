@@ -1,0 +1,27 @@
+{
+  "bench_version": "0.1.0",
+  "tarja_version": "0.4.0.dev0",
+  "seed": 42,
+  "files": {
+    "synthetic_controlled.dev.jsonl": {
+      "docs": 1500,
+      "spans": 5802,
+      "sha256": "166780416f58103c47a150d13e7ceedc12030acfc717bbdb917397ed8e5f85c8"
+    },
+    "synthetic_controlled.test.jsonl": {
+      "docs": 3500,
+      "spans": 13597,
+      "sha256": "fbcb173235dac4d49aa1c4ec53515435bdbd0f0d4dcabfba0e25e03426ed2747"
+    },
+    "synthetic_adversarial.dev.jsonl": {
+      "docs": 900,
+      "spans": 3599,
+      "sha256": "894e88d6edc9916bd121578738cd3493907ef9993100d018ad27e65c3922901d"
+    },
+    "synthetic_adversarial.test.jsonl": {
+      "docs": 2100,
+      "spans": 8288,
+      "sha256": "ba2dda30574f531ce1762f7b861be2d314dfb659fb0cd1c9edab051f87332364"
+    }
+  }
+}

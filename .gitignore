@@ -17,3 +17,7 @@ PENDING.md
 # EN: NEVER version real data / PT: NUNCA versionar dado real
 data/real/
 *.real.jsonl
+# EN: benchmark: data is regenerated from the seed, results/cache are local / PT: dados regerados pela seed, resultados/cache locais
+bench/data/**/*.jsonl
+bench/results/
+bench/cache/

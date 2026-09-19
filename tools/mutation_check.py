@@ -99,8 +99,8 @@ def main() -> int:
     for name, rel, original, mutated in M:
         with tempfile.TemporaryDirectory() as tmp:
             # EN: copy only what the tests need / PT: copia so o q os testes precisam
-            for d in ("src", "tests", "spec"):
-                shutil.copytree(os.path.join(R, d), os.path.join(tmp, d))
+            for d in ("src", "tests", "spec", "bench"):
+                shutil.copytree(os.path.join(R, d), os.path.join(tmp, d), ignore=shutil.ignore_patterns("*.jsonl"))
             path = os.path.join(tmp, rel)
             with open(path, encoding="utf-8") as fh:
                 code = fh.read()
@@ -109,7 +109,7 @@ def main() -> int:
                 continue
             with open(path, "w", encoding="utf-8") as fh:
                 fh.write(code.replace(original, mutated, 1))
-            env = {**os.environ, "PYTHONPATH": "src"}
+            env = {**os.environ, "PYTHONPATH": os.pathsep.join(["src", "."])}
             run = subprocess.run(
                 [sys.executable, "-m", "unittest", "discover", "-s", "tests"],
                 cwd=tmp,

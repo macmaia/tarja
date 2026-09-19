@@ -30,6 +30,8 @@ dependencies = []
 
 [project.optional-dependencies]
 dev = ["pytest>=8", "pytest-cov>=5", "hypothesis>=6", "jsonschema>=4.20", "pyyaml>=6", "ruff>=0.6"]
+# EN: optional, only to run the benchmark against other systems / PT: opcional, so p/ rodar o benchmark em outros sistemas
+bench = ["presidio-analyzer>=2.2", "azure-ai-textanalytics>=5.3", "google-cloud-dlp>=3.18", "spacy>=3.7", "anthropic>=0.40", "openai>=1.50"]
 
 # EN: "tarja" command after pip install / PT: comando "tarja" dps do pip install
 [project.scripts]
@@ -48,6 +50,8 @@ packages = ["src/tarja"]
 [tool.pytest.ini_options]
 # EN: minimum 90% coverage (same bar as Presidio) / PT: cobertura min. 90% (mesma regua do Presidio)
 testpaths = ["tests"]
+# EN: repo root on the path so tests can import bench/ / PT: raiz no path p/ os testes importarem o bench/
+pythonpath = ["."]
 addopts = "--cov=tarja --cov-report=term-missing --cov-fail-under=90"
 
 [tool.ruff]
