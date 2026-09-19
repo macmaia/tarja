@@ -21,3 +21,5 @@ data/real/
 bench/data/**/*.jsonl
 bench/results/
 bench/cache/
+# EN: private notes / PT: notas privadas
+docs/decisions.md

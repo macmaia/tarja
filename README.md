@@ -110,6 +110,6 @@ PT: fonte oficial de cada regra, e se foi conferida: `docs/SOURCES.md`. Plugin d
 
 ## licence / licença
 
-Apache 2.0. EN: why, in `docs/decisions.md`. PT: motivo em `docs/decisions.md`.
+Apache 2.0. EN: chosen for its explicit patent grant, which matters to companies. PT: escolhida pela cláusula explícita de patentes, que pesa p/ empresas.
 
 Maintained by / mantido por [@macmaia](https://github.com/macmaia) · tarja@micah6ai.com
