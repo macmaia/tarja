@@ -64,6 +64,12 @@ def _build_parser() -> argparse.ArgumentParser:
         help="print raw identifiers (personal data!) / mostra o valor cru (dado pessoal!)",
     )
 
+    scan.add_argument(
+        "--suspect",
+        action="store_true",
+        help="also report ID-shaped values with a wrong check digit (score 0) / reporta tb formato de ID c/ DV errado",
+    )
+
     # [CLI-MASK]
     mk = sub.add_parser("mask", parents=[common], help="print masked text / imprime o texto mascarado")
     mk.add_argument("--strategy", choices=STRATEGIES, default="redact")
@@ -82,7 +88,9 @@ def main(argv: list[str] | None = None) -> int:
     args = _build_parser().parse_args(argv)
     try:
         text = _read(args.path)
-        found = find(text, entities=_entities(args.entities), min_score=args.min_score)
+        # [CLI-SUSPECT] EN: only scan reports suspects, mask never touches them / PT: so o scan reporta suspeitos
+        suspect = args.command == "scan" and args.suspect
+        found = find(text, entities=_entities(args.entities), min_score=args.min_score, report_invalid=suspect)
         if args.command == "mask":
             # [CLI-MASK-RUN]
             sys.stdout.write(mask(text, strategy=args.strategy, salt=args.salt, matches=found))

@@ -24,6 +24,7 @@ PT: conferido em 19/09/2026. As cópias locais dos PDFs ficam fora do repo, em `
 | `BR_CEP` | [Correios](https://www.correios.com.br) | EN: format only / PT: só formato | beta |
 | `BR_IPTU` | [CTN, art. 32](https://www.planalto.gov.br/ccivil_03/leis/l5172compilado.htm) | EN: no national format / PT: sem formato nacional | experimental |
 | `BR_MATRICULA_IMOVEL` | [Lei 6.015/1973, art. 176](https://www.planalto.gov.br/ccivil_03/leis/l6015compilada.htm) | EN: plain sequence, no DV / PT: sequencial, sem DV | experimental |
+| `BR_CARTAO` | [ISO/IEC 7812-1:2017](https://www.iso.org/standard/70484.html) | EN: Luhn mod 10 / PT: Luhn mod 10 | beta |
 
 EN: rule: no official source found = `experimental`. Only a "yes" row can ever go `stable`.
 PT: regra: sem fonte oficial = `experimental`. Só linha c/ "sim" pode virar `stable`.

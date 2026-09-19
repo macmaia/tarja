@@ -42,6 +42,7 @@ TEMPLATES = {
         "Boleto emitido para a empresa CNPJ {BR_CNPJ}, contato pelo telefone {BR_TELEFONE}.",
         "Financiamento do imóvel com CNM {BR_CNM}, cadastro imobiliário brasileiro {BR_CIB}.",
         "Estorno solicitado pelo titular do CPF {BR_CPF} referente à chave pix {BR_PIX_EVP}.",
+        "Compra no cartão de crédito {BR_CARTAO} contestada pelo titular do CPF {BR_CPF}.",
     ],
 }
 

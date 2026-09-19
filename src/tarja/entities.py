@@ -11,6 +11,7 @@ from collections.abc import Callable
 from dataclasses import dataclass
 
 from tarja.validators import (
+    cartao,
     cep,
     cib,
     cnh,
@@ -373,5 +374,21 @@ ENTITIES: dict[str, EntitySpec] = {
         context_required=True,
         score_with_context=0.4,
         score_without_context=0.3,
+    ),
+    # [ENTITIES-CARTAO]
+    "BR_CARTAO": EntitySpec(
+        id="BR_CARTAO",
+        tier="N1",
+        patterns=(
+            _p("cartao_16", r"\b\d{4}[ -]?\d{4}[ -]?\d{4}[ -]?\d{4}\b", 0.5),
+            _p("cartao_amex", r"\b\d{4}[ -]?\d{6}[ -]?\d{5}\b", 0.4),
+            _p("cartao_compact", r"\b\d{13,19}\b", 0.1),
+        ),
+        validator=cartao.is_valid,
+        context_words=("cartao", "credito", "debito", "visa", "mastercard", "elo", "hipercard", "amex", "final"),
+        context_window=40,
+        context_required=False,
+        score_with_context=0.95,
+        score_without_context=0.8,
     ),
 }

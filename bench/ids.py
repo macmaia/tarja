@@ -14,7 +14,7 @@ import string
 import uuid
 
 from tarja.entities import ENTITIES
-from tarja.validators import cib, cnh, cnj, cnm, cnpj, cns, cpf, nis, renavam, telefone, titulo
+from tarja.validators import cartao, cib, cnh, cnj, cnm, cnpj, cns, cpf, nis, renavam, telefone, titulo
 
 DIG = string.digits
 ALNUM = string.digits + string.ascii_uppercase
@@ -119,11 +119,17 @@ def _matricula(rng):
     return str(rng.randint(100, 999999))
 
 
+def _cartao(rng):
+    # [BENCH-IDS-CARTAO] EN: Visa-like test PAN, "4" + 14 digits + Luhn / PT: PAN de teste tipo Visa, "4" + 14 digitos + Luhn
+    body = "4" + _d(rng, 14)
+    return body + cartao.luhn_check_digit(body)
+
+
 GENERATORS = {
     "BR_CPF": _cpf, "BR_CNPJ": _cnpj, "BR_CNS": _cns, "BR_NIS": _nis, "BR_CNJ": _cnj, "BR_CNM": _cnm,
     "BR_CIB": _cib, "BR_TITULO_ELEITOR": _titulo, "BR_CNH": _cnh, "BR_RENAVAM": _renavam, "BR_PLACA": _placa,
     "BR_PIX_EVP": _pix, "BR_TELEFONE": _telefone, "BR_CEP": _cep, "BR_IPTU": _iptu,
-    "BR_MATRICULA_IMOVEL": _matricula,
+    "BR_MATRICULA_IMOVEL": _matricula, "BR_CARTAO": _cartao,
 }  # fmt: skip
 
 
@@ -159,6 +165,7 @@ def render(entity: str, v: str, style: str) -> str:
         "BR_CEP": lambda: f"{v[:5]}-{v[5:]}",
         "BR_IPTU": lambda: f"{v[:3]}.{v[3:6]}.{v[6:10]}-{v[10]}",
         "BR_MATRICULA_IMOVEL": lambda: f"{int(v):,}".replace(",", "."),
+        "BR_CARTAO": lambda: f"{v[:4]} {v[4:8]} {v[8:12]} {v[12:]}",
     }[entity]()
     if style == "formatted":
         return f
@@ -178,7 +185,7 @@ def render(entity: str, v: str, style: str) -> str:
 #   placa, PIX) aceitam quase qq numero, entao nao contam p/ decidir se um parecido e "valido p/ algo".
 DV_ENTITIES = (
     "BR_CPF", "BR_CNPJ", "BR_CNS", "BR_NIS", "BR_CNJ", "BR_CNM", "BR_CIB", "BR_TITULO_ELEITOR", "BR_CNH",
-    "BR_RENAVAM",
+    "BR_RENAVAM", "BR_CARTAO",
 )  # fmt: skip
 
 

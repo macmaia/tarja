@@ -21,7 +21,8 @@ SAMPLE = (
     "Referente ao processo 0000001-83.2017.8.26.0100. Pagamento via chave pix 123e4567-e89b-42d3-a456-426614174000. "
     "Cartao SUS 729 1417 7763 1701, PIS 120.37567.08-3, titulo de eleitor 1023 4567 0388, veiculo placa ABC1D23, "
     "renavam 00639724361, CNH 12345678900. Pedido 2024-00017, nota 000123456, valor R$ 1.234,56, protocolo 98765432. "
-    "Imovel de matricula n 12.345 no registro de imoveis, CNM 123456.2.1234567-44, CIB A3N8Z4F-Y, IPTU 012.345.6789-0."
+    "Imovel de matricula n 12.345 no registro de imoveis, CNM 123456.2.1234567-44, CIB A3N8Z4F-Y, IPTU 012.345.6789-0. "
+    "Cartao de credito 4111 1111 1111 1111."
 )
 
 

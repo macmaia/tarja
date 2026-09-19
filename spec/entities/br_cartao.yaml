@@ -1,0 +1,51 @@
+# spec/entities/br_cartao.yaml
+# [SPEC-CARTAO] EN: payment card spec (credit/debit, incl. Elo and Hipercard). Follows spec/schema.json
+# [SPEC-CARTAO] PT: spec de cartao (credito/debito, inclusive Elo e Hipercard). Segue spec/schema.json
+
+id: BR_CARTAO
+name: "Cartao de pagamento"
+description: "Payment card number (credit/debit, incl. Brazilian brands Elo and Hipercard). 13-19 digits, Luhn check digit."
+description_pt: "Numero de cartao (credito/debito, inclusive Elo e Hipercard). 13-19 digitos, DV Luhn."
+country_code: br
+tier: N1            # EN: Luhn check digit / PT: DV Luhn
+status: beta
+since: "0.5"
+lgpd:
+  category: pessoal
+  note: "EN: not Brazil-specific, but always present in Brazilian data; PCI DSS also applies. PT: nao e so do Brasil, mas aparece sempre em dado BR; PCI DSS tb se aplica."
+
+# EN: candidate regexes / PT: regex de candidatos
+patterns:
+  - name: cartao_16       # 4111 1111 1111 1111
+    regex: '\b\d{4}[ -]?\d{4}[ -]?\d{4}[ -]?\d{4}\b'
+    score: 0.5
+  - name: cartao_amex     # 3782 822463 10005
+    regex: '\b\d{4}[ -]?\d{6}[ -]?\d{5}\b'
+    score: 0.4
+  - name: cartao_compact  # 4111111111111111
+    regex: '\b\d{13,19}\b'
+    score: 0.1
+
+validator:
+  function: tarja.validators.cartao.is_valid
+  algorithm: "Luhn (mod 10), 13-19 digits"
+
+context:
+  words: ["cartao", "credito", "debito", "visa", "mastercard", "elo", "hipercard", "amex", "final"]
+  window: 40
+  required: false
+
+score:
+  valid_with_context: 0.95
+  valid_without_context: 0.8
+  invalid_dv: null
+
+sources:
+  - title: "ISO/IEC 7812-1, identification cards, numbering system and Luhn check digit"
+    url: https://www.iso.org/standard/70484.html
+    accessed: "2026-09-19"
+
+# EN: public test numbers published by card networks / PT: numeros de teste publicos das bandeiras
+examples:
+  valid: ["4111 1111 1111 1111", "5555555555554444", "3782 822463 10005"]
+  invalid: ["4111 1111 1111 1112", "0000000000000000", "411111111111"]

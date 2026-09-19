@@ -1,27 +1,27 @@
 {
   "bench_version": "0.1.0",
-  "tarja_version": "0.4.0.dev0",
+  "tarja_version": "0.5.0.dev0",
   "seed": 42,
   "files": {
     "synthetic_controlled.dev.jsonl": {
       "docs": 1500,
-      "spans": 5802,
-      "sha256": "166780416f58103c47a150d13e7ceedc12030acfc717bbdb917397ed8e5f85c8"
+      "spans": 5925,
+      "sha256": "c60ec07c0bdb1f9384700f586baa3cd23958389406a2c3eb47ca428eab310b07"
     },
     "synthetic_controlled.test.jsonl": {
       "docs": 3500,
-      "spans": 13597,
-      "sha256": "fbcb173235dac4d49aa1c4ec53515435bdbd0f0d4dcabfba0e25e03426ed2747"
+      "spans": 13752,
+      "sha256": "3e759af3a3af3381bf0d1421059b24db15edf67f2f8caf8e9b88df924b36446f"
     },
     "synthetic_adversarial.dev.jsonl": {
       "docs": 900,
-      "spans": 3599,
-      "sha256": "894e88d6edc9916bd121578738cd3493907ef9993100d018ad27e65c3922901d"
+      "spans": 3568,
+      "sha256": "07c8779af1f21cef0b77f969c333035451ede813b6c774d46b61a19142da64d3"
     },
     "synthetic_adversarial.test.jsonl": {
       "docs": 2100,
-      "spans": 8288,
-      "sha256": "ba2dda30574f531ce1762f7b861be2d314dfb659fb0cd1c9edab051f87332364"
+      "spans": 8305,
+      "sha256": "20f177f7a09a622a56238dcbbb90586adff97390ea38a1b4800bef7a4ce41fe2"
     }
   }
 }

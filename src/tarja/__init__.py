@@ -1,6 +1,8 @@
 # tarja/__init__.py
-# EN: Public API: find() (search text), mask() (replace), validate() (check one value).
-# PT: API publica: find() (busca no texto), mask() (substitui), validate() (confere 1 valor).
+# EN: Public API: find() (search), mask() (replace), validate() (check one value), Vault (reversible
+#     tokens), residual() (second-pass check).
+# PT: API publica: find() (busca), mask() (substitui), validate() (confere 1 valor), Vault (token
+#     reversivel), residual() (checagem de 2a passada).
 # author/autoria: https://github.com/macmaia
 
 # EN: import the validator modules (one file per document type in validators/)
@@ -8,12 +10,15 @@
 from tarja.detect import Match, find, resolve_overlaps
 from tarja.entities import ENTITIES
 from tarja.mask import mask
-from tarja.validators import cnj, cnpj, cns, cpf, nis
+from tarja.validators import cartao, cnj, cnpj, cns, cpf, nis
+from tarja.vault import Vault, residual
 
 # EN: what "from tarja import *" exposes / PT: o q sai no "from tarja import *"
 __all__ = [
     "ENTITIES",
     "Match",
+    "Vault",
+    "cartao",
     "cnj",
     "cnpj",
     "cns",
@@ -21,13 +26,14 @@ __all__ = [
     "find",
     "mask",
     "nis",
+    "residual",
     "resolve_overlaps",
     "validate",
 ]
 
 # EN: version read by hatch at build time (see pyproject.toml, [tool.hatch.version])
 # PT: versao lida pelo hatch no build (ver pyproject.toml, [tool.hatch.version])
-__version__ = "0.4.0.dev0"
+__version__ = "0.5.0.dev0"
 
 
 def validate(entity: str, value: str) -> bool:

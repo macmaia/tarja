@@ -33,7 +33,19 @@ tarja.mask(text, strategy="pseudonym")  # <BR_CPF_1>, same value -> same label /
 tarja.mask(text, strategy="hash", salt="your-secret")  # <BR_CPF:3f9a1c0b2e7d>
 
 tarja.validate("BR_CNPJ", "12.ABC.345/01DE-35")  # True (alphanumeric CNPJ / CNPJ alfanum)
+
+# EN: typos with a wrong check digit, score 0, valid_dv=False / PT: digitacao c/ DV errado, score 0, valid_dv=False
+tarja.find("cpf 529.982.247-24", report_invalid=True)
+
+# EN: reversible tokens, e.g. before sending text to an LLM / PT: token reversivel, ex. antes de mandar p/ um LLM
+vault = tarja.Vault()
+safe = vault.protect(text)  # "Paciente CPF <BR_CPF:4b1a3edcd5f6>, ..."
+vault.reveal(safe)  # original text / texto original
+tarja.residual(safe)  # [] = nothing leaked / nada vazou
 ```
+
+EN: `Vault` keeps the mapping in memory for one process. For multi-tenant production use (key in KMS, per-session rehydration, probing quotas, audit trail) see the paid Tarja Gateway.
+PT: o `Vault` guarda o mapa em memória num processo só. P/ produção multi-tenant (chave em KMS, reidratação por sessão, quota anti-sondagem, trilha de auditoria) veja o Tarja Gateway pago.
 
 EN: `hash` is pseudonymisation, not anonymisation under the LGPD: whoever has the salt can link it back.
 PT: `hash` é pseudonimização, não anonimização na LGPD: quem tem o salt consegue religar.
@@ -44,6 +56,7 @@ PT: `hash` é pseudonimização, não anonimização na LGPD: quem tem o salt co
 tarja scan contrato.txt                  # JSON lines, values hidden / valores escondidos
 tarja scan contrato.txt --format table
 tarja scan contrato.txt --show-values    # EN: raw values, careful / PT: valor cru, cuidado
+tarja scan contrato.txt --suspect        # EN: also wrong check digits / PT: tb DV errado
 tarja mask contrato.txt > limpo.txt
 cat log.txt | tarja scan - --entities BR_CPF,BR_CNPJ --min-score 0.9
 ```
@@ -71,9 +84,10 @@ PT: exit code 1 qdo acha algo, 0 qdo limpo, 2 em erro. Útil em CI.
 | `BR_CIB` | national property cadastre / Cadastro Imobiliário Brasileiro (needs context / exige contexto) | N1 | beta |
 | `BR_IPTU` | municipal property tax ID / inscrição do IPTU (needs context / exige contexto) | N3 | experimental |
 | `BR_MATRICULA_IMOVEL` | property registry number / matrícula do imóvel (needs context / exige contexto) | N3 | experimental |
+| `BR_CARTAO` | payment card, Luhn / cartão de crédito ou débito | N1 | beta |
 
-EN: N1 = strong check digit, N2 = format only, N3 = needs context, N4 = NER. Scores: N1 0.95 with a context word nearby, 0.8 to 0.9 without. N2 0.7 / 0.5. N3 only with context, 0.5. Wrong check digit = dropped. Speed: ~1 ms per 100 tokens, 16 entities.
-PT: N1 = DV forte, N2 = só formato, N3 = depende de contexto, N4 = NER. Score: N1 0.95 c/ palavra de contexto perto, 0.8 a 0.9 sem. N2 0.7 / 0.5. N3 só c/ contexto, 0.5. DV errado = descartado. Velocidade: ~1 ms por 100 tokens, 16 entidades.
+EN: N1 = strong check digit, N2 = format only, N3 = needs context, N4 = NER. Scores: N1 0.95 with a context word nearby, 0.8 to 0.9 without. N2 0.7 / 0.5. N3 only with context, 0.5. Wrong check digit = dropped (unless `report_invalid=True`). Speed: ~1 ms per 100 tokens, 17 entities.
+PT: N1 = DV forte, N2 = só formato, N3 = depende de contexto, N4 = NER. Score: N1 0.95 c/ palavra de contexto perto, 0.8 a 0.9 sem. N2 0.7 / 0.5. N3 só c/ contexto, 0.5. DV errado = descartado (exceto c/ `report_invalid=True`). Velocidade: ~1 ms por 100 tokens, 17 entidades.
 
 ## layout / organização
 

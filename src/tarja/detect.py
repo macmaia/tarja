@@ -37,6 +37,9 @@ class Match:
     tier: str
     pattern: str
     has_context: bool
+    # [DETECT-SUSPECT] EN: False = right shape, WRONG check digit (only with find(report_invalid=True), score 0)
+    # [DETECT-SUSPECT] PT: False = formato certo, DV ERRADO (so c/ find(report_invalid=True), score 0)
+    valid_dv: bool = True
 
     def to_dict(self, include_value: bool = True) -> dict:
         """EN: Plain dict for JSON output. include_value=False drops the raw identifier.
@@ -51,6 +54,7 @@ class Match:
             "tier": self.tier,
             "pattern": self.pattern,
             "has_context": self.has_context,
+            "valid_dv": self.valid_dv,
         }
         if include_value:
             d["value"] = self.value
@@ -76,7 +80,13 @@ def _has_context(folded: str, start: int, end: int, spec: EntitySpec) -> bool:
     return _context_regex(spec.context_words).search(window) is not None
 
 
-def _candidates(norm: str, folded: str, text: str, spec: EntitySpec) -> Iterable[Match]:
+# [DETECT-SUSPECT-MIN] EN: only "formatted" patterns (base score >= 0.5) can raise a suspect, so random digit
+#   runs don't flood the report / PT: so padrao "formatado" (score base >= 0.5) gera suspeito, p/ sequencia
+#   aleatoria de digitos nao inundar o relatorio
+SUSPECT_MIN_PATTERN_SCORE = 0.5
+
+
+def _candidates(norm: str, folded: str, text: str, spec: EntitySpec, report_invalid: bool = False) -> Iterable[Match]:
     # [DETECT-CANDIDATES] EN: every regex hit that passes the check digit, one Match per distinct span
     # [DETECT-CANDIDATES] PT: todo hit de regex q passa no DV, 1 Match por trecho distinto
     seen: set[tuple[int, int]] = set()
@@ -88,6 +98,11 @@ def _candidates(norm: str, folded: str, text: str, spec: EntitySpec) -> Iterable
             seen.add(span)
             # EN: validate on the normalised slice (ASCII digits etc) / PT: valida no trecho normalizado
             if spec.validator is not None and not spec.validator(m.group(0)):
+                # [DETECT-SUSPECT-EMIT] EN: N1 look-alike with wrong DV, reported with score 0 when asked
+                # [DETECT-SUSPECT-EMIT] PT: parecido N1 c/ DV errado, reportado c/ score 0 qdo pedido
+                if report_invalid and spec.tier == "N1" and pat.score >= SUSPECT_MIN_PATTERN_SCORE:
+                    ctx = _has_context(folded, m.start(), m.end(), spec)
+                    yield Match(spec.id, m.start(), m.end(), text[m.start() : m.end()], 0.0, spec.tier, pat.name, ctx, False)
                 continue
             ctx = _has_context(folded, m.start(), m.end(), spec)
             # EN: entities that require context are dropped without it / PT: entidade q exige contexto cai sem ele
@@ -133,13 +148,16 @@ def find(
     entities: Iterable[str] | None = None,
     min_score: float = 0.0,
     resolve: bool = True,
+    report_invalid: bool = False,
 ) -> list[Match]:
     """EN: Find Brazilian identifiers in text.
     entities: subset of ids (e.g. ["BR_CPF"]), default all. min_score: drop anything below.
     resolve: resolve overlaps between entities (default True).
+    report_invalid: also return N1 look-alikes with a WRONG check digit (valid_dv=False, score 0), e.g. typos.
     PT: Acha identificadores brasileiros no texto.
     entities: subconjunto de ids (ex: ["BR_CPF"]), padrao todos. min_score: descarta abaixo disso.
     resolve: resolve sobreposicao entre entidades (padrao True).
+    report_invalid: devolve tb parecidos N1 c/ DV ERRADO (valid_dv=False, score 0), ex: erro de digitacao.
     """
     # [FIND] EN: type check / PT: confere tipo
     if not isinstance(text, str):
@@ -153,7 +171,14 @@ def find(
     folded = fold(norm)
     found: list[Match] = []
     for eid in ids:
-        found.extend(_candidates(norm, folded, text, ENTITIES[eid]))
-    found = [m for m in found if m.score >= min_score]
+        found.extend(_candidates(norm, folded, text, ENTITIES[eid], report_invalid))
+    # [FIND-SPLIT] EN: suspects never compete with valid matches / PT: suspeito nunca compete c/ match valido
+    suspects = [m for m in found if not m.valid_dv]
+    found = [m for m in found if m.valid_dv and m.score >= min_score]
     # [FIND-RESOLVE]
-    return resolve_overlaps(found, ids) if resolve else sorted(found, key=lambda m: (m.start, m.end))
+    kept = resolve_overlaps(found, ids) if resolve else sorted(found, key=lambda m: (m.start, m.end))
+    if suspects:
+        # EN: a suspect survives only where no valid match sits / PT: suspeito so fica onde nao tem match valido
+        free = [x for x in suspects if all(x.end <= k.start or x.start >= k.end for k in kept)]
+        kept = sorted(kept + resolve_overlaps(free, ids), key=lambda m: (m.start, m.end))
+    return kept
