@@ -1,36 +1,26 @@
 # tarja/validators/titulo.py
-# [TITULO] EN: voter ID validation ("titulo de eleitor"), 12 digits: 8 sequence + 2 state code + 2 check digits.
-# [TITULO] PT: validacao do titulo de eleitor, 12 digitos: 8 sequencial + 2 codigo da UF + 2 DVs.
+# [TITULO] voter ID validation ("titulo de eleitor"), 12 digits: 8 sequence + 2 state code + 2 check digits.
 #
-# EN: Rule:
+# Rule:
 #   state code (positions 9-10) must be 01..28 (28 = voters abroad)
 #   DV1 = sum(seq[i] * (2..9)) % 11, 10 -> 0
 #   DV2 = (uf[0]*7 + uf[1]*8 + DV1*9) % 11, 10 -> 0
 #   quirk: for SP (01) and MG (02), a remainder of 0 becomes 1, for both digits
-# PT: Regra:
-#   codigo da UF (posicoes 9-10) tem q ser 01..28 (28 = exterior)
-#   DV1 = soma(seq[i] * (2..9)) % 11, 10 -> 0
-#   DV2 = (uf[0]*7 + uf[1]*8 + DV1*9) % 11, 10 -> 0
-#   pegadinha: p/ SP (01) e MG (02), resto 0 vira 1, nos 2 DVs
 #
-# EN: Source: TSE Res. 23.659/2021, art. 36 (read): 12 digits, 8 sequence + state code table 01..28 + 2 DVs
+# Source: TSE Res. 23.659/2021, art. 36 (read): 12 digits, 8 sequence + state code table 01..28 + 2 DVs
 #     "com base no Modulo 11", DV1 over the sequence, DV2 over state code + DV1. Weights and the SP/MG rule are
 #     NOT in the text, they come from the long-standing public routine (e.g. Wikipedia / Ghiorzi).
-# PT: Fonte: Res. TSE 23.659/2021, art. 36 (lida): 12 digitos, 8 sequencial + tabela de UF 01..28 + 2 DVs
-#     "com base no Modulo 11", DV1 sobre o sequencial, DV2 sobre UF + DV1. Pesos e regra SP/MG NAO estao no
-#     texto, vem da rotina publica usada ha anos (ex: Wikipedia / Ghiorzi).
-#   https://www.tse.jus.br/legislacao/compilada/res/2021/resolucao-no-23-659-de-26-de-outubro-de-2021
 
 from __future__ import annotations
 
 import re
 
-# [TITULO-REGEX] EN: strips dots, dashes, slashes, whitespace / PT: tira ponto, traco, barra, espaco
+# [TITULO-REGEX] strips dots, dashes, slashes, whitespace
 _STRIP = re.compile(r"[\s.\-/]")
-# [TITULO-REGEX] EN: 12 digits once cleaned / PT: 12 digitos depois de limpo
+# [TITULO-REGEX] 12 digits once cleaned
 _DIGITS12 = re.compile(r"\d{12}")
 
-# [TITULO-UF] EN: state codes, for reference and for format_state() / PT: codigos de UF, p/ consulta e p/ state()
+# [TITULO-UF] state codes, for reference and for format_state()
 STATES = {
     "01": "SP", "02": "MG", "03": "RJ", "04": "RS", "05": "BA", "06": "PR", "07": "CE",
     "08": "PE", "09": "SC", "10": "GO", "11": "MA", "12": "PB", "13": "PA", "14": "ES",
@@ -50,16 +40,16 @@ def compute_check_digits(sequence8: str, state2: str) -> str:
     """EN: 8-digit sequence + 2-digit state code -> 2 check digits (e.g. "06").
     PT: sequencial de 8 digitos + codigo da UF de 2 -> 2 DVs (ex: "06").
     """
-    # [TITULO-DV] EN: input check / PT: confere entrada
+    # [TITULO-DV] input check
     if not re.fullmatch(r"\d{8}", sequence8) or state2 not in STATES:
         raise ValueError("need 8 digits + state code 01..28 / precisa de 8 digitos + UF 01..28")
     sp_mg = state2 in ("01", "02")
-    # EN: DV1, weights 2..9 / PT: DV1, pesos 2..9
+    # DV1, weights 2..9
     r1 = sum(int(d) * w for d, w in zip(sequence8, range(2, 10), strict=True)) % 11
     d1 = 0 if r1 == 10 else r1
     if sp_mg and r1 == 0:
         d1 = 1
-    # EN: DV2, state digits (weights 7, 8) + DV1 (weight 9) / PT: DV2, digitos da UF (pesos 7, 8) + DV1 (peso 9)
+    # DV2, state digits (weights 7, 8) + DV1 (weight 9)
     r2 = (int(state2[0]) * 7 + int(state2[1]) * 8 + d1 * 9) % 11
     d2 = 0 if r2 == 10 else r2
     if sp_mg and r2 == 0:
@@ -71,7 +61,7 @@ def is_valid(value: str) -> bool:
     """EN: True if value is a voter ID with valid state code and check digits. Accepts 0043 5687 0906 or digits.
     PT: True se for titulo c/ UF e DVs validos. Aceita 0043 5687 0906 ou so digitos.
     """
-    # [TITULO-VALID] EN: wrong type / format -> False / PT: tipo / formato errado -> False
+    # [TITULO-VALID] wrong type / format -> False
     if not isinstance(value, str):
         return False
     v = normalise(value)

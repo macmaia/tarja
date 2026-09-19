@@ -1,5 +1,5 @@
 # bench/runners/tarja_runner.py
-# [BENCH-RUNNER-TARJA] EN: tarja itself, pinned version recorded. PT: o proprio tarja, versao gravada.
+# [BENCH-RUNNER-TARJA] tarja itself, pinned version recorded.
 
 from __future__ import annotations
 

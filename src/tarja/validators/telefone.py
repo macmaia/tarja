@@ -1,17 +1,15 @@
 # tarja/validators/telefone.py
-# [TELEFONE] EN: Brazilian phone number check (no check digit). Validates the area code (DDD) and the shape:
+# [TELEFONE] Brazilian phone number check (no check digit). Validates the area code (DDD) and the shape:
 #   mobile = 9 digits starting with 9, landline = 8 digits starting with 2-5. Country code +55 optional.
-# [TELEFONE] PT: checagem de telefone BR (sem DV). Valida o DDD e o formato:
-#   celular = 9 digitos comecando c/ 9, fixo = 8 digitos comecando c/ 2-5. +55 opcional.
 #
-# EN: Source: Anatel, national numbering plan (area codes) / PT: Fonte: Anatel, plano de numeracao (DDDs)
+# Source: Anatel, national numbering plan (area codes)
 #   https://www.gov.br/anatel/pt-br/regulado/numeracao
 
 from __future__ import annotations
 
 import re
 
-# [TELEFONE-DDD] EN: valid area codes / PT: DDDs validos
+# [TELEFONE-DDD] valid area codes
 DDDS = frozenset(
     {
         "11", "12", "13", "14", "15", "16", "17", "18", "19", "21", "22", "24", "27", "28",

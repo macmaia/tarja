@@ -1,13 +1,10 @@
 # bench/templates.py
-# [BENCH-TEMPLATES] EN: Portuguese sentence templates per domain. {ENTITY} slots get filled with generated values.
+# [BENCH-TEMPLATES] Portuguese sentence templates per domain. {ENTITY} slots get filled with generated values.
 #   Each slot sits next to a natural context word, the way these numbers show up in real documents.
 #   Fixed text avoids digit runs that could form an identifier by accident (checked in tests).
-# [BENCH-TEMPLATES] PT: modelos de frase em PT por dominio. Os slots {ENTIDADE} recebem valores gerados.
-#   Cada slot fica perto de uma palavra de contexto natural, como esses numeros aparecem em doc real.
-#   O texto fixo evita sequencia de digitos q forme identificador sem querer (checado nos testes).
 
 TEMPLATES = {
-    # [BENCH-TEMPLATES-HEALTH] EN: health / PT: saude
+    # [BENCH-TEMPLATES-HEALTH] health
     "saude": [
         "Paciente atendida na UBS, cartão SUS {BR_CNS}, CPF {BR_CPF}.",
         "Encaminhamento: portador do CNS {BR_CNS}, contato pelo telefone {BR_TELEFONE}.",
@@ -16,7 +13,7 @@ TEMPLATES = {
         "Beneficiário com NIS {BR_NIS} e cartão SUS {BR_CNS} deve retornar em trinta dias.",
         "Ficha de notificação: CPF {BR_CPF}, celular {BR_TELEFONE}, CEP {BR_CEP}.",
     ],
-    # [BENCH-TEMPLATES-LEGAL] EN: legal / PT: juridico
+    # [BENCH-TEMPLATES-LEGAL] legal
     "juridico": [
         "Autos do processo {BR_CNJ}, em que figura como autor o titular do CPF {BR_CPF}.",
         "A empresa ré, inscrita no CNPJ {BR_CNPJ}, foi intimada no processo {BR_CNJ}.",
@@ -25,7 +22,7 @@ TEMPLATES = {
         "Consta da certidão o CIB {BR_CIB} e a inscrição do IPTU {BR_IPTU} do imóvel.",
         "Testemunha portadora do título de eleitor {BR_TITULO_ELEITOR} e CPF {BR_CPF}.",
     ],
-    # [BENCH-TEMPLATES-ADMIN] EN: administrative / PT: administrativo
+    # [BENCH-TEMPLATES-ADMIN] administrative
     "administrativo": [
         "Nomear o servidor inscrito no CPF {BR_CPF}, PIS/PASEP {BR_NIS}, para o cargo.",
         "Autuação do veículo placa {BR_PLACA}, renavam {BR_RENAVAM}, conduzido por titular da CNH {BR_CNH}.",
@@ -34,7 +31,7 @@ TEMPLATES = {
         "Notificação do lançamento de IPTU da inscrição imobiliária {BR_IPTU}.",
         "Licenciamento anual: carro de placa {BR_PLACA} e código renavam {BR_RENAVAM}.",
     ],
-    # [BENCH-TEMPLATES-FINANCE] EN: financial / PT: financeiro
+    # [BENCH-TEMPLATES-FINANCE] financial
     "financeiro": [
         "Pagamento via chave pix {BR_PIX_EVP}, favorecido CPF {BR_CPF}.",
         "Transferência recebida da empresa CNPJ {BR_CNPJ}, chave aleatória {BR_PIX_EVP}.",
@@ -46,8 +43,7 @@ TEMPLATES = {
     ],
 }
 
-# [BENCH-TEMPLATES-FILLER] EN: neutral sentences with NO identifiers, to pad documents
-# [BENCH-TEMPLATES-FILLER] PT: frases neutras SEM identificador, p/ encher o documento
+# [BENCH-TEMPLATES-FILLER] neutral sentences with NO identifiers, to pad documents
 FILLER = [
     "Nada mais havendo a tratar, encerra-se o presente registro.",
     "O documento segue anexo para conferência.",
@@ -56,8 +52,7 @@ FILLER = [
     "Sem outras observações.",
 ]
 
-# [BENCH-TEMPLATES-CONFUSABLE] EN: D5 swaps: the context word says A, the number is really B
-# [BENCH-TEMPLATES-CONFUSABLE] PT: trocas D5: a palavra de contexto diz A, o numero e na verdade B
+# [BENCH-TEMPLATES-CONFUSABLE] D5 swaps: the context word says A, the number is really B
 CONFUSABLE = {
     "BR_CPF": ["BR_NIS", "BR_CNH", "BR_RENAVAM"],
     "BR_NIS": ["BR_CPF"],

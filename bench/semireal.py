@@ -1,16 +1,11 @@
 # bench/semireal.py
-# [BENCH-SEMIREAL] EN: E4.3, semi-real subset. Takes REAL public texts that carry no personal data (laws, decrees,
+# [BENCH-SEMIREAL] E4.3, semi-real subset. Takes REAL public texts that carry no personal data (laws, decrees,
 #   public notices...), cuts them into paragraphs and inserts generated identifiers with a context phrase at a
 #   sentence boundary. Real Portuguese around, synthetic identifiers inside, so nobody's data is exposed.
 #   Input: a folder of .txt files + a sources.json saying where each came from and its licence.
 #   Brazilian laws and official acts are NOT protected by copyright (Lei 9.610/1998, art. 8, IV).
-# [BENCH-SEMIREAL] PT: E4.3, subconjunto semi-real. Pega textos publicos REAIS sem dado pessoal (leis, decretos,
-#   editais...), corta em paragrafos e insere identificadores gerados c/ frase de contexto numa fronteira de frase.
-#   Portugues real em volta, identificador sintetico dentro, entao ninguem tem dado exposto.
-#   Entrada: pasta de .txt + sources.json dizendo de onde veio cada um e a licenca.
-#   Lei e ato oficial NAO tem direito autoral (Lei 9.610/1998, art. 8, IV).
 #
-# EN: usage / PT: uso:  python -m bench.semireal --src ../corpus_publico --n 2000 --out bench/data/v0.1
+# usage
 
 from __future__ import annotations
 
@@ -23,7 +18,7 @@ from pathlib import Path
 import tarja
 from bench.ids import generate, render
 
-# [BENCH-SEMIREAL-PHRASES] EN: insertion phrases, {} = the identifier / PT: frases de insercao, {} = o identificador
+# [BENCH-SEMIREAL-PHRASES] insertion phrases, {} = the identifier
 PHRASES = {
     "BR_CPF": "Interessado inscrito no CPF {}.",
     "BR_CNPJ": "Requerente: empresa inscrita no CNPJ {}.",
@@ -41,6 +36,7 @@ PHRASES = {
     "BR_CEP": "Endereco no CEP {}.",
     "BR_IPTU": "Inscricao do IPTU {}.",
     "BR_MATRICULA_IMOVEL": "Matricula do imovel {} no registro de imoveis.",
+    "BR_CARTAO": "Pagamento no cartao de credito {}.",
 }
 _SENT_END = re.compile(r"(?<=[.;:])\s+")
 
@@ -52,8 +48,7 @@ def paragraphs(folder: Path, min_len: int = 200, max_len: int = 1200):
         for p in re.split(r"\n\s*\n", f.read_text(encoding="utf-8")):
             p = " ".join(p.split())
             if min_len <= len(p) <= max_len and not tarja.find(p):
-                # EN: skip paragraphs that already contain something tarja flags (keeps gold clean)
-                # PT: pula paragrafo q ja tem algo q o tarja marca (mantem o gold limpo)
+                # skip paragraphs that already contain something tarja flags (keeps gold clean)
                 yield f.name, p
 
 
@@ -67,7 +62,7 @@ def insert(paragraph: str, rng: random.Random, k: int) -> tuple[str, list[dict]]
         value = render(ent, generate(ent, rng), rng.choice(["formatted", "formatted", "compact"]))
         phrase = PHRASES[ent]
         sents.insert(rng.randint(0, len(sents)), phrase.format(value))
-        # EN: remember which phrase, spans are computed after joining / PT: guarda a frase, span calculado dps de juntar
+        # remember which phrase, spans are computed after joining
         spans.append((phrase.format(value), phrase.index("{}"), len(value), ent))
     text = " ".join(sents)
     out, cursor = [], 0

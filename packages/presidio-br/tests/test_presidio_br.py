@@ -1,8 +1,6 @@
 # packages/presidio-br/tests/test_presidio_br.py
-# [TEST-PRESIDIO-BR] EN: runs against the REAL presidio-analyzer. Locally it's skipped if Presidio isn't installed,
+# [TEST-PRESIDIO-BR] runs against the REAL presidio-analyzer. Locally it's skipped if Presidio isn't installed,
 #   but in CI TARJA_REQUIRE_PRESIDIO=1 turns a missing Presidio into a hard failure (no silent skip).
-# [TEST-PRESIDIO-BR] PT: roda contra o presidio-analyzer DE VERDADE. Local, pula se o Presidio nao estiver instalado,
-#   mas na CI TARJA_REQUIRE_PRESIDIO=1 transforma Presidio faltando em falha (sem pulo silencioso).
 
 import os
 import pathlib
@@ -10,7 +8,7 @@ import pathlib
 import pytest
 
 if os.environ.get("TARJA_REQUIRE_PRESIDIO") == "1":
-    import presidio_analyzer  # noqa: F401  EN: must import, or fail / PT: tem q importar, ou falha
+    import presidio_analyzer  # noqa: F401  must import, or fail
 else:
     pytest.importorskip("presidio_analyzer")
 
@@ -19,7 +17,7 @@ import yaml  # noqa: E402
 
 from tarja.entities import ENTITIES  # noqa: E402
 
-# EN: repo root, to read the yaml examples / PT: raiz do repo, p/ ler os exemplos do yaml
+# repo root, to read the yaml examples
 ROOT = pathlib.Path(__file__).resolve().parents[3]
 
 
@@ -29,7 +27,7 @@ def _examples(entity_id):
 
 
 def test_one_recognizer_per_entity():
-    # [TEST-PRESIDIO-BR] EN: all entities, right names and country / PT: todas as entidades, nomes e pais certos
+    # [TEST-PRESIDIO-BR] all entities, right names and country
     recs = presidio_br.get_recognizers()
     assert [r.supported_entities[0] for r in recs] == list(ENTITIES)
     assert all(r.COUNTRY_CODE == "br" and r.supported_language == "pt" for r in recs)
@@ -38,8 +36,7 @@ def test_one_recognizer_per_entity():
 
 @pytest.mark.parametrize("entity_id", list(ENTITIES))
 def test_examples_through_presidio(entity_id):
-    # [TEST-PRESIDIO-BR] EN: valid examples are found (with a context word), invalid ones are not
-    # [TEST-PRESIDIO-BR] PT: exemplos validos sao achados (c/ palavra de contexto), invalidos nao
+    # [TEST-PRESIDIO-BR] valid examples are found (with a context word), invalid ones are not
     rec = presidio_br.TarjaRecognizer(entity_id)
     word = ENTITIES[entity_id].context_words[0]
     valid, invalid = _examples(entity_id)
@@ -49,22 +46,19 @@ def test_examples_through_presidio(entity_id):
     for v in invalid:
         res = rec.analyze(f"{word} {v}", [entity_id])
         spans = [f"{word} {v}"[r.start : r.end] for r in res]
-        # EN: an invalid example may still contain a valid shorter match, but never itself
-        # PT: exemplo invalido pode conter um match menor valido, mas nunca ele inteiro
+        # an invalid example may still contain a valid shorter match, but never itself
         assert v not in spans, (entity_id, v, spans)
 
 
 def test_validate_result_mapping():
-    # [TEST-PRESIDIO-BR] EN: True for valid N1, False for wrong DV, None when context is required
-    # [TEST-PRESIDIO-BR] PT: True p/ N1 valido, False p/ DV errado, None qdo exige contexto
+    # [TEST-PRESIDIO-BR] True for valid N1, False for wrong DV, None when context is required
     assert presidio_br.TarjaRecognizer("BR_CPF").validate_result("529.982.247-25") is True
     assert presidio_br.TarjaRecognizer("BR_CPF").validate_result("529.982.247-24") is False
     assert presidio_br.TarjaRecognizer("BR_CEP").validate_result("22290-140") is None
 
 
 def test_register_and_analyzer_engine():
-    # [TEST-PRESIDIO-BR] EN: end to end with AnalyzerEngine, no NLP model needed for pattern recognizers
-    # [TEST-PRESIDIO-BR] PT: ponta a ponta c/ AnalyzerEngine, sem modelo NLP p/ reconhecedor de padrao
+    # [TEST-PRESIDIO-BR] end to end with AnalyzerEngine, no NLP model needed for pattern recognizers
     from presidio_analyzer import AnalyzerEngine, RecognizerRegistry
 
     registry = RecognizerRegistry(supported_languages=["pt"])
@@ -75,7 +69,7 @@ def test_register_and_analyzer_engine():
 
 
 def test_unknown_entity():
-    # [TEST-PRESIDIO-BR] EN: clear error / PT: erro claro
+    # [TEST-PRESIDIO-BR] clear error
     with pytest.raises(KeyError):
         presidio_br.TarjaRecognizer("BR_XYZ")
 

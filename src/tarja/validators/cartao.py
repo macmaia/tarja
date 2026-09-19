@@ -1,12 +1,8 @@
 # tarja/validators/cartao.py
-# [CARTAO] EN: payment card number check (credit/debit, incl. Brazilian brands like Elo and Hipercard).
+# [CARTAO] payment card number check (credit/debit, incl. Brazilian brands like Elo and Hipercard).
 #   13 to 19 digits, Luhn (mod 10) check digit. Not Brazil-specific, but always present in Brazilian data.
-# [CARTAO] PT: checagem de numero de cartao (credito/debito, inclusive bandeiras BR como Elo e Hipercard).
-#   13 a 19 digitos, DV Luhn (mod 10). Nao e so do Brasil, mas aparece sempre em dado brasileiro.
 #
-# EN: Source: ISO/IEC 7812-1 (issuer identification numbers and the Luhn check digit)
-# PT: Fonte: ISO/IEC 7812-1 (numeros de identificacao do emissor e o DV Luhn)
-#   https://www.iso.org/standard/70484.html
+# Source: ISO/IEC 7812-1 (issuer identification numbers and the Luhn check digit)
 
 from __future__ import annotations
 

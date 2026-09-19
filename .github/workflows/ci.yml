@@ -18,7 +18,7 @@ jobs:
   lint:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
@@ -35,7 +35,7 @@ jobs:
       matrix:
         python-version: ["3.10", "3.11", "3.12", "3.13"]
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - uses: actions/setup-python@v6
         with:
           python-version: ${{ matrix.python-version }}
@@ -50,12 +50,23 @@ jobs:
       # [CI-PERF] EN: E2.8, print the speed number in the log (pytest hides prints) / PT: E2.8, mostra a velocidade no log
       - run: python -m unittest tests.test_perf -v
 
+  # [CI-TYPES] static type check of the public package (py.typed is shipped, so types are part of the API)
+  types:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/setup-python@v6
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev]"
+      - run: mypy
+
   # [CI-MUTATION] EN: proves the tests catch real bugs: 27 deliberate bugs, all must make the suite fail
   # [CI-MUTATION] PT: prova q os testes pegam bug de verdade: 27 bugs de proposito, todos tem q derrubar a suite
   mutation:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"
@@ -67,7 +78,7 @@ jobs:
   presidio-br:
     runs-on: ubuntu-24.04
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - uses: actions/setup-python@v6
         with:
           python-version: "3.12"

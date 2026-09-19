@@ -1,8 +1,8 @@
 # tarja-bench
 
-**EN** · Benchmark for detecting Brazilian personal identifiers in Portuguese text. Built for the LREC paper (see the planning doc) and to compare tarja, Presidio, cloud DLPs, NER models and LLMs on equal terms.
+**EN** · Benchmark for detecting Brazilian personal identifiers in Portuguese text. Built for the resource paper (ARR, see the planning doc) and to compare tarja, Presidio, cloud DLPs, NER models and LLMs on equal terms.
 
-**PT** · Benchmark de detecção de identificadores brasileiros em texto em português. Feito p/ o artigo do LREC e p/ comparar tarja, Presidio, DLPs de nuvem, NER e LLMs nas mesmas condições.
+**PT** · Benchmark de detecção de identificadores brasileiros em texto em português. Feito p/ o artigo de recurso (ARR) e p/ comparar tarja, Presidio, DLPs de nuvem, NER e LLMs nas mesmas condições.
 
 ## subsets / subconjuntos
 
@@ -62,15 +62,20 @@ PT: protocolo LLM: prompt versionado em `bench/prompts/llm_v1.txt`, temperatura 
 EN: span-level P/R/F1, three modes (`exact`, `partial`, `untyped`), per entity and per difficulty, 95% CI by bootstrap over documents (1,000 resamples).
 PT: P/R/F1 por span, 3 modos (`exact`, `partial`, `untyped`), por entidade e por dificuldade, IC 95% por bootstrap de documentos (1.000 reamostras).
 
-## first numbers (tarja 0.4.0.dev0, test split) / primeiros números
+## first numbers (tarja 0.5.0.dev0, test split) / primeiros números
 
 | subset | exact F1 | partial F1 | EN: weakest level / PT: nível mais fraco |
 |---|---|---|---|
-| controlled | 0.946 | 0.950 | D1 0.866 (D0 1.000) |
-| adversarial | 0.786 | 0.806 | D4 0.254 (OCR noise / ruído de OCR) |
+| controlled | 0.950 | 0.954 | D1 0.874 (D0 1.000) |
+| adversarial | 0.797 | 0.815 | D4 0.252 (OCR noise / ruído de OCR) |
 
 EN: the benchmark already shows where tarja needs work: spaced alphanumeric CNPJ (D1) and OCR noise (D4).
 PT: o benchmark já mostra onde o tarja precisa melhorar: CNPJ alfanum c/ espaço (D1) e ruído de OCR (D4).
+
+## independence of the gold / independência do gold
+
+EN: labels come from the generator, and the generator uses check-digit code. To keep tarja from grading itself, every generated value must also pass `bench/reference.py`, a separate implementation written from the official rules with no imports from tarja (CPF, CNPJ, CNS, NIS, CNJ, voter ID, RENAVAM, card). CNH, CNM and CIB have no reference yet and rely on tarja alone. Where `validate-docbr` is installed, a test also checks CPF, CNS, NIS and RENAVAM against it. D0 scores near 1.0 are expected by construction and are NOT evidence of real-world accuracy. That comes from the semi-real subset and the hand-annotated sample (E4.4).
+PT: os rótulos vêm do gerador, e o gerador usa código de DV. P/ o tarja não se autoavaliar, todo valor gerado também tem q passar no `bench/reference.py`, implementação separada, escrita a partir das regras oficiais, sem importar nada do tarja (CPF, CNPJ, CNS, NIS, CNJ, título, RENAVAM, cartão). CNH, CNM e CIB ainda não têm referência e dependem só do tarja. Onde o `validate-docbr` estiver instalado, um teste compara CPF, CNS, NIS e RENAVAM c/ ele. Score perto de 1,0 no D0 é esperado por construção e NÃO prova acerto no mundo real. Isso vem do semi-real e da amostra anotada à mão (E4.4).
 
 ## annotation / anotação
 

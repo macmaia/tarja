@@ -39,13 +39,13 @@ tarja.find("cpf 529.982.247-24", report_invalid=True)
 
 # EN: reversible tokens, e.g. before sending text to an LLM / PT: token reversivel, ex. antes de mandar p/ um LLM
 vault = tarja.Vault()
-safe = vault.protect(text)  # "Paciente CPF <BR_CPF:4b1a3edcd5f6>, ..."
+safe = vault.protect(text)  # "Paciente CPF <BR_CPF:4b1a3edcd5f6c2e81a9d07b3>, ..."
 vault.reveal(safe)  # original text / texto original
 tarja.residual(safe)  # [] = nothing leaked / nada vazou
 ```
 
-EN: `Vault` keeps the mapping in memory for one process. For multi-tenant production use (key in KMS, per-session rehydration, probing quotas, audit trail) see the paid Tarja Gateway.
-PT: o `Vault` guarda o mapa em memória num processo só. P/ produção multi-tenant (chave em KMS, reidratação por sessão, quota anti-sondagem, trilha de auditoria) veja o Tarja Gateway pago.
+EN: tokens are 96-bit HMACs, and a clash raises `VaultCollisionError` instead of mixing two people up. `reveal()` restores any token the vault issued, so use one vault per user or session. `Vault` keeps the mapping in memory for one process. For multi-tenant production use (key in KMS, per-session rehydration, probing quotas, audit trail) see the paid Tarja Gateway.
+PT: token é HMAC de 96 bits, e colisão levanta `VaultCollisionError` em vez de trocar uma pessoa por outra. O `reveal()` devolve qq token q o cofre emitiu, então use um cofre por usuário ou sessão. O `Vault` guarda o mapa em memória num processo só. P/ produção multi-tenant (chave em KMS, reidratação por sessão, quota anti-sondagem, trilha de auditoria) veja o Tarja Gateway pago.
 
 EN: `hash` is pseudonymisation, not anonymisation under the LGPD: whoever has the salt can link it back.
 PT: `hash` é pseudonimização, não anonimização na LGPD: quem tem o salt consegue religar.
@@ -61,8 +61,8 @@ tarja mask contrato.txt > limpo.txt
 cat log.txt | tarja scan - --entities BR_CPF,BR_CNPJ --min-score 0.9
 ```
 
-EN: exit code 1 when something is found, 0 when clean, 2 on error. Handy in CI.
-PT: exit code 1 qdo acha algo, 0 qdo limpo, 2 em erro. Útil em CI.
+EN: exit code 1 when something is found, 0 when clean, 2 on error. Handy in CI. Input is capped at 50 MB (`--max-mb`).
+PT: exit code 1 qdo acha algo, 0 qdo limpo, 2 em erro. Útil em CI. Entrada limitada a 50 MB (`--max-mb`).
 
 ## entities / entidades
 

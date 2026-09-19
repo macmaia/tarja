@@ -1,6 +1,5 @@
 # tests/test_bench.py
-# [TEST-BENCH] EN: tests for tarja-bench (E4): generator, gold correctness, metrics, runners, IAA.
-# [TEST-BENCH] PT: testes do tarja-bench (E4): gerador, gold correto, metricas, runners, concordancia.
+# [TEST-BENCH] tests for tarja-bench (E4): generator, gold correctness, metrics, runners, IAA.
 
 import json
 import pathlib
@@ -21,7 +20,7 @@ ROOT = pathlib.Path(__file__).resolve().parents[1]
 
 class TestIds(unittest.TestCase):
     def test_every_entity_generates_valid_values(self):
-        # [TEST-BENCH-IDS] EN: 200 values per entity, all valid in every rendering / PT: 200 por entidade, todos validos
+        # [TEST-BENCH-IDS] 200 values per entity, all valid in every rendering
         rng = random.Random(1)
         for ent in tarja.ENTITIES:
             for _ in range(200):
@@ -32,7 +31,7 @@ class TestIds(unittest.TestCase):
                         self.assertTrue(tarja.ENTITIES[ent].validator(s), (ent, style, s))
 
     def test_invalid_lookalikes_are_invalid_for_all(self):
-        # [TEST-BENCH-IDS] EN: D3 distractors must not be valid for ANY entity / PT: distrator D3 invalido p/ TODAS
+        # [TEST-BENCH-IDS] D3 distractors must not be valid for ANY entity
         rng = random.Random(2)
         for ent in ("BR_CPF", "BR_CNPJ", "BR_CNS", "BR_NIS", "BR_CNJ", "BR_TITULO_ELEITOR", "BR_CIB"):
             for _ in range(50):
@@ -48,14 +47,13 @@ class TestIds(unittest.TestCase):
 
 class TestGenerator(unittest.TestCase):
     def test_deterministic(self):
-        # [TEST-BENCH-GEN] EN: same seed -> identical, other seed -> different / PT: mesma seed -> igual, outra -> diferente
+        # [TEST-BENCH-GEN] same seed -> identical, other seed -> different
         a, b, c = gen.build(3, 40, 40), gen.build(3, 40, 40), gen.build(4, 40, 40)
         self.assertEqual(a, b)
         self.assertNotEqual(a, c)
 
     def test_gold_spans_are_correct(self):
-        # [TEST-BENCH-GEN] EN: every gold span holds a value valid for its entity (except D4, OCR noise on purpose)
-        # [TEST-BENCH-GEN] PT: todo span gold tem valor valido p/ a entidade (exceto D4, ruido de OCR de proposito)
+        # [TEST-BENCH-GEN] every gold span holds a value valid for its entity (except D4, OCR noise on purpose)
         data = gen.build(11, 300, 300)
         n = 0
         for docs in data.values():
@@ -70,15 +68,14 @@ class TestGenerator(unittest.TestCase):
         self.assertGreater(n, 500)
 
     def test_levels_and_splits(self):
-        # [TEST-BENCH-GEN] EN: controlled = D0/D1, adversarial = D2..D5, dev/test split / PT: idem
+        # [TEST-BENCH-GEN] controlled = D0/D1, adversarial = D2..D5, dev/test split
         data = gen.build(5, 100, 100)
         self.assertEqual({d["difficulty"] for d in data["synthetic_controlled.test"]}, {"D0", "D1"})
         self.assertEqual({d["difficulty"] for d in data["synthetic_adversarial.test"]}, {"D2", "D3", "D4", "D5"})
         self.assertEqual(len(data["synthetic_controlled.dev"]), 30)
 
     def test_d5_label_is_the_real_entity(self):
-        # [TEST-BENCH-GEN] EN: in D5 the value is NOT valid for the entity the context word announces
-        # [TEST-BENCH-GEN] PT: no D5 o valor NAO e valido p/ a entidade q a palavra anuncia
+        # [TEST-BENCH-GEN] in D5 the value is NOT valid for the entity the context word announces
         rng = random.Random(8)
         swapped = 0
         for i in range(200):
@@ -91,8 +88,7 @@ class TestGenerator(unittest.TestCase):
         self.assertGreater(swapped, 0)
 
     def test_fixed_text_has_no_identifiers(self):
-        # [TEST-BENCH-GEN] EN: templates without slots and fillers trigger nothing in tarja
-        # [TEST-BENCH-GEN] PT: modelos sem slot e enchimentos nao disparam nada no tarja
+        # [TEST-BENCH-GEN] templates without slots and fillers trigger nothing in tarja
         for tpls in TEMPLATES.values():
             for t in tpls:
                 self.assertEqual(tarja.find(gen.SLOT.sub("", t)), [], t)
@@ -100,8 +96,7 @@ class TestGenerator(unittest.TestCase):
             self.assertEqual(tarja.find(f), [], f)
 
     def test_committed_manifest_is_reproducible(self):
-        # [TEST-BENCH-GEN] EN: regenerating v0.1 gives the sha256 recorded in the committed manifest
-        # [TEST-BENCH-GEN] PT: gerar a v0.1 de novo da o sha256 gravado no manifest commitado
+        # [TEST-BENCH-GEN] regenerating v0.1 gives the sha256 recorded in the committed manifest
         manifest = json.loads((ROOT / "bench/data/v0.1/manifest.json").read_text(encoding="utf-8"))
         with tempfile.TemporaryDirectory() as tmp:
             m = gen.write(pathlib.Path(tmp), gen.build(manifest["seed"], 5000, 3000), manifest["seed"])
@@ -114,7 +109,7 @@ class TestMetrics(unittest.TestCase):
                                                    {"start": 10, "end": 15, "entity": "BR_CEP"}]}]  # fmt: skip
 
     def test_modes(self):
-        # [TEST-BENCH-METRICS] EN: exact vs partial vs untyped on a hand case / PT: exato x parcial x sem tipo, caso a mao
+        # [TEST-BENCH-METRICS] exact vs partial vs untyped on a hand case
         pred = {"a": [{"start": 0, "end": 4, "entity": "BR_CPF"}, {"start": 10, "end": 15, "entity": "OTHER"}]}
         ex = metrics.evaluate(self.G, pred, "exact", n_boot=0)["overall"]
         pa = metrics.evaluate(self.G, pred, "partial", n_boot=0)["overall"]
@@ -124,14 +119,14 @@ class TestMetrics(unittest.TestCase):
         self.assertEqual((un["tp"], un["fp"], un["fn"]), (2, 0, 0))
 
     def test_one_to_one(self):
-        # [TEST-BENCH-METRICS] EN: one prediction can't match two gold spans / PT: 1 previsao nao casa c/ 2 golds
+        # [TEST-BENCH-METRICS] one prediction can't match two gold spans
         g = [{"id": "a", "difficulty": "D0", "spans": [{"start": 0, "end": 5, "entity": "X"},
                                                         {"start": 3, "end": 8, "entity": "X"}]}]  # fmt: skip
         r = metrics.evaluate(g, {"a": [{"start": 0, "end": 8, "entity": "X"}]}, "partial", n_boot=0)["overall"]
         self.assertEqual((r["tp"], r["fn"]), (1, 1))
 
     def test_bootstrap_ci_contains_point(self):
-        # [TEST-BENCH-METRICS] EN: CI brackets the point estimate / PT: IC contem a estimativa pontual
+        # [TEST-BENCH-METRICS] CI brackets the point estimate
         data = gen.build(9, 150, 0)["synthetic_controlled.test"]
         preds = dict(zip([d["id"] for d in data], TarjaRunner().predict([d["text"] for d in data])[0], strict=True))
         o = metrics.evaluate(data, preds, "partial", n_boot=200)["overall"]
@@ -142,15 +137,13 @@ class TestMetrics(unittest.TestCase):
 
 class TestRunners(unittest.TestCase):
     def test_tarja_d0_perfect(self):
-        # [TEST-BENCH-RUNNER] EN: sanity: tarja on D0 is perfect, so gold and tarja agree on the basics
-        # [TEST-BENCH-RUNNER] PT: sanidade: tarja no D0 e perfeito, gold e tarja concordam no basico
+        # [TEST-BENCH-RUNNER] sanity: tarja on D0 is perfect, so gold and tarja agree on the basics
         docs = [d for d in gen.build(21, 200, 0)["synthetic_controlled.test"] if d["difficulty"] == "D0"]
         preds = dict(zip([d["id"] for d in docs], TarjaRunner().predict([d["text"] for d in docs])[0], strict=True))
         self.assertEqual(metrics.evaluate(docs, preds, "exact", n_boot=0)["overall"]["f1"], 1.0)
 
     def test_llm_runner_parse_locate_cache(self):
-        # [TEST-BENCH-RUNNER] EN: fake model: good span, hallucinated span, wrong type; cache avoids 2nd call
-        # [TEST-BENCH-RUNNER] PT: modelo falso: span bom, span alucinado, tipo errado; cache evita 2a chamada
+        # [TEST-BENCH-RUNNER] fake model: good span, hallucinated span, wrong type; cache avoids 2nd call
         calls = []
 
         def fake(prompt):
@@ -171,18 +164,18 @@ class TestRunners(unittest.TestCase):
         self.assertEqual(ner_llm.parse_llm_json("{bad json}"), [])
 
     def test_locate_repeats(self):
-        # [TEST-BENCH-RUNNER] EN: same text twice -> two different offsets / PT: mesmo texto 2x -> 2 offsets
+        # [TEST-BENCH-RUNNER] same text twice -> two different offsets
         used = set()
         self.assertEqual([base.locate("ab ab", "ab", used) for _ in range(3)], [0, 3, None])
 
     def test_spacy_runner_all_other(self):
-        # [TEST-BENCH-RUNNER] EN: NER labels become OTHER / PT: rotulo de NER vira OTHER
+        # [TEST-BENCH-RUNNER] NER labels become OTHER
         ent = types.SimpleNamespace(start_char=0, end_char=5, label_="PER")
         r = ner_llm.SpacyRunner(nlp=lambda t: types.SimpleNamespace(ents=[ent]))
         self.assertEqual(r.predict_one("Maria x")[0]["entity"], "OTHER")
 
     def test_azure_google_mapping(self):
-        # [TEST-BENCH-RUNNER] EN: fake SDK clients, check mapping and offsets / PT: clientes falsos, confere mapa e offsets
+        # [TEST-BENCH-RUNNER] fake SDK clients, check mapping and offsets
         e = types.SimpleNamespace(offset=4, length=14, category="BRCPFNumber", confidence_score=0.9)
         az = types.SimpleNamespace(recognize_pii_entities=lambda docs, language: [types.SimpleNamespace(entities=[e])])
         self.assertEqual(cloud.AzureRunner(client=az).predict_one("cpf 529.982.247-25")[0]["entity"], "BR_CPF")
@@ -199,7 +192,7 @@ class TestRunners(unittest.TestCase):
         self.assertEqual(text[s["start"] : s["end"]], "529.982.247-25")
 
     def test_import_runners(self):
-        # [TEST-BENCH-RUNNER] EN: Macie findings JSON and Purview CSV rows / PT: JSON do Macie e CSV do Purview
+        # [TEST-BENCH-RUNNER] Macie findings JSON and Purview CSV rows
         occ = {"lineRanges": [{"startColumn": 5, "endColumn": 18}]}
         det = {"detections": [{"type": "BRAZIL_CPF_NUMBER", "occurrences": occ}]}
         finding = {
@@ -215,7 +208,7 @@ class TestRunners(unittest.TestCase):
 
 class TestSemiRealAndIaa(unittest.TestCase):
     def test_semireal_insert(self):
-        # [TEST-BENCH-SEMIREAL] EN: inserted spans point at valid values / PT: spans inseridos apontam p/ valor valido
+        # [TEST-BENCH-SEMIREAL] inserted spans point at valid values
         rng = random.Random(3)
         para = "Art. 1o Esta Lei dispoe sobre a organizacao. Paragrafo unico. O disposto aplica-se a todos."
         for _ in range(50):
@@ -226,7 +219,7 @@ class TestSemiRealAndIaa(unittest.TestCase):
                     self.assertTrue(v(text[s["start"] : s["end"]]), (text, s))
 
     def test_semireal_build_from_folder(self):
-        # [TEST-BENCH-SEMIREAL] EN: end to end on a temp folder / PT: ponta a ponta numa pasta temporaria
+        # [TEST-BENCH-SEMIREAL] end to end on a temp folder
         with tempfile.TemporaryDirectory() as tmp:
             para = "Texto publico de exemplo sem dados pessoais. " * 8
             pathlib.Path(tmp, "lei.txt").write_text(para + "\n\n" + para, encoding="utf-8")
@@ -236,7 +229,7 @@ class TestSemiRealAndIaa(unittest.TestCase):
             self.assertEqual(docs[0]["source"]["licence"], "public domain")
 
     def test_iaa(self):
-        # [TEST-BENCH-IAA] EN: identical -> 1.0, one missing span lowers both numbers / PT: identico -> 1.0
+        # [TEST-BENCH-IAA] identical -> 1.0, one missing span lowers both numbers
         a = [{"id": "1", "difficulty": "D0", "text": "cpf 529.982.247-25 x",
               "spans": [{"start": 4, "end": 18, "entity": "BR_CPF"}]}]  # fmt: skip
         b = [{**a[0], "spans": []}]
@@ -249,3 +242,50 @@ class TestSemiRealAndIaa(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestFetchPublicTexts(unittest.TestCase):
+    def test_html_to_text_drops_struck(self):
+        # [TEST-BENCH-FETCH] revoked text is dropped, paragraphs kept
+        from bench.fetch_public_texts import _Text
+
+        p = _Text()
+        p.feed("<html><head><title>x</title></head><body><p>Art. 1 Vigente.</p><p><strike>Art. 2 Revogado.</strike></p>"
+               "<p>Art. 3 &eacute; valido.</p><script>var a=1;</script></body></html>")  # fmt: skip
+        self.assertEqual(p.text(), "Art. 1 Vigente.\n\nArt. 3 é valido.")
+
+
+class TestReference(unittest.TestCase):
+    # [TEST-BENCH-REF] reference validators and tarja agree on generated values and on one-digit mutations
+    def test_agrees_with_tarja(self):
+        import random
+
+        from bench.ids import generate, render
+        from bench.reference import REFERENCE
+
+        rng = random.Random(3)
+        for e, ref in REFERENCE.items():
+            val = tarja.ENTITIES[e].validator
+            for _ in range(300):
+                v = render(e, generate(e, rng), "formatted")
+                self.assertTrue(ref(v), (e, v))
+                i = rng.randrange(len(v))
+                m = v[:i] + (str(rng.randrange(10)) if v[i].isdigit() else v[i]) + v[i + 1 :]
+                self.assertEqual(bool(ref(m)), bool(val(m)), (e, m))
+
+    def test_validate_docbr_if_installed(self):
+        # third-party cross-check, runs only where validate-docbr is installed (pip install validate-docbr)
+        try:
+            import validate_docbr as vd
+        except ImportError:
+            self.skipTest("validate-docbr not installed")
+        import random
+
+        from bench.ids import generate, render
+
+        rng = random.Random(5)
+        pairs = {"BR_CPF": vd.CPF(), "BR_CNS": vd.CNS(), "BR_NIS": vd.PIS(), "BR_RENAVAM": vd.RENAVAM()}
+        for e, doc in pairs.items():
+            for _ in range(200):
+                v = render(e, generate(e, rng), "compact")
+                self.assertTrue(doc.validate(v), (e, v))

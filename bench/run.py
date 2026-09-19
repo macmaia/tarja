@@ -1,8 +1,7 @@
 # bench/run.py
-# [BENCH-RUN] EN: run one system over one JSONL file, write predictions + latency + system info.
-# [BENCH-RUN] PT: roda 1 sistema sobre 1 JSONL, grava previsoes + latencia + info do sistema.
+# [BENCH-RUN] run one system over one JSONL file, write predictions + latency + system info.
 #
-# EN: usage / PT: uso:
+# usage
 #   python -m bench.run --system tarja --data bench/data/v0.1/synthetic_adversarial.test.jsonl --out bench/results/
 #   python -m bench.run --system llm --provider anthropic --model <model-id> --data ... --out ...
 
@@ -26,7 +25,7 @@ def run(system: str, docs: list[dict], **kwargs) -> dict:
     # [BENCH-RUN-SYSTEM]
     runner = get_runner(system, **kwargs)
     if hasattr(runner, "predict_doc"):
-        # EN: import-based runners (Macie, Purview) work by doc id / PT: runners por importacao usam o id do doc
+        # import-based runners (Macie, Purview) work by doc id
         preds, lat = [runner.predict_doc(d["id"]) for d in docs], []
     else:
         preds, lat = runner.predict([d["text"] for d in docs])

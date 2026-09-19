@@ -1,5 +1,5 @@
 # bench/runners/base.py
-# [BENCH-RUNNER-BASE] EN: common base: timing + span helpers. PT: base comum: tempo + helpers de span.
+# [BENCH-RUNNER-BASE] common base: timing + span helpers.
 
 from __future__ import annotations
 
@@ -10,8 +10,7 @@ class Runner:
     """EN: Subclasses implement predict_one(text). PT: Subclasses implementam predict_one(text)."""
 
     name = "base"
-    # EN: filled in by subclasses, recorded in the results for reproducibility
-    # PT: preenchido pelas subclasses, gravado no resultado p/ reprodutibilidade
+    # filled in by subclasses, recorded in the results for reproducibility
     info: dict = {}
 
     def predict_one(self, text: str) -> list[dict]:  # pragma: no cover

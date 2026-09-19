@@ -1,8 +1,7 @@
 # bench/evaluate.py
-# [BENCH-EVAL] EN: score a predictions file against gold, all 3 modes, print a table and write JSON.
-# [BENCH-EVAL] PT: pontua um arquivo de previsoes contra o gold, 3 modos, imprime tabela e grava JSON.
+# [BENCH-EVAL] score a predictions file against gold, all 3 modes, print a table and write JSON.
 #
-# EN: usage / PT: uso:
+# usage
 #   python -m bench.evaluate --gold bench/data/v0.1/synthetic_adversarial.test.jsonl --pred bench/results/tarja__...json
 
 from __future__ import annotations

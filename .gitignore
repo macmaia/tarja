@@ -23,3 +23,4 @@ bench/results/
 bench/cache/
 # EN: private notes / PT: notas privadas
 docs/decisions.md
+bench/paper/*.png

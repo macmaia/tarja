@@ -1,15 +1,11 @@
 # tarja/validators/iptu.py
-# [IPTU] EN: IPTU property registration number (inscricao imobiliaria), LOOSE format check.
+# [IPTU] IPTU property registration number (inscricao imobiliaria), LOOSE format check.
 #   Every municipality has its own format (e.g. Sao Paulo "SQL" 000.000.0000-0, Rio 0.000.000-0), and not all have
 #   a check digit. So: 6 to 20 digits after stripping dots, dashes and slashes, and the spec requires the word "iptu"
 #   (or similar) nearby. Tier N3, no accuracy promise.
-# [IPTU] PT: inscricao imobiliaria do IPTU, checagem FROUXA de formato.
-#   Cada prefeitura tem seu formato (ex: SP "SQL" 000.000.0000-0, Rio 0.000.000-0), e nem toda tem DV.
-#   Entao: 6 a 20 digitos depois de tirar ponto, traco e barra, e a spec exige a palavra "iptu" (ou parecida)
-#   perto. Nivel N3, sem promessa de precisao.
 #
-# EN: Source: none national, municipal tax codes / PT: Fonte: nao ha nacional, codigo tributario de cada municipio
-#   TODO EN: add per-city validators with DV (SP, RJ, BH...) as N1 later / PT: add validador por cidade c/ DV depois
+# Source: none national, municipal tax codes
+#   TODO: add per-city validators with DV (SP, RJ, BH...) as N1 later
 
 from __future__ import annotations
 

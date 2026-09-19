@@ -1,19 +1,15 @@
 # tarja/validators/placa.py
-# [PLACA] EN: vehicle number plate FORMAT check (no check digit exists). Two layouts:
+# [PLACA] vehicle number plate FORMAT check (no check digit exists). Two layouts:
 #   old Brazilian: ABC1234 (or ABC-1234)      Mercosur (since 2018): ABC1D23
-# [PLACA] PT: checagem de FORMATO da placa (nao existe DV). 2 layouts:
-#   antiga: ABC1234 (ou ABC-1234)             Mercosul (desde 2018): ABC1D23
 #
-# EN: Source: Contran Res. 969/2022 (replaced 780/2019): old "AAA-1111" layout, 2nd digit swapped on conversion (Annex II)
-# PT: Fonte: Res. Contran 969/2022 (substituiu a 780/2019): layout "AAA-1111", 2o digito trocado na conversao (Anexo II)
-#   https://www.gov.br/transportes/pt-br/assuntos/transito/conteudo-contran/resolucoes/resolucao9692022.pdf
+# Source: Contran Res. 969/2022 (replaced 780/2019): old "AAA-1111" layout, 2nd digit swapped on conversion (Annex II)
 
 from __future__ import annotations
 
 import re
 
 _STRIP = re.compile(r"[\s\-]")
-# [PLACA-REGEX] EN: old and Mercosur layouts / PT: layout antigo e Mercosul
+# [PLACA-REGEX] old and Mercosur layouts
 _OLD = re.compile(r"[A-Z]{3}\d{4}")
 _MERCOSUR = re.compile(r"[A-Z]{3}\d[A-Z]\d{2}")
 
@@ -39,7 +35,7 @@ def is_mercosur(value: str) -> bool:
 
 def to_mercosur(value: str) -> str:
     """EN: Convert an old plate to Mercosur (5th char digit -> letter, 0->A ... 9->J). PT: Converte antiga p/ Mercosul."""
-    # [PLACA-CONVERT] EN: official conversion table / PT: tabela oficial de conversao
+    # [PLACA-CONVERT] official conversion table
     v = normalise(value)
     if _MERCOSUR.fullmatch(v):
         return v

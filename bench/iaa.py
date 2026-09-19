@@ -1,12 +1,9 @@
 # bench/iaa.py
-# [BENCH-IAA] EN: E4.4 support. Inter-annotator agreement between two annotation files (same doc ids):
+# [BENCH-IAA] E4.4 support. Inter-annotator agreement between two annotation files (same doc ids):
 #   - span F1 between annotators (exact and partial), the usual number in NER papers
 #   - Cohen's kappa at character level (label of each char: entity id or "O")
-# [BENCH-IAA] PT: suporte ao E4.4. Concordancia entre 2 anotadores (mesmos ids de doc):
-#   - F1 de span entre anotadores (exato e parcial), o numero usual em artigo de NER
-#   - kappa de Cohen em nivel de caractere (rotulo de cada caractere: id da entidade ou "O")
 #
-# EN: usage / PT: uso:  python -m bench.iaa --a anotadora_a.jsonl --b anotador_b.jsonl
+# usage
 
 from __future__ import annotations
 

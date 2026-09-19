@@ -1,15 +1,10 @@
 # tarja/mask.py
-# [MASK] EN: replace detected identifiers in text. Three strategies:
+# [MASK] replace detected identifiers in text. Three strategies:
 #   - "redact"    -> <BR_CPF>                      (default, nothing left of the value)
 #   - "hash"      -> <BR_CPF:3f9a1c0b2e7d>         (HMAC-SHA256 with YOUR salt, same value -> same hash across docs)
 #   - "pseudonym" -> <BR_CPF_1>, <BR_CPF_2>...     (consistent within one call: same value -> same label)
-# [MASK] PT: substitui os identificadores achados no texto. 3 estrategias:
-#   - "redact"    -> <BR_CPF>                      (padrao, nao sobra nada do valor)
-#   - "hash"      -> <BR_CPF:3f9a1c0b2e7d>         (HMAC-SHA256 c/ o SEU salt, mesmo valor -> mesmo hash entre docs)
-#   - "pseudonym" -> <BR_CPF_1>, <BR_CPF_2>...     (consistente dentro da chamada: mesmo valor -> mesmo rotulo)
 #
-# EN: Note: hash is pseudonymisation, NOT anonymisation under the LGPD. With the salt, it can be linked back.
-# PT: Obs: hash e pseudonimizacao, NAO anonimizacao na LGPD. C/ o salt da p/ religar ao titular.
+# Note: hash is pseudonymisation, NOT anonymisation under the LGPD. With the salt, it can be linked back.
 
 from __future__ import annotations
 
@@ -22,8 +17,7 @@ from tarja.detect import Match, find
 
 STRATEGIES = ("redact", "hash", "pseudonym")
 
-# [MASK-KEY] EN: canonical form used for hashing/pseudonyms, so "529.982.247-25" == "52998224725"
-# [MASK-KEY] PT: forma canonica p/ hash/pseudonimo, entao "529.982.247-25" == "52998224725"
+# [MASK-KEY] canonical form used for hashing/pseudonyms, so "529.982.247-25" == "52998224725"
 _NON_ALNUM = re.compile(r"[^0-9A-Za-z]")
 
 
@@ -51,7 +45,7 @@ def mask(
     key = salt.encode() if isinstance(salt, str) else salt
     found = list(matches) if matches is not None else find(text, **find_kwargs)
 
-    # [MASK-LABELS] EN: build one label per match / PT: monta 1 rotulo por match
+    # [MASK-LABELS] build one label per match
     labels: dict[tuple[str, str], str] = {}
     counters: dict[str, int] = {}
 
@@ -62,15 +56,14 @@ def mask(
         if strategy == "hash":
             digest = hmac.new(key, f"{m.entity}:{canon}".encode(), hashlib.sha256).hexdigest()[:12]
             return f"<{m.entity}:{digest}>"
-        # EN: pseudonym / PT: pseudonimo
+        # pseudonym
         k = (m.entity, canon)
         if k not in labels:
             counters[m.entity] = counters.get(m.entity, 0) + 1
             labels[k] = f"<{m.entity}_{counters[m.entity]}>"
         return labels[k]
 
-    # [MASK-APPLY] EN: number labels in reading order, then replace from the end so offsets stay valid
-    # [MASK-APPLY] PT: numera na ordem de leitura, dps troca do fim p/ o inicio p/ os offsets continuarem validos
+    # [MASK-APPLY] number labels in reading order, then replace from the end so offsets stay valid
     ordered = sorted(found, key=lambda m: m.start)
     replacements = [(m.start, m.end, label(m)) for m in ordered]
     out = text

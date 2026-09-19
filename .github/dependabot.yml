@@ -1,0 +1,16 @@
+# .github/dependabot.yml
+# [DEPENDABOT] weekly PRs for GitHub Actions (keeps pinned commit SHAs current) and pip extras
+version: 2
+updates:
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    groups:
+      actions:
+        patterns: ["*"]
+  - package-ecosystem: pip
+    directory: /
+    schedule:
+      interval: weekly
+    open-pull-requests-limit: 5

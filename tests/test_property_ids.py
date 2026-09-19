@@ -1,6 +1,5 @@
 # tests/test_property_ids.py
-# [TEST-PROPERTY] EN: tests for the property IDs: CNM, CIB, IPTU, matricula
-# [TEST-PROPERTY] PT: testes dos identificadores de imovel: CNM, CIB, IPTU, matricula
+# [TEST-PROPERTY] tests for the property IDs: CNM, CIB, IPTU, matricula
 
 import random
 import unittest
@@ -11,15 +10,15 @@ from tarja.validators import cib, cnm, iptu, matricula
 
 class TestCNM(unittest.TestCase):
     def test_valid_invalid(self):
-        # [TEST-CNM] EN: formatted, compact / PT: formatado, compacto
+        # [TEST-CNM] formatted, compact
         for v in ["123456.2.1234567-44", "1234562123456744"]:
             self.assertTrue(cnm.is_valid(v), v)
-        # EN: wrong DV, book 4, short, type / PT: DV errado, livro 4, curto, tipo
+        # wrong DV, book 4, short, type
         for v in ["123456.2.1234567-45", "123456.4.1234567-44", "12345621234567", None]:
             self.assertFalse(cnm.is_valid(v), v)
 
     def test_iso7064_property(self):
-        # [TEST-CNM] EN: int(all 16 digits) % 97 == 1 for generated numbers / PT: int(16 digitos) % 97 == 1 nos gerados
+        # [TEST-CNM] int(all 16 digits) % 97 == 1 for generated numbers
         rng = random.Random(8)
         for _ in range(3000):
             base = "".join(rng.choice("0123456789") for _ in range(6)) + rng.choice("23")
@@ -29,7 +28,7 @@ class TestCNM(unittest.TestCase):
             self.assertTrue(cnm.is_valid(full))
 
     def test_format_and_errors(self):
-        # [TEST-CNM] EN: format, bad input / PT: formata, entrada ruim
+        # [TEST-CNM] format, bad input
         self.assertEqual(cnm.format("1234562123456744"), "123456.2.1234567-44")
         with self.assertRaises(ValueError):
             cnm.format("1234562123456745")
@@ -39,7 +38,7 @@ class TestCNM(unittest.TestCase):
 
 class TestLoose(unittest.TestCase):
     def test_cib(self):
-        # [TEST-CIB] EN: official example, lowercase, legacy numeric NIRF / PT: exemplo oficial, minusculo, NIRF numerico
+        # [TEST-CIB] official example, lowercase, legacy numeric NIRF
         for v in ["A3N8Z4F-Y", "a3n8z4fy", "ABC1234-J"]:
             self.assertTrue(cib.is_valid(v), v)
         for v in ["A3N8Z4F-X", "ABC1234-5", "1234567-5", "AAAAAAAA", None]:
@@ -52,7 +51,7 @@ class TestLoose(unittest.TestCase):
             cib.compute_check_char("AB")
 
     def test_cib_numeric_nirf_rule(self):
-        # [TEST-CIB] EN: numeric: weights 8..2, mod 11, remainder 0/1 -> 0 / PT: numerico: pesos 8..2, mod 11, resto 0/1 -> 0
+        # [TEST-CIB] numeric: weights 8..2, mod 11, remainder 0/1 -> 0
         rng = random.Random(12)
         for _ in range(2000):
             b = "".join(rng.choice("0123456789") for _ in range(7))
@@ -60,18 +59,18 @@ class TestLoose(unittest.TestCase):
             self.assertEqual(cib.compute_check_char(b), "0" if r < 2 else str(11 - r))
 
     def test_cib_aliases(self):
-        # [TEST-CIB] EN: I/L read as 1, O as 0 (Crockford) / PT: I/L viram 1, O vira 0 (Crockford)
+        # [TEST-CIB] I/L read as 1, O as 0 (Crockford)
         self.assertEqual(cib.normalise("ilo"), "110")
 
     def test_iptu(self):
-        # [TEST-IPTU] EN: 6-20 digits, not all equal / PT: 6-20 digitos, nao todos iguais
+        # [TEST-IPTU] 6-20 digits, not all equal
         for v in ["012.345.6789-0", "1.234.567-8"]:
             self.assertTrue(iptu.is_valid(v), v)
         for v in ["12345", "000.000.0000-0", "abc", None]:
             self.assertFalse(iptu.is_valid(v), v)
 
     def test_matricula(self):
-        # [TEST-MATRICULA] EN: 1-7 digits, not zero / PT: 1-7 digitos, nao zero
+        # [TEST-MATRICULA] 1-7 digits, not zero
         for v in ["12.345", "12345", "7"]:
             self.assertTrue(matricula.is_valid(v), v)
         for v in ["0", "12345678", "abc", None]:
@@ -83,23 +82,23 @@ class TestInFind(unittest.TestCase):
         return [(m.entity, m.value) for m in tarja.find(text)]
 
     def test_property_ids_with_context(self):
-        # [TEST-PROPERTY-FIND] EN: each one shows up with its context word / PT: cada um aparece c/ a palavra de contexto
+        # [TEST-PROPERTY-FIND] each one shows up with its context word
         self.assertEqual(self.ents("CNM 123456.2.1234567-44"), [("BR_CNM", "123456.2.1234567-44")])
         self.assertEqual(self.ents("CIB A3N8Z4F-Y"), [("BR_CIB", "A3N8Z4F-Y")])
         self.assertEqual(self.ents("IPTU 012.345.6789-0"), [("BR_IPTU", "012.345.6789-0")])
         self.assertEqual(self.ents("matricula n 12.345"), [("BR_MATRICULA_IMOVEL", "12.345")])
 
     def test_loose_ones_need_context(self):
-        # [TEST-PROPERTY-FIND] EN: without context, IPTU/matricula/CIB never fire / PT: sem contexto, nunca aparecem
+        # [TEST-PROPERTY-FIND] without context, IPTU/matricula/CIB never fire
         self.assertEqual(self.ents("pedido 012.345.6789-0 e nota 12.345"), [])
         self.assertEqual(self.ents("codigo ABC1234-5"), [("BR_PLACA", "ABC1234")])
 
     def test_student_matricula_is_not_property(self):
-        # [TEST-PROPERTY-FIND] EN: bare "matricula" (student) is not enough / PT: "matricula" solta (aluno) nao basta
+        # [TEST-PROPERTY-FIND] bare "matricula" (student) is not enough
         self.assertEqual(self.ents("matricula do aluno 2024123"), [])
 
     def test_cpf_wins_over_iptu(self):
-        # [TEST-PROPERTY-FIND] EN: a valid CPF near "iptu" stays a CPF (N1 > N3) / PT: CPF perto de "iptu" continua CPF
+        # [TEST-PROPERTY-FIND] a valid CPF near "iptu" stays a CPF (N1 > N3)
         self.assertEqual(self.ents("iptu do titular cpf 529.982.247-25")[0][0], "BR_CPF")
 
 

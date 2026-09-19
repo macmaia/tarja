@@ -1,16 +1,10 @@
 # tarja/detect.py
-# [DETECT] EN: detection engine. Pipeline per entity:
+# [DETECT] detection engine. Pipeline per entity:
 #   1. normalise the text (same length, offsets kept)
 #   2. run every candidate regex
 #   3. validate the check digit (drop if wrong)
 #   4. look for context words around the match -> final score
 #   5. resolve overlaps between entities
-# [DETECT] PT: motor de deteccao. Pipeline por entidade:
-#   1. normaliza o texto (mesmo tamanho, offset preservado)
-#   2. roda todas as regex de candidato
-#   3. valida o DV (descarta se errado)
-#   4. procura palavra de contexto em volta -> score final
-#   5. resolve sobreposicao entre entidades
 
 from __future__ import annotations
 
@@ -37,8 +31,7 @@ class Match:
     tier: str
     pattern: str
     has_context: bool
-    # [DETECT-SUSPECT] EN: False = right shape, WRONG check digit (only with find(report_invalid=True), score 0)
-    # [DETECT-SUSPECT] PT: False = formato certo, DV ERRADO (so c/ find(report_invalid=True), score 0)
+    # [DETECT-SUSPECT] False = right shape, WRONG check digit (only with find(report_invalid=True), score 0)
     valid_dv: bool = True
 
     def to_dict(self, include_value: bool = True) -> dict:
@@ -63,32 +56,27 @@ class Match:
 
 @lru_cache(maxsize=64)
 def _context_regex(words: tuple[str, ...]) -> re.Pattern[str]:
-    # [DETECT-CONTEXT-RE] EN: one regex per word list, whole words only ("sus" must not hit "suspenso")
-    # [DETECT-CONTEXT-RE] PT: 1 regex por lista, so palavra inteira ("sus" nao pode casar c/ "suspenso")
+    # [DETECT-CONTEXT-RE] one regex per word list, whole words only ("sus" must not hit "suspenso")
     alternatives = "|".join(re.escape(w) for w in sorted(words, key=len, reverse=True))
     return re.compile(rf"(?<![0-9a-z])(?:{alternatives})(?![0-9a-z])")
 
 
 def _has_context(folded: str, start: int, end: int, spec: EntitySpec) -> bool:
-    # [DETECT-CONTEXT] EN: search window before and after the match in the folded (lowercase, no accent) text
-    # [DETECT-CONTEXT] PT: busca na janela antes e dps do match no texto dobrado (minusculo, sem acento)
+    # [DETECT-CONTEXT] search window before and after the match in the folded (lowercase, no accent) text
     lo = max(0, start - spec.context_window)
     hi = min(len(folded), end + spec.context_window)
-    # EN: blank out the match itself so the number can't count as its own context
-    # PT: apaga o proprio match p/ o numero nao contar como contexto de si mesmo
+    # blank out the match itself so the number can't count as its own context
     window = folded[lo:start] + " " + folded[end:hi]
     return _context_regex(spec.context_words).search(window) is not None
 
 
-# [DETECT-SUSPECT-MIN] EN: only "formatted" patterns (base score >= 0.5) can raise a suspect, so random digit
-#   runs don't flood the report / PT: so padrao "formatado" (score base >= 0.5) gera suspeito, p/ sequencia
-#   aleatoria de digitos nao inundar o relatorio
+# [DETECT-SUSPECT-MIN] only "formatted" patterns (base score >= 0.5) can raise a suspect, so random digit
+#   runs don't flood the report
 SUSPECT_MIN_PATTERN_SCORE = 0.5
 
 
 def _candidates(norm: str, folded: str, text: str, spec: EntitySpec, report_invalid: bool = False) -> Iterable[Match]:
-    # [DETECT-CANDIDATES] EN: every regex hit that passes the check digit, one Match per distinct span
-    # [DETECT-CANDIDATES] PT: todo hit de regex q passa no DV, 1 Match por trecho distinto
+    # [DETECT-CANDIDATES] every regex hit that passes the check digit, one Match per distinct span
     seen: set[tuple[int, int]] = set()
     for pat in spec.patterns:
         for m in pat.regex.finditer(norm):
@@ -96,16 +84,15 @@ def _candidates(norm: str, folded: str, text: str, spec: EntitySpec, report_inva
             if span in seen:
                 continue
             seen.add(span)
-            # EN: validate on the normalised slice (ASCII digits etc) / PT: valida no trecho normalizado
+            # validate on the normalised slice (ASCII digits etc)
             if spec.validator is not None and not spec.validator(m.group(0)):
-                # [DETECT-SUSPECT-EMIT] EN: N1 look-alike with wrong DV, reported with score 0 when asked
-                # [DETECT-SUSPECT-EMIT] PT: parecido N1 c/ DV errado, reportado c/ score 0 qdo pedido
+                # [DETECT-SUSPECT-EMIT] N1 look-alike with wrong DV, reported with score 0 when asked
                 if report_invalid and spec.tier == "N1" and pat.score >= SUSPECT_MIN_PATTERN_SCORE:
                     ctx = _has_context(folded, m.start(), m.end(), spec)
                     yield Match(spec.id, m.start(), m.end(), text[m.start() : m.end()], 0.0, spec.tier, pat.name, ctx, False)
                 continue
             ctx = _has_context(folded, m.start(), m.end(), spec)
-            # EN: entities that require context are dropped without it / PT: entidade q exige contexto cai sem ele
+            # entities that require context are dropped without it
             if spec.context_required and not ctx:
                 continue
             score = spec.score_with_context if ctx else spec.score_without_context
@@ -132,12 +119,12 @@ def resolve_overlaps(matches: Iterable[Match], order: list[str] | None = None) -
     rank = {e: i for i, e in enumerate(order)}
 
     def key(m: Match) -> tuple:
-        # EN: sort key, best first / PT: chave de ordenacao, melhor primeiro
+        # sort key, best first
         return (TIER_RANK.get(m.tier, 9), -m.score, -(m.end - m.start), rank.get(m.entity, 99), m.start)
 
     kept: list[Match] = []
     for m in sorted(matches, key=key):
-        # EN: keep only if it doesn't touch anything already kept / PT: so fica se nao encosta em nada ja aceito
+        # keep only if it doesn't touch anything already kept
         if all(m.end <= k.start or m.start >= k.end for k in kept):
             kept.append(m)
     return sorted(kept, key=lambda m: (m.start, m.end))
@@ -159,26 +146,26 @@ def find(
     resolve: resolve sobreposicao entre entidades (padrao True).
     report_invalid: devolve tb parecidos N1 c/ DV ERRADO (valid_dv=False, score 0), ex: erro de digitacao.
     """
-    # [FIND] EN: type check / PT: confere tipo
+    # [FIND] type check
     if not isinstance(text, str):
         raise TypeError("text must be str / text precisa ser str")
     ids = list(entities) if entities is not None else list(ENTITIES)
     unknown = [e for e in ids if e not in ENTITIES]
     if unknown:
         raise ValueError(f"unknown entities / entidades desconhecidas: {unknown}")
-    # [FIND-PREP] EN: normalise once, fold once / PT: normaliza 1x, dobra 1x
+    # [FIND-PREP] normalise once, fold once
     norm = normalise_text(text)
     folded = fold(norm)
     found: list[Match] = []
     for eid in ids:
         found.extend(_candidates(norm, folded, text, ENTITIES[eid], report_invalid))
-    # [FIND-SPLIT] EN: suspects never compete with valid matches / PT: suspeito nunca compete c/ match valido
+    # [FIND-SPLIT] suspects never compete with valid matches
     suspects = [m for m in found if not m.valid_dv]
     found = [m for m in found if m.valid_dv and m.score >= min_score]
     # [FIND-RESOLVE]
     kept = resolve_overlaps(found, ids) if resolve else sorted(found, key=lambda m: (m.start, m.end))
     if suspects:
-        # EN: a suspect survives only where no valid match sits / PT: suspeito so fica onde nao tem match valido
+        # a suspect survives only where no valid match sits
         free = [x for x in suspects if all(x.end <= k.start or x.start >= k.end for k in kept)]
         kept = sorted(kept + resolve_overlaps(free, ids), key=lambda m: (m.start, m.end))
     return kept

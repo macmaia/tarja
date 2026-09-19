@@ -1,15 +1,11 @@
 # tarja/validators/renavam.py
-# [RENAVAM] EN: RENAVAM validation (national vehicle registry code), 11 digits (old 9-digit codes are left-padded with 0).
-# [RENAVAM] PT: validacao do RENAVAM, 11 digitos (codigos antigos de 9 recebem 0 a esquerda).
+# [RENAVAM] RENAVAM validation (national vehicle registry code), 11 digits (old 9-digit codes are left-padded with 0).
 #
-# EN: Rule: weights 3,2,9,8,7,6,5,4,3,2 over the first 10 digits, DV = (sum * 10) % 11, 10 -> 0.
+# Rule: weights 3,2,9,8,7,6,5,4,3,2 over the first 10 digits, DV = (sum * 10) % 11, 10 -> 0.
 #     Note: this gives the SAME digit as the NIS/PIS rule, so bare numbers can't be told apart by the digit.
 #     That's why the spec requires a context word ("renavam") for this entity.
-# PT: Regra: pesos 3,2,9,8,7,6,5,4,3,2 nos 10 primeiros, DV = (soma * 10) % 11, 10 -> 0.
-#     Obs: da o MESMO DV da regra do NIS/PIS, entao numero solto nao da p/ distinguir pelo DV.
-#     Por isso a spec exige palavra de contexto ("renavam") p/ essa entidade.
 #
-# EN: Source: Denatran Portaria 27/2013 (11 digits, "modulo 11, peso 9") / PT: Fonte: Portaria Denatran 27/2013
+# Source: Denatran Portaria 27/2013 (11 digits, "modulo 11, peso 9")
 #   https://www.gov.br/transportes/pt-br/assuntos/transito/arquivos-senatran/portarias/2013/portaria0272013.pdf
 
 from __future__ import annotations
@@ -17,7 +13,7 @@ from __future__ import annotations
 import re
 
 _STRIP = re.compile(r"[\s.\-]")
-# [RENAVAM-REGEX] EN: 9 or 11 digits / PT: 9 ou 11 digitos
+# [RENAVAM-REGEX] 9 or 11 digits
 _DIGITS = re.compile(r"\d{9}|\d{11}")
 _WEIGHTS = (3, 2, 9, 8, 7, 6, 5, 4, 3, 2)
 

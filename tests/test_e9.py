@@ -18,7 +18,7 @@ BAD_CPF = "529.982.247-24"
 class TestSuspect(unittest.TestCase):
     # [TEST-E9-SUSPECT]
     def test_off_by_default(self):
-        # EN: default output is unchanged / PT: saida padrao nao muda
+        # default output is unchanged
         self.assertEqual(tarja.find(f"cpf {BAD_CPF}"), [])
 
     def test_reports_wrong_dv(self):
@@ -33,7 +33,7 @@ class TestSuspect(unittest.TestCase):
         self.assertEqual([m.valid_dv for m in found], [False, True])
 
     def test_suspect_loses_to_valid_overlap(self):
-        # EN: a valid match on the same span wins / PT: match valido no mesmo trecho ganha
+        # a valid match on the same span wins
         found = tarja.find(f"cpf {VALID_CPF}", report_invalid=True)
         self.assertTrue(all(m.valid_dv for m in found))
 
@@ -59,7 +59,7 @@ class TestSuspect(unittest.TestCase):
 
 
 class TestCartao(unittest.TestCase):
-    # [TEST-E9-CARTAO] EN: public test PANs / PT: numeros de teste publicos
+    # [TEST-E9-CARTAO] public test PANs
     def test_valid(self):
         for v in ("4111 1111 1111 1111", "5555555555554444", "3782 822463 10005", "4012888888881881"):
             self.assertTrue(cartao.is_valid(v), v)
@@ -102,6 +102,38 @@ class TestVault(unittest.TestCase):
     def test_unknown_token_left_alone(self):
         v = Vault()
         self.assertEqual(v.reveal("x <BR_CPF:000000000000> y"), "x <BR_CPF:000000000000> y")
+
+
+class TestVaultHardening(unittest.TestCase):
+    # [TEST-VAULT-HARDENING]
+    def test_token_is_96_bits(self):
+        tok = Vault().token("BR_CPF", VALID_CPF)
+        self.assertRegex(tok, r"^<BR_CPF:[0-9a-f]{24}>$")
+
+    def test_collision_raises(self):
+        from tarja.vault import VaultCollisionError
+
+        v = Vault()
+        v.token = lambda entity, value: "<BR_CPF:" + "0" * 24 + ">"  # force every value onto one token
+        v.protect(f"cpf {VALID_CPF}")
+        with self.assertRaises(VaultCollisionError):
+            v.protect("cpf 111.444.777-35")
+
+    def test_same_value_other_layout_is_not_collision(self):
+        v = Vault()
+        v.protect(f"cpf {VALID_CPF}")
+        self.assertIn("<BR_CPF:", v.protect("cpf 52998224725"))
+        self.assertEqual(len(v), 1)
+
+    def test_overlapping_matches_skipped(self):
+        v = Vault()
+        text = f"cpf {VALID_CPF}"
+        ms = tarja.find(text)
+        both = ms + [tarja.Match("BR_CPF", ms[0].start + 2, ms[0].end, ms[0].value[2:], 0.9, ms[0].tier, "x", True)]
+        self.assertEqual(v.reveal(v.protect(text, matches=both)), text)
+
+    def test_residual_blanks_mask_hash_tokens(self):
+        self.assertEqual(residual(tarja.mask(f"cpf {VALID_CPF}", strategy="hash", salt="s")), [])
 
 
 class TestResidual(unittest.TestCase):

@@ -1,13 +1,11 @@
 # tarja/cli.py
-# [CLI] EN: command line. Examples:
+# [CLI] command line. Examples:
 #   tarja scan contrato.txt                     -> JSON lines, one per finding (value hidden by default)
 #   tarja scan contrato.txt --format table      -> readable table
 #   tarja scan contrato.txt --show-values       -> include the raw identifier (careful)
 #   tarja mask contrato.txt > limpo.txt         -> masked copy, strategy redact
 #   tarja mask - --strategy hash --salt s3cr3t < in.txt
 #   cat log.txt | tarja scan - --entities BR_CPF,BR_CNPJ --min-score 0.9
-# [CLI] PT: linha de comando. Exemplos acima. Por padrao o valor achado NAO sai no output (dado pessoal).
-#   --show-values mostra o valor cru, usar c/ cuidado.
 
 from __future__ import annotations
 
@@ -21,17 +19,25 @@ from tarja.detect import find
 from tarja.entities import ENTITIES
 from tarja.mask import STRATEGIES, mask
 
+# [CLI-LIMIT] input cap, so a huge file or endless pipe can't exhaust memory (override with --max-mb)
+DEFAULT_MAX_MB = 50
 
-def _read(path: str) -> str:
-    # [CLI-READ] EN: "-" reads stdin / PT: "-" le do stdin
+
+def _read(path: str, max_mb: float = DEFAULT_MAX_MB) -> str:
+    # [CLI-READ] "-" reads stdin, both capped at max_mb (read one char over the cap to detect it)
+    limit = int(max_mb * 1024 * 1024)
     if path == "-":
-        return sys.stdin.read()
-    with open(path, encoding="utf-8") as fh:
-        return fh.read()
+        text = sys.stdin.read(limit + 1)
+    else:
+        with open(path, encoding="utf-8") as fh:
+            text = fh.read(limit + 1)
+    if len(text) > limit:
+        raise ValueError(f"input larger than {max_mb:g} MB, use --max-mb or split the file")
+    return text
 
 
 def _entities(arg: str | None) -> list[str] | None:
-    # [CLI-ENTITIES] EN: "BR_CPF,BR_CNPJ" -> list, None = all / PT: "BR_CPF,BR_CNPJ" -> lista, None = todas
+    # [CLI-ENTITIES] "BR_CPF,BR_CNPJ" -> list, None = all
     if not arg:
         return None
     return [e.strip().upper() for e in arg.split(",") if e.strip()]
@@ -46,7 +52,7 @@ def _build_parser() -> argparse.ArgumentParser:
     p.add_argument("--version", action="version", version=f"tarja {__version__}")
     sub = p.add_subparsers(dest="command", required=True)
 
-    # EN: shared options / PT: opcoes comuns
+    # shared options
     common = argparse.ArgumentParser(add_help=False)
     common.add_argument("path", help="file or - for stdin / arquivo ou - p/ stdin")
     common.add_argument(
@@ -54,6 +60,12 @@ def _build_parser() -> argparse.ArgumentParser:
         help=f"comma-separated / separadas por virgula. Default: all / todas ({','.join(ENTITIES)})",
     )
     common.add_argument("--min-score", type=float, default=0.0, help="drop below this / descarta abaixo disso")
+    common.add_argument(
+        "--max-mb",
+        type=float,
+        default=DEFAULT_MAX_MB,
+        help=f"input size cap in MB, default {DEFAULT_MAX_MB} / limite de entrada em MB",
+    )
 
     # [CLI-SCAN]
     scan = sub.add_parser("scan", parents=[common], help="list findings / lista o q achou")
@@ -87,8 +99,8 @@ def main(argv: list[str] | None = None) -> int:
     """
     args = _build_parser().parse_args(argv)
     try:
-        text = _read(args.path)
-        # [CLI-SUSPECT] EN: only scan reports suspects, mask never touches them / PT: so o scan reporta suspeitos
+        text = _read(args.path, args.max_mb)
+        # [CLI-SUSPECT] only scan reports suspects, mask never touches them
         suspect = args.command == "scan" and args.suspect
         found = find(text, entities=_entities(args.entities), min_score=args.min_score, report_invalid=suspect)
         if args.command == "mask":
@@ -100,15 +112,15 @@ def main(argv: list[str] | None = None) -> int:
             for m in found:
                 sys.stdout.write(json.dumps(m.to_dict(include_value=args.show_values), ensure_ascii=False) + "\n")
         else:
-            # EN: simple fixed-width table / PT: tabela simples de largura fixa
+            # simple fixed-width table
             sys.stdout.write(f"{'entity':<10} {'start':>7} {'end':>7} {'score':>5}  value\n")
             for m in found:
                 shown = m.value if args.show_values else "*" * len(m.value)
                 sys.stdout.write(f"{m.entity:<10} {m.start:>7} {m.end:>7} {m.score:>5.2f}  {shown}\n")
-        # EN: exit 1 when something was found, handy in CI / PT: exit 1 qdo acha algo, util em CI
+        # exit 1 when something was found, handy in CI
         return 1 if found else 0
     except (OSError, ValueError, UnicodeDecodeError) as exc:
-        # [CLI-ERROR] EN: clean message instead of a traceback / PT: msg limpa em vez de traceback
+        # [CLI-ERROR] clean message instead of a traceback
         sys.stderr.write(f"tarja: {exc}\n")
         return 2
 

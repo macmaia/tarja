@@ -1,8 +1,6 @@
 # tarja/entities.py
-# [ENTITIES] EN: runtime copy of spec/entities/*.yaml. The core has zero deps, so it can't read yaml at runtime.
+# [ENTITIES] runtime copy of spec/entities/*.yaml. The core has zero deps, so it can't read yaml at runtime.
 #            tests/test_spec.py fails if this file and the yaml files drift apart. Edit both together.
-# [ENTITIES] PT: copia em runtime dos spec/entities/*.yaml. O core nao tem dependencia, entao nao le yaml em runtime.
-#            tests/test_spec.py quebra se este arquivo e os yaml divergirem. Editar os 2 juntos.
 
 from __future__ import annotations
 
@@ -30,8 +28,7 @@ from tarja.validators import (
     titulo,
 )
 
-# [ENTITIES-TIERS] EN: tier order, lower = stronger evidence. Used to break overlaps.
-# [ENTITIES-TIERS] PT: ordem dos niveis, menor = evidencia mais forte. Usado p/ resolver sobreposicao.
+# [ENTITIES-TIERS] tier order, lower = stronger evidence. Used to break overlaps.
 TIER_RANK = {"N1": 1, "N2": 2, "N3": 3, "N4": 4}
 
 
@@ -62,12 +59,11 @@ class EntitySpec:
 
 
 def _p(name: str, regex: str, score: float) -> Pattern:
-    # [ENTITIES-PATTERN] EN: helper, compiles once at import / PT: helper, compila 1x no import
+    # [ENTITIES-PATTERN] helper, compiles once at import
     return Pattern(name, re.compile(regex), score)
 
 
-# [ENTITIES-REGISTRY] EN: the registry. Order matters only as the last tie-breaker in overlaps.
-# [ENTITIES-REGISTRY] PT: o registro. A ordem so importa como ultimo desempate na sobreposicao.
+# [ENTITIES-REGISTRY] the registry. Order matters only as the last tie-breaker in overlaps.
 ENTITIES: dict[str, EntitySpec] = {
     # [ENTITIES-CPF]
     "BR_CPF": EntitySpec(
@@ -141,8 +137,7 @@ ENTITIES: dict[str, EntitySpec] = {
         context_words=("nis", "pis", "pasep", "nit", "pis/pasep", "numero de identificacao social"),
         context_window=50,
         context_required=False,
-        # EN: a bit lower than CPF without context, since 11 bare digits are more often a CPF
-        # PT: um pouco abaixo do CPF sem contexto, pq 11 digitos soltos costumam ser CPF
+        # a bit lower than CPF without context, since 11 bare digits are more often a CPF
         score_with_context=0.95,
         score_without_context=0.80,
     ),

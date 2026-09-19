@@ -1,10 +1,7 @@
 # bench/ids.py
-# [BENCH-IDS] EN: random VALID identifiers per entity, plus renderers (formatted / compact / spaced) and
+# [BENCH-IDS] random VALID identifiers per entity, plus renderers (formatted / compact / spaced) and
 #   invalid look-alikes for distractors. Every valid value is double-checked with tarja's validator, which
 #   was itself checked against the official sources (docs/SOURCES.md).
-# [BENCH-IDS] PT: identificadores VALIDOS aleatorios por entidade, mais renderizadores (formatado / compacto /
-#   c/ espaco) e parecidos invalidos p/ distratores. Todo valor valido e conferido c/ o validador do tarja, q
-#   foi conferido c/ as fontes oficiais (docs/SOURCES.md).
 
 from __future__ import annotations
 
@@ -13,6 +10,7 @@ import re
 import string
 import uuid
 
+from bench.reference import REFERENCE
 from tarja.entities import ENTITIES
 from tarja.validators import cartao, cib, cnh, cnj, cnm, cnpj, cns, cpf, nis, renavam, telefone, titulo
 
@@ -21,28 +19,27 @@ ALNUM = string.digits + string.ascii_uppercase
 
 
 def _d(rng: random.Random, n: int) -> str:
-    # [BENCH-IDS-DIGITS] EN: n random digits, never all equal / PT: n digitos aleatorios, nunca todos iguais
+    # [BENCH-IDS-DIGITS] n random digits, never all equal
     while True:
         s = "".join(rng.choice(DIG) for _ in range(n))
         if len(set(s)) > 1:
             return s
 
 
-# [BENCH-IDS-GEN] EN: one generator per entity, returns the CANONICAL value (digits/chars only)
-# [BENCH-IDS-GEN] PT: 1 gerador por entidade, devolve o valor CANONICO (so digitos/caracteres)
+# [BENCH-IDS-GEN] one generator per entity, returns the CANONICAL value (digits/chars only)
 def _cpf(rng):
     b = _d(rng, 9)
     return b + cpf.compute_check_digits(b)
 
 
 def _cnpj(rng):
-    # EN: half alphanumeric (Jul/2026 format), half numeric / PT: metade alfanum (formato jul/2026), metade numerico
+    # half alphanumeric (Jul/2026 format), half numeric
     b = "".join(rng.choice(ALNUM) for _ in range(12)) if rng.random() < 0.5 else _d(rng, 8) + "0001"
     return b + cnpj.compute_check_digits(b)
 
 
 def _cns(rng):
-    # EN: half definitive (1/2, official routine), half provisional (7/8/9) / PT: metade definitivo, metade provisorio
+    # half definitive (1/2, official routine), half provisional (7/8/9)
     if rng.random() < 0.5:
         return cns.definitive_from_pis(rng.choice("12") + _d(rng, 10))
     while True:
@@ -120,7 +117,7 @@ def _matricula(rng):
 
 
 def _cartao(rng):
-    # [BENCH-IDS-CARTAO] EN: Visa-like test PAN, "4" + 14 digits + Luhn / PT: PAN de teste tipo Visa, "4" + 14 digitos + Luhn
+    # [BENCH-IDS-CARTAO] Visa-like test PAN, "4" + 14 digits + Luhn
     body = "4" + _d(rng, 14)
     return body + cartao.luhn_check_digit(body)
 
@@ -138,8 +135,12 @@ def generate(entity: str, rng: random.Random) -> str:
     # [BENCH-IDS-GENERATE]
     v = GENERATORS[entity](rng)
     spec = ENTITIES[entity]
+    shown = render(entity, v, "formatted")
     if spec.validator is not None:
-        assert spec.validator(render(entity, v, "formatted")), (entity, v)
+        assert spec.validator(shown), (entity, v)
+    # [BENCH-IDS-REF] independent reference must agree, so the gold is not tarja grading itself
+    if entity in REFERENCE:
+        assert REFERENCE[entity](shown), ("reference", entity, v)
     return v
 
 
@@ -170,7 +171,7 @@ def render(entity: str, v: str, style: str) -> str:
     if style == "formatted":
         return f
     if style == "compact":
-        # EN: PIX keys and plates keep their dashes / PT: chave PIX e placa mantem o traco
+        # PIX keys and plates keep their dashes
         if entity in ("BR_PIX_EVP", "BR_PLACA"):
             return f
         return re.sub(r"[\s.\-/()]", "", f)
@@ -179,10 +180,8 @@ def render(entity: str, v: str, style: str) -> str:
     raise ValueError(style)
 
 
-# [BENCH-IDS-DV] EN: entities with a REAL check digit. Loose format checks (IPTU, matricula, CEP, phone, plate,
+# [BENCH-IDS-DV] entities with a REAL check digit. Loose format checks (IPTU, matricula, CEP, phone, plate,
 #   PIX) accept almost any number, so they don't count when deciding if a look-alike is "valid for something".
-# [BENCH-IDS-DV] PT: entidades c/ DV DE VERDADE. Checagens frouxas de formato (IPTU, matricula, CEP, telefone,
-#   placa, PIX) aceitam quase qq numero, entao nao contam p/ decidir se um parecido e "valido p/ algo".
 DV_ENTITIES = (
     "BR_CPF", "BR_CNPJ", "BR_CNS", "BR_NIS", "BR_CNJ", "BR_CNM", "BR_CIB", "BR_TITULO_ELEITOR", "BR_CNH",
     "BR_RENAVAM", "BR_CARTAO",
@@ -203,8 +202,7 @@ def invalid_lookalike(entity: str, rng: random.Random) -> str | None:
         pool = cib.ALPHABET if entity == "BR_CIB" else DIG
         bad = v[:-1] + rng.choice([c for c in pool if c != last])
         s = render(entity, bad, "formatted")
-        # EN: must be invalid for EVERY check-digit entity, or a detector would be right to flag it
-        # PT: tem q ser invalido p/ TODA entidade c/ DV, senao o detector acertaria ao marcar
-        if not any(ENTITIES[e].validator(s) for e in DV_ENTITIES):
+        # must be invalid for EVERY check-digit entity, or a detector would be right to flag it
+        if not any(ENTITIES[e].validator(s) for e in DV_ENTITIES) and not any(r(s) for r in REFERENCE.values()):
             return s
     return None

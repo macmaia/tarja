@@ -1,12 +1,8 @@
 # bench/runners/ner_llm.py
-# [BENCH-RUNNER-NER-LLM] EN: E4.7. spaCy Portuguese NER (labels PER/LOC/ORG/MISC, not identifiers: expected to
+# [BENCH-RUNNER-NER-LLM] E4.7. spaCy Portuguese NER (labels PER/LOC/ORG/MISC, not identifiers: expected to
 #   score ~0 on typed metrics, which is itself a finding) and LLMs used as detectors.
 #   LLM protocol: prompt file versioned in bench/prompts/, temperature 0, model + date recorded, every response
 #   cached on disk (re-runs cost nothing and are reproducible).
-# [BENCH-RUNNER-NER-LLM] PT: E4.7. NER em PT do spaCy (rotulos PER/LOC/ORG/MISC, nao identificadores: deve dar
-#   ~0 nas metricas tipadas, o q ja e um achado) e LLMs usados como detector.
-#   Protocolo LLM: prompt versionado em bench/prompts/, temperatura 0, modelo + data gravados, toda resposta
-#   em cache no disco (rodar de novo nao custa nada e e reprodutivel).
 
 from __future__ import annotations
 
@@ -29,7 +25,7 @@ class SpacyRunner(Runner):
     name = "spacy"
 
     def __init__(self, model: str = "pt_core_news_lg", nlp=None):
-        # [BENCH-RUNNER-SPACY] EN: nlp injectable for tests / PT: nlp injetavel p/ teste
+        # [BENCH-RUNNER-SPACY] nlp injectable for tests
         if nlp is None:
             import spacy
 
@@ -38,15 +34,13 @@ class SpacyRunner(Runner):
         self.info = {"model": model}
 
     def predict_one(self, text: str) -> list[dict]:
-        # EN: every NER entity becomes OTHER, only the "untyped" mode can credit it
-        # PT: toda entidade de NER vira OTHER, so o modo "untyped" pode contar
+        # every NER entity becomes OTHER, only the "untyped" mode can credit it
         return [span(e.start_char, e.end_char, "OTHER") for e in self.nlp(text).ents]
 
 
 def parse_llm_json(raw: str) -> list[dict]:
     """EN: Tolerant parse of the model's JSON answer. PT: Parse tolerante do JSON do modelo."""
-    # [BENCH-RUNNER-LLM-PARSE] EN: grab the outermost {...} even if the model added prose or code fences
-    # [BENCH-RUNNER-LLM-PARSE] PT: pega o {...} mais externo mesmo se o modelo pos texto ou cerca de codigo
+    # [BENCH-RUNNER-LLM-PARSE] grab the outermost {...} even if the model added prose or code fences
     m = re.search(r"\{.*\}", raw, re.S)
     if not m:
         return []
@@ -86,7 +80,7 @@ class LlmRunner(Runner):
         }
 
     def _default_call(self):
-        # [BENCH-RUNNER-LLM-CALL] EN: real API clients, keys from env / PT: clientes reais, chave do env
+        # [BENCH-RUNNER-LLM-CALL] real API clients, keys from env
         if self.provider == "anthropic":
             import anthropic
 
@@ -124,8 +118,7 @@ class LlmRunner(Runner):
         for item in parse_llm_json(self._memo[key]):
             at = locate(text, item["text"], used)
             if at is None:
-                # EN: text not found verbatim = hallucinated or reformatted span, counted as nothing
-                # PT: texto nao achado igual = span alucinado ou reformatado, nao conta
+                # text not found verbatim = hallucinated or reformatted span, counted as nothing
                 continue
             ent = item.get("type") if item.get("type") in VALID_TYPES else "OTHER"
             out.append(span(at, at + len(item["text"]), ent, 1.0))

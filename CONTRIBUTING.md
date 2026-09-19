@@ -17,14 +17,14 @@ EN:
 1. Open an issue first with the entity, the official standard and a few examples.
 2. Create `spec/entities/<id>.yaml` following `spec/schema.json` (id with `BR_` prefix). Fill in `description` (EN-UK) and `description_pt`.
 3. `sources` must point to the official standard for the algorithm (Receita, TSE, Ministry of Health, CNJ...). No official source = goes in as `experimental`.
-4. Validator in `src/tarja/validators/<name>.py`: pure function, stdlib only, source repeated at the top, every block commented with a `[NAME-THING]` tag, EN first then PT.
+4. Validator in `src/tarja/validators/<name>.py`: pure function, stdlib only, source repeated at the top, every block commented in short English with a `[NAME-THING]` tag. Public docstrings are bilingual, EN first then PT.
 5. Tests: official case, wrong check digit, bad format, repeated digits (where it makes sense) and one property test (generate, validate, mutate).
 
 PT:
 1. Abre uma issue antes, c/ a entidade, a norma oficial e uns exemplos.
 2. Cria `spec/entities/<id>.yaml` seguindo `spec/schema.json` (id c/ prefixo `BR_`). Preenche `description` (EN-UK) e `description_pt`.
 3. `sources` c/ a norma oficial do algoritmo (Receita, TSE, MS, CNJ...). Sem fonte oficial entra como `experimental`.
-4. Validador em `src/tarja/validators/<nome>.py`: função pura, só stdlib, fonte repetida no topo, todo bloco comentado c/ tag `[NOME-ALGO]`, EN primeiro e PT dps.
+4. Validador em `src/tarja/validators/<nome>.py`: função pura, só stdlib, fonte repetida no topo, todo bloco comentado em inglês curto c/ tag `[NOME-ALGO]`. Docstring pública bilíngue, EN primeiro e PT dps.
 5. Testes: caso oficial, DV errado, formato ruim, repetidos (qdo fizer sentido) e 1 teste de propriedade (gera, valida, muta).
 
 ## real data: no / dado real: não

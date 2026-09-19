@@ -15,13 +15,13 @@
     },
     "synthetic_adversarial.dev.jsonl": {
       "docs": 900,
-      "spans": 3568,
-      "sha256": "07c8779af1f21cef0b77f969c333035451ede813b6c774d46b61a19142da64d3"
+      "spans": 3639,
+      "sha256": "0583f614ca403009dea7aba0c27e5cf2a9df2b47edb406fb1df60c6ea285ddaa"
     },
     "synthetic_adversarial.test.jsonl": {
       "docs": 2100,
-      "spans": 8305,
-      "sha256": "20f177f7a09a622a56238dcbbb90586adff97390ea38a1b4800bef7a4ce41fe2"
+      "spans": 8145,
+      "sha256": "7b9e43fe55592135079df2bd1c51500df195f1b465116272e481bca4986398a2"
     }
   }
 }

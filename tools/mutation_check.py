@@ -1,10 +1,7 @@
 # tools/mutation_check.py
-# [MUTATION] EN: proves the tests really test something. Each mutant breaks one rule on purpose (wrong weight,
+# [MUTATION] proves the tests really test something. Each mutant breaks one rule on purpose (wrong weight,
 #   skipped check digit, context ignored...), runs the whole suite on a temp copy, and expects it to FAIL.
 #   A "SURVIVED" line means a bug of that kind would slip through: add a test. Run: python tools/mutation_check.py
-# [MUTATION] PT: prova q os testes testam de verdade. Cada mutante quebra 1 regra de proposito (peso errado,
-#   DV pulado, contexto ignorado...), roda a suite toda numa copia temporaria e espera FALHAR.
-#   "SURVIVED" = um bug desse tipo passaria: falta teste. Rodar: python tools/mutation_check.py
 
 import os
 import re
@@ -13,10 +10,10 @@ import subprocess
 import sys
 import tempfile
 
-# EN: repo root / PT: raiz do repo
+# repo root
 R = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
-# [MUTATION-LIST] EN: (name, file, original snippet, mutated snippet) / PT: (nome, arquivo, trecho original, trecho mutado)
+# [MUTATION-LIST] (name, file, original snippet, mutated snippet)
 M = [
     (
         "cpf always valid",
@@ -98,7 +95,7 @@ def main() -> int:
     results = []
     for name, rel, original, mutated in M:
         with tempfile.TemporaryDirectory() as tmp:
-            # EN: copy only what the tests need / PT: copia so o q os testes precisam
+            # copy only what the tests need
             for d in ("src", "tests", "spec", "bench"):
                 shutil.copytree(os.path.join(R, d), os.path.join(tmp, d), ignore=shutil.ignore_patterns("*.jsonl"))
             path = os.path.join(tmp, rel)

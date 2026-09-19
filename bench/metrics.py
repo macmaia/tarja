@@ -1,14 +1,9 @@
 # bench/metrics.py
-# [BENCH-METRICS] EN: E4.8. Precision / recall / F1 at span level, three matching modes, per entity and per
+# [BENCH-METRICS] E4.8. Precision / recall / F1 at span level, three matching modes, per entity and per
 #   difficulty, with 95% bootstrap confidence intervals (resampling documents).
 #     exact   = same start, end AND entity
 #     partial = spans overlap AND same entity
 #     untyped = spans overlap, entity ignored (fair to NER/LLMs that find the number but name it differently)
-# [BENCH-METRICS] PT: E4.8. Precisao / revocacao / F1 em nivel de span, 3 modos de casamento, por entidade e por
-#   dificuldade, c/ intervalo de confianca 95% por bootstrap (reamostrando documentos).
-#     exact   = mesmo inicio, fim E entidade
-#     partial = spans se sobrepoem E mesma entidade
-#     untyped = spans se sobrepoem, entidade ignorada (justo c/ NER/LLM q acham o numero mas nomeiam diferente)
 
 from __future__ import annotations
 
@@ -73,7 +68,7 @@ def evaluate(gold_docs: list[dict], pred_by_id: dict[str, list[dict]], mode: str
     # [BENCH-METRICS-EVAL]
     per_doc = [doc_counts(d["spans"], pred_by_id.get(d["id"], []), mode) for d in gold_docs]
     overall = prf(*_sum(per_doc))
-    # [BENCH-METRICS-BOOT] EN: resample documents with replacement / PT: reamostra documentos c/ reposicao
+    # [BENCH-METRICS-BOOT] resample documents with replacement
     rng = random.Random(seed)
     boot = []
     for _ in range(n_boot):

@@ -1,21 +1,13 @@
 # presidio_br/__init__.py
-# [PRESIDIO-BR] EN: builds one Presidio PatternRecognizer per tarja entity, straight from tarja's registry,
+# [PRESIDIO-BR] builds one Presidio PatternRecognizer per tarja entity, straight from tarja's registry,
 #   so regex, context words and check digits never drift from the core library.
-# [PRESIDIO-BR] PT: monta 1 PatternRecognizer do Presidio por entidade do tarja, direto do registro do tarja,
-#   entao regex, palavras de contexto e DV nunca divergem da biblioteca principal.
 #
-# EN: How scores map to Presidio's model (validate_result):
+# How scores map to Presidio's model (validate_result):
 #   - check digit wrong             -> False  (Presidio drops the result)
 #   - check digit ok                -> True   (Presidio sets score to 1.0, like its own credit-card recognizer)
 #   - entity needs context in tarja -> None   (keeps the LOW base score; Presidio's context enhancer raises it
 #                                              when a context word is near. Filter with score_threshold.)
 #   - entity with no check digit    -> None   (base score = tarja's "without context" score)
-# PT: Como os scores viram o modelo do Presidio (validate_result):
-#   - DV errado                        -> False (Presidio descarta)
-#   - DV certo                         -> True  (Presidio poe score 1.0, igual o reconhecedor de cartao dele)
-#   - entidade q exige contexto        -> None  (fica o score base BAIXO; o enhancer de contexto do Presidio
-#                                               sobe qdo tem palavra perto. Filtrar c/ score_threshold.)
-#   - entidade sem DV                  -> None  (score base = score "sem contexto" do tarja)
 # author/autoria: https://github.com/macmaia
 
 from __future__ import annotations
@@ -29,24 +21,23 @@ from tarja.entities import ENTITIES, EntitySpec
 __all__ = ["TarjaRecognizer", "get_recognizers", "register"]
 __version__ = "0.1.0.dev0"
 
-# [PRESIDIO-BR-SCORE] EN: base score for entities that require context in tarja / PT: score base p/ quem exige contexto
+# [PRESIDIO-BR-SCORE] base score for entities that require context in tarja
 REQUIRED_CONTEXT_BASE_SCORE = 0.1
 
 
 def _class_name(entity_id: str) -> str:
-    # [PRESIDIO-BR-NAME] EN: BR_TITULO_ELEITOR -> BrTituloEleitorRecognizer / PT: idem
+    # [PRESIDIO-BR-NAME] BR_TITULO_ELEITOR -> BrTituloEleitorRecognizer
     return "".join(part.capitalize() for part in entity_id.lower().split("_")) + "Recognizer"
 
 
 class TarjaRecognizer(PatternRecognizer):
     """EN: Presidio recognizer for one tarja entity. PT: Reconhecedor do Presidio p/ 1 entidade do tarja."""
 
-    # [PRESIDIO-BR-COUNTRY] EN: same convention as Presidio's country_specific recognizers
-    # [PRESIDIO-BR-COUNTRY] PT: mesma convencao dos reconhecedores country_specific do Presidio
+    # [PRESIDIO-BR-COUNTRY] same convention as Presidio's country_specific recognizers
     COUNTRY_CODE = "br"
 
     def __init__(self, entity_id: str, supported_language: str = "pt") -> None:
-        # [PRESIDIO-BR-INIT] EN: unknown id -> KeyError with a clear message / PT: id desconhecido -> erro claro
+        # [PRESIDIO-BR-INIT] unknown id -> KeyError with a clear message
         if entity_id not in ENTITIES:
             raise KeyError(f"unknown tarja entity / entidade desconhecida: {entity_id}")
         self._spec: EntitySpec = ENTITIES[entity_id]

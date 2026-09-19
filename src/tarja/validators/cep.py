@@ -1,10 +1,8 @@
 # tarja/validators/cep.py
-# [CEP] EN: postcode (CEP) FORMAT check, 8 digits, no check digit. Collides with lots of other numbers,
+# [CEP] postcode (CEP) FORMAT check, 8 digits, no check digit. Collides with lots of other numbers,
 #     so the spec requires a context word ("cep") nearby.
-# [CEP] PT: checagem de FORMATO do CEP, 8 digitos, sem DV. Colide c/ muito numero, entao a spec
-#     exige palavra de contexto ("cep") perto.
 #
-# EN: Source: Correios / PT: Fonte: Correios  https://www.correios.com.br
+# Source: Correios
 
 from __future__ import annotations
 

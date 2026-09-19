@@ -1,8 +1,6 @@
 # bench/runners/cloud.py
-# [BENCH-RUNNER-CLOUD] EN: E4.6, paid DLP services. Each needs an account + credentials (see bench/README.md).
+# [BENCH-RUNNER-CLOUD] E4.6, paid DLP services. Each needs an account + credentials (see bench/README.md).
 #   Every call's cost and date must be logged in the results (info dict), per the paper protocol.
-# [BENCH-RUNNER-CLOUD] PT: E4.6, DLPs pagos. Cada um precisa de conta + credencial (ver bench/README.md).
-#   Custo e data de cada chamada vao p/ o resultado (dict info), pelo protocolo do artigo.
 
 from __future__ import annotations
 
@@ -12,8 +10,7 @@ import os
 
 from bench.runners.base import Runner, span
 
-# [BENCH-RUNNER-CLOUD-MAPS] EN: vendor entity -> tarja id (documented types, checked 2026-09-18)
-# [BENCH-RUNNER-CLOUD-MAPS] PT: entidade do fornecedor -> id do tarja (tipos documentados, conferidos 18/09/2026)
+# [BENCH-RUNNER-CLOUD-MAPS] vendor entity -> tarja id (documented types, checked 2026-09-18)
 AZURE_MAP = {"BRCPFNumber": "BR_CPF", "BRLegalEntityNumber": "BR_CNPJ", "PhoneNumber": "BR_TELEFONE"}
 GOOGLE_MAP = {"BRAZIL_CPF_NUMBER": "BR_CPF", "PHONE_NUMBER": "BR_TELEFONE"}
 MACIE_MAP = {
@@ -35,7 +32,7 @@ class AzureRunner(Runner):
     name = "azure"
 
     def __init__(self, client=None, language: str = "pt-BR"):
-        # [BENCH-RUNNER-AZURE] EN: client injectable for tests / PT: cliente injetavel p/ teste
+        # [BENCH-RUNNER-AZURE] client injectable for tests
         if client is None:
             from azure.ai.textanalytics import TextAnalyticsClient
             from azure.core.credentials import AzureKeyCredential
@@ -80,8 +77,7 @@ class GoogleSdpRunner(Runner):
         resp = self.client.inspect_content(request=req)
         out = []
         for f in resp.result.findings:
-            # EN: SDP returns UTF-8 byte offsets when the text isn't ASCII; convert to char offsets
-            # PT: SDP devolve offset em bytes UTF-8 qdo o texto nao e ASCII; converte p/ offset de caractere
+            # SDP returns UTF-8 byte offsets when the text isn't ASCII; convert to char offsets
             b = f.location.byte_range
             start = len(text.encode("utf-8")[: b.start].decode("utf-8", "ignore"))
             end = len(text.encode("utf-8")[: b.end].decode("utf-8", "ignore"))
@@ -99,7 +95,7 @@ class MacieRunner(Runner):
     name = "macie"
 
     def __init__(self, findings: list[dict] | None = None, findings_path: str | None = None):
-        # [BENCH-RUNNER-MACIE] EN: findings = exported Macie findings JSON / PT: findings = JSON exportado do Macie
+        # [BENCH-RUNNER-MACIE] findings = exported Macie findings JSON
         import json
 
         if findings is None:
@@ -118,7 +114,7 @@ class MacieRunner(Runner):
         self._current_id = None
 
     def predict_doc(self, doc_id: str) -> list[dict]:
-        # EN: Macie findings are keyed by doc id, not by text / PT: findings do Macie vem por id, nao por texto
+        # Macie findings are keyed by doc id, not by text
         return [span(x["start"], x["end"], MACIE_MAP.get(x["type"], "OTHER")) for x in self.by_key.get(doc_id, [])]
 
     def predict_one(self, text: str) -> list[dict]:  # pragma: no cover
