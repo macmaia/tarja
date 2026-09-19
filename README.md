@@ -23,12 +23,13 @@ pip install -e ".[dev]"
 ```python
 import tarja
 
-tarja.validate("BR_CPF", "529.982.247-25")        # True
-tarja.validate("BR_CNPJ", "12.ABC.345/01DE-35")   # True (alphanumeric CNPJ / CNPJ alfanum)
+tarja.validate("BR_CPF", "529.982.247-25")  # True
+tarja.validate("BR_CNPJ", "12.ABC.345/01DE-35")  # True (alphanumeric CNPJ / CNPJ alfanum)
 
 from tarja.validators import cnpj
-cnpj.compute_check_digits("12ABC34501DE")         # "35"
-cnpj.format("12abc34501de35")                     # "12.ABC.345/01DE-35"
+
+cnpj.compute_check_digits("12ABC34501DE")  # "35"
+cnpj.format("12abc34501de35")  # "12.ABC.345/01DE-35"
 ```
 
 EN: `tarja.find()` (search in text) lands in 0.2.
