@@ -13,7 +13,11 @@
 #     Status stays "experimental" until checked against real-format public examples.
 # PT: ATENCAO: nao ha especificacao oficial publica, as implementacoes divergem no caso de borda do DV2.
 #     Status fica "experimental" ate conferir c/ exemplos publicos em formato real.
-#   TODO EN/PT: official Senatran source / fonte oficial Senatran
+#   EN: Contran Res. 511/2014, art. 2, I (read) only confirms the layout: 9 characters + 2 check digits, generated
+#       by the BINCO/BCA system. The weights are not published anywhere official (Senatran, Contran, Serpro checked).
+#   PT: Res. Contran 511/2014, art. 2, I (lida) so confirma o layout: 9 caracteres + 2 DVs, gerados pelo sistema
+#       BINCO/BCA. Os pesos nao sao publicados em lugar oficial nenhum (Senatran, Contran, Serpro conferidos).
+#   https://www.gov.br/transportes/pt-br/assuntos/transito/conteudo-contran/resolucoes/resolucao5112014.pdf
 
 from __future__ import annotations
 

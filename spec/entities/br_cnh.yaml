@@ -36,6 +36,9 @@ score:
   invalid_dv: null
 
 sources:
+  - title: "Contran, Resolucao 511/2014, art. 2, I (registro nacional: 9 caracteres + 2 DVs; algoritmo nao publicado)"
+    url: https://www.gov.br/transportes/pt-br/assuntos/transito/conteudo-contran/resolucoes/resolucao5112014.pdf
+    accessed: "2026-09-19"
   - title: "Senatran, Carteira Nacional de Habilitacao"
     url: https://www.gov.br/transportes/pt-br/assuntos/transito/senatran
     accessed: "2026-09-19"

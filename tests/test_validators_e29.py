@@ -50,6 +50,13 @@ class TestCNH(unittest.TestCase):
         with self.assertRaises(ValueError):
             cnh.compute_check_digits("12")
 
+    def test_discount_branch_exact(self):
+        # [TEST-CNH] EN: DV1 >= 10 triggers the "discount 2" on DV2. Hand-computed vector:
+        #   base 100000044: DV1 = (1*9 + 4*2 + 4*1) % 11 = 21 % 11 = 10 -> 0, discount 2
+        #   DV2 = (1*1 + 4*8 + 4*9) % 11 = 69 % 11 = 3 -> 3 - 2 = 1. Result "01".
+        # [TEST-CNH] PT: DV1 >= 10 ativa o "desconto 2" no DV2. Vetor calculado a mao (acima). Resultado "01".
+        self.assertEqual(cnh.compute_check_digits("100000044"), "01")
+
     def test_property(self):
         # [TEST-CNH] EN: generate, validate, break DV2 / PT: gera, valida, quebra o DV2
         rng = random.Random(6)

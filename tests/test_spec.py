@@ -6,6 +6,7 @@
 
 import importlib
 import json
+import os
 import pathlib
 import re
 import unittest
@@ -23,6 +24,11 @@ try:
     import jsonschema
 except ImportError:  # pragma: no cover
     jsonschema = None
+
+# [TEST-SPEC-NOSKIP] EN: in CI (TARJA_NO_SKIP=1) a missing dependency is an ERROR, never a silent skip
+# [TEST-SPEC-NOSKIP] PT: na CI (TARJA_NO_SKIP=1) dependencia faltando e ERRO, nunca pulo silencioso
+if os.environ.get("TARJA_NO_SKIP") == "1" and (yaml is None or jsonschema is None):
+    raise RuntimeError("TARJA_NO_SKIP=1 but pyyaml/jsonschema missing / faltando pyyaml/jsonschema")
 
 
 def load_specs():

@@ -51,6 +51,12 @@ testpaths = ["tests"]
 addopts = "--cov=tarja --cov-report=term-missing --cov-fail-under=90"
 
 [tool.ruff]
+# EN: contrib/presidio-pr follows Presidio's own style, packages have their own tests
+# PT: contrib/presidio-pr segue o estilo do Presidio
+extend-exclude = ["contrib/presidio-pr"]
+# EN: pre-commit passes file names directly, force-exclude makes it respect the list above
+# PT: o pre-commit passa os arquivos direto, force-exclude faz ele respeitar a lista acima
+force-exclude = true
 # EN: 125 because comments are bilingual / PT: 125 pq os comentarios sao bilingues
 line-length = 125
 target-version = "py310"
