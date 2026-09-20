@@ -87,12 +87,36 @@ M = [
     ("cli shows values", "src/tarja/cli.py", "include_value=args.show_values", "include_value=True"),
     ("cli exit code", "src/tarja/cli.py", "return 1 if found else 0", "return 0"),
     ("registry drift", "src/tarja/entities.py", "score_without_context=0.85,", "score_without_context=0.84,"),
+    # [MUTATION-E9] code added after E2 (board round 2, 19/09/2026)
+    ("vault collision check off", "src/tarja/vault.py", "if self._canon.get(tok, canon) != canon:", "if False:"),
+    ("vault tokenises suspects", "src/tarja/vault.py", "if not m.valid_dv or m.end > edge:", "if m.end > edge:"),
+    ("vault overlap guard off", "src/tarja/vault.py", "if not m.valid_dv or m.end > edge:", "if not m.valid_dv:"),
+    ("vault 48-bit tokens", "src/tarja/vault.py", "TOKEN_HEX = 24", "TOKEN_HEX = 12"),
+    ("adjacent context off", "src/tarja/detect.py", "if spec.context_before or spec.context_after:", "if False:"),
+    ("suspects from any pattern", "src/tarja/detect.py", "pat.score >= SUSPECT_MIN_PATTERN_SCORE", "pat.score >= 0"),
+    ("register N1 without validator", "src/tarja/registry.py", 'if tier == "N1" and validator is None:', "if False:"),
+    ("unregister built-in allowed", "src/tarja/registry.py", "if entity_id in BUILTIN_IDS:", "if False:"),
+    ("short salt silent", "src/tarja/mask.py", "< MIN_SALT_BYTES:", "< 0:"),
+    ("cli size cap off", "src/tarja/cli.py", "if len(text) > limit:", "if False:"),
+    ("reference cpf weights", "bench/reference.py", "list(range(10, 1, -1))", "list(range(9, 0, -1))"),
 ]
 
 
 def main() -> int:
     """EN: Run every mutant, print the table, exit 1 if any survived. PT: Roda todos, imprime, exit 1 se algum sobreviveu."""
     results = []
+    # [MUTATION-BASELINE] the unmutated suite must pass first, or every mutant would look "killed"
+    base = subprocess.run(
+        [sys.executable, "-m", "unittest", "discover", "-s", "tests"],
+        cwd=R,
+        env={**os.environ, "PYTHONPATH": os.pathsep.join(["src", "."])},
+        capture_output=True,
+        text=True,
+    )
+    if base.returncode != 0:
+        print("baseline suite fails, fix it before mutation testing")
+        print(base.stderr[-2000:])
+        return 2
     for name, rel, original, mutated in M:
         with tempfile.TemporaryDirectory() as tmp:
             # copy only what the tests need

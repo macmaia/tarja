@@ -19,6 +19,7 @@ from html.parser import HTMLParser
 from pathlib import Path
 
 BASE = "https://www.planalto.gov.br/ccivil_03/"
+MAX_BYTES = 30 << 20  # 30 MB per page
 
 # [BENCH-FETCH-LAWS] compiled versions, varied domains (health, tax, civil, admin, traffic, consumer, courts)
 LAWS = {
@@ -37,6 +38,17 @@ LAWS = {
     "lei_12527_acesso_informacao": "_ato2011-2014/2011/lei/l12527.htm",
     "lei_8213_previdencia": "leis/l8213compilado.htm",
 }  # fmt: skip
+
+
+def read_capped(resp, cap: int) -> bytes:
+    # [DOWNLOAD-CAP] stop at cap bytes, so a broken or hostile server can't fill the disk or the memory
+    chunks, total = [], 0
+    while chunk := resp.read(1 << 16):
+        total += len(chunk)
+        if total > cap:
+            raise ValueError(f"response larger than {cap // (1 << 20)} MB, aborted")
+        chunks.append(chunk)
+    return b"".join(chunks)
 
 
 class _Text(HTMLParser):
@@ -82,7 +94,7 @@ def fetch(url: str) -> str:
     # [BENCH-FETCH-GET]
     req = urllib.request.Request(url, headers={"User-Agent": "tarja-bench (https://github.com/macmaia/tarja)"})
     with urllib.request.urlopen(req, timeout=60) as r:
-        body = r.read()
+        body = read_capped(r, MAX_BYTES)
         declared = r.headers.get_content_charset()
     for enc in filter(None, (declared, "utf-8", "cp1252")):
         try:

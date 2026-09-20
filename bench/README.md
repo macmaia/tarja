@@ -72,6 +72,21 @@ PT: P/R/F1 por span, 3 modos (`exact`, `partial`, `untyped`), por entidade e por
 EN: history. Before 19/09/2026: controlled 0.950 / adversarial 0.797 exact F1 (D1 0.874, D2 0.890). The fixes for spaced separators (CNPJ, CNJ, NIS, CNM, CIB) and tighter matricula context were tuned on the dev split only, and the test split was run once afterwards. OCR noise (D4) is left as a stated limitation on purpose: fixing the level where tarja is weakest, on a benchmark its author built, would not be credible.
 PT: histórico. Antes de 19/09/2026: controlado 0,950 / adversarial 0,797 de F1 exato (D1 0,874, D2 0,890). As correções de separador c/ espaço (CNPJ, CNJ, NIS, CNM, CIB) e do contexto da matrícula foram ajustadas só no dev, e o teste rodou 1 vez no fim. O ruído de OCR (D4) fica como limitação declarada de propósito: corrigir o nível mais fraco do tarja num benchmark feito pela mesma autora não seria crível.
 
+## test-split log / registro de uso do teste
+
+EN: every time tarja was scored on the TEST split, and why. Tuning happens on dev only. Report this table in the paper.
+PT: toda vez q o tarja rodou no TESTE, e por quê. Ajuste só no dev. Reportar esta tabela no artigo.
+
+| date / data | tarja | bench data | why / motivo | controlled F1 (exact) | adversarial F1 (exact) |
+|---|---|---|---|---|---|
+| 2026-09-18 | 0.4.0.dev0 | v0.1 initial | first numbers / primeiros números | 0.946 | 0.786 |
+| 2026-09-19 | 0.5.0.dev0 | v0.1 + BR_CARTAO | new entity changed the data / entidade nova mudou os dados | 0.950 | 0.791 |
+| 2026-09-19 | 0.5.0.dev0 | v0.1 + reference validators | gold regenerated (look-alikes stricter) / gold regerado | 0.950 | 0.797 |
+| 2026-09-19 | 0.5.0.dev0 | same / igual | after fixes tuned on dev (spaced separators, matricula adjacency) / dps das correções ajustadas no dev | 0.980 | 0.822 |
+
+EN: the bench data changed twice before any release, so `BENCH_VERSION` stays 0.1.0 until the Zenodo freeze. From then on, any change bumps it.
+PT: os dados mudaram 2x antes de qq publicação, entao o `BENCH_VERSION` fica 0.1.0 até congelar no Zenodo. Dali em diante, qq mudança sobe a versão.
+
 ## independence of the gold / independência do gold
 
 EN: labels come from the generator, and the generator uses check-digit code. To keep tarja from grading itself, every generated value must also pass `bench/reference.py`, a separate implementation written from the official rules with no imports from tarja (CPF, CNPJ, CNS, NIS, CNJ, voter ID, RENAVAM, card). CNH, CNM and CIB have no reference yet and rely on tarja alone. Where `validate-docbr` is installed, a test also checks CPF, CNS, NIS and RENAVAM against it. D0 scores near 1.0 are expected by construction and are NOT evidence of real-world accuracy. That comes from the semi-real subset and the hand-annotated sample (E4.4).

@@ -289,3 +289,15 @@ class TestReference(unittest.TestCase):
             for _ in range(200):
                 v = render(e, generate(e, rng), "compact")
                 self.assertTrue(doc.validate(v), (e, v))
+
+
+class TestDownloadCap(unittest.TestCase):
+    # [TEST-BENCH-CAP] downloads stop at the byte cap
+    def test_cap(self):
+        import io
+
+        from bench.fetch_public_texts import read_capped
+
+        self.assertEqual(read_capped(io.BytesIO(b"x" * 1000), 2000), b"x" * 1000)
+        with self.assertRaises(ValueError):
+            read_capped(io.BytesIO(b"x" * 3000), 2000)

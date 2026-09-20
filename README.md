@@ -4,13 +4,18 @@
 
 Built for anyone shipping software in Brazil, incl. foreign companies adapting to the LGPD (Brazil's GDPR). Plenty of CPF/CNPJ validators exist already (brutils, validate-docbr). What's missing is finding the ID *inside* text, scoring it with Portuguese context, and covering what paid DLPs skip: alphanumeric CNPJ (Jul/2026), CNS (health card), CNJ case numbers.
 
-Status: pre-alpha (`0.4.0.dev0`). API will change.
+Status: pre-alpha (`0.5.0.dev0`). API will change.
 
 **PT** · Detecta docs brasileiros (CPF, CNPJ etc) em texto livre, p/ mascarar antes de mandar dado p/ LLM, log, BI, onde for.
 
 Serve p/ qq um q desenvolve p/ o Brasil, inclusive empresa gringa se adaptando à LGPD. Validador de CPF/CNPJ já tem de monte (brutils, validate-docbr). O q falta é achar o doc *dentro* do texto, dar score c/ contexto em pt-BR e cobrir o q os DLPs pagos ignoram: CNPJ alfanumérico (jul/2026), CNS, nº de processo CNJ.
 
-Status: pré-alfa (`0.4.0.dev0`). A API ainda muda.
+Status: pré-alfa (`0.5.0.dev0`). A API ainda muda.
+
+## what tarja is not / o que o tarja não é
+
+EN: tarja is a detection aid, **not a guarantee of LGPD compliance**. It finds structured identifiers (tiers N1 to N3). It does not find names, addresses, health data or free-text personal information, and like any detector it has false negatives: an identifier it misses stays in the text. Masking with tarja reduces exposure, it does not anonymise a document in the sense of LGPD art. 12. Use `tarja.residual()` as a second pass, keep a human in the loop for high-risk data, and keep your own legal basis, records and security measures.
+PT: o tarja ajuda a detectar, **não garante conformidade c/ a LGPD**. Ele acha identificadores estruturados (níveis N1 a N3). Não acha nome, endereço, dado de saúde nem informação pessoal em texto livre, e como qq detector tem falso negativo: o identificador q ele não pega fica no texto. Mascarar c/ o tarja reduz a exposição, não anonimiza o documento no sentido do art. 12 da LGPD. Use o `tarja.residual()` como 2ª passada, mantenha revisão humana p/ dado de alto risco e mantenha sua própria base legal, registros e medidas de segurança.
 
 ## install / instalar
 

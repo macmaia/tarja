@@ -32,6 +32,10 @@ class TestSuspect(unittest.TestCase):
         found = tarja.find(f"cpf {BAD_CPF} e {VALID_CPF}", report_invalid=True)
         self.assertEqual([m.valid_dv for m in found], [False, True])
 
+    def test_compact_digit_runs_never_suspect(self):
+        # [TEST-E9-SUSPECT-MIN] only formatted layouts raise suspects, bare digit runs would flood the report
+        self.assertEqual(tarja.find("pedido 12345678901 e nota 98765432109", report_invalid=True), [])
+
     def test_suspect_loses_to_valid_overlap(self):
         # a valid match on the same span wins
         found = tarja.find(f"cpf {VALID_CPF}", report_invalid=True)

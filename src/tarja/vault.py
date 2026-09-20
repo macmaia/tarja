@@ -91,7 +91,6 @@ def residual(text: str, min_score: float = 0.0) -> list[Match]:
     """
     # [VAULT-RESIDUAL] blank tokens out (same length) so offsets still point at the original text
     blanked = TOKEN_RE.sub(lambda m: " " * len(m.group(0)), text)
-    blanked = re.sub(r"<[A-Z][A-Z0-9_]+>", lambda m: " " * len(m.group(0)), blanked)
     found = find(blanked, min_score=min_score)
     return [Match(m.entity, m.start, m.end, text[m.start : m.end], m.score, m.tier, m.pattern, m.has_context)
             for m in found]  # fmt: skip
