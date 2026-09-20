@@ -108,14 +108,14 @@ EN:
 - `spec/schema.json`: schema for those yaml files.
 - `src/tarja/validators/`: check digits per document, stdlib only.
 - `tests/`: `python -m unittest discover -s tests` or `pytest`.
-- Tip: code comments carry tags like `[CPF-DV]`, `[CNPJ-REGEX]`, `[TEST-SPEC]`, so ctrl+f finds anything. Every comment is EN first, PT right after.
+- Tip: code comments carry tags like `[CPF-DV]`, `[CNPJ-REGEX]`, `[TEST-SPEC]`, so ctrl+f finds anything. Comments are short and in English. Public docstrings are bilingual, EN then PT.
 
 PT:
 - `spec/entities/*.yaml`: 1 arquivo por entidade (regex, DV, contexto, score, fonte oficial). Fonte única, o resto é gerado/testado daqui.
 - `spec/schema.json`: schema desses yaml.
 - `src/tarja/validators/`: DV de cada doc, só stdlib.
 - `tests/`: `python -m unittest discover -s tests` ou `pytest`.
-- Dica: os comentários têm tags tipo `[CPF-DV]`, `[CNPJ-REGEX]`, `[TEST-SPEC]`, dá p/ achar tudo c/ ctrl+f. Todo comentário é EN primeiro, PT logo dps.
+- Dica: os comentários têm tags tipo `[CPF-DV]`, `[CNPJ-REGEX]`, `[TEST-SPEC]`, dá p/ achar tudo c/ ctrl+f. Comentário é curto e em inglês. Docstring pública é bilíngue, EN e dps PT.
 
 EN: official source for each rule, and whether it was checked: `docs/SOURCES.md`. Presidio plugin and upstream PR: `docs/presidio.md`. Benchmark: `bench/README.md`.
 PT: fonte oficial de cada regra, e se foi conferida: `docs/SOURCES.md`. Plugin do Presidio e PR: `docs/presidio.md`. Benchmark: `bench/README.md`.
