@@ -2,10 +2,17 @@ from typing import List, Optional, Tuple
 
 from presidio_analyzer import Pattern, PatternRecognizer
 
+# Receita Federal, CNPJ alfanumerico FAQ (official example 12.ABC.345/01DE-35):
+# https://www.gov.br/receitafederal/pt-br/centrais-de-conteudo/publicacoes/perguntas-e-respostas/cnpj/cnpj-alfanumerico.pdf  # noqa: E501
+# Serpro, check digit calculation:
+# https://www.serpro.gov.br/menu/noticias/videos/calculodvcnpjalfanaumerico.pdf
+
 
 class BrCnpjRecognizer(PatternRecognizer):
     """
-    Recognize the Brazilian company registration number (CNPJ), numeric and alphanumeric.
+    Recognize the Brazilian company registration number (CNPJ).
+
+    Covers both the numeric and the alphanumeric format.
 
     Since July 2026 the Receita Federal issues alphanumeric CNPJs: the first 12
     positions accept [0-9A-Z] and the 2 check digits stay numeric. Existing
@@ -13,13 +20,12 @@ class BrCnpjRecognizer(PatternRecognizer):
     each character is worth ord(c) - 48 (digits 0-9, letters A-Z = 17-42);
     check digit 1 uses weights 5,4,3,2,9,8,7,6,5,4,3,2; check digit 2 uses
     6,5,4,3,2,9,8,7,6,5,4,3,2 over the 12 positions plus check digit 1.
-    For each digit, remainder = sum % 11, digit = 0 if remainder < 2, else 11 - remainder.
+    For each digit, remainder = sum % 11, and the digit is 0 if remainder < 2,
+    else 11 - remainder.
 
-    References:
-    Receita Federal, CNPJ alfanumerico FAQ (official example 12.ABC.345/01DE-35):
-    https://www.gov.br/receitafederal/pt-br/centrais-de-conteudo/publicacoes/perguntas-e-respostas/cnpj/cnpj-alfanumerico.pdf
-    Serpro, check digit calculation:
-    https://www.serpro.gov.br/menu/noticias/videos/calculodvcnpjalfanaumerico.pdf
+    Reference: Receita Federal, CNPJ alfanumerico FAQ (official example
+    12.ABC.345/01DE-35), and Serpro, check digit calculation. Both links are
+    at the top of this file.
 
     :param patterns: List of patterns to be used by this recognizer
     :param context: List of context words to increase confidence in detection
@@ -62,7 +68,12 @@ class BrCnpjRecognizer(PatternRecognizer):
         supported_entity: str = "BR_CNPJ",
         replacement_pairs: Optional[List[Tuple[str, str]]] = None,
     ):
-        self.replacement_pairs = replacement_pairs or [("-", ""), (".", ""), ("/", ""), (" ", "")]
+        self.replacement_pairs = replacement_pairs or [
+            ("-", ""),
+            (".", ""),
+            ("/", ""),
+            (" ", ""),
+        ]
         patterns = patterns if patterns else self.PATTERNS
         context = context if context else self.CONTEXT
         super().__init__(
@@ -81,7 +92,9 @@ class BrCnpjRecognizer(PatternRecognizer):
         :return: A bool indicating whether the validation was successful.
         """
         value = self.__sanitize_value(pattern_text, self.replacement_pairs).upper()
-        if len(value) != 14 or not value[12:].isdigit() or not all(c.isdigit() or "A" <= c <= "Z" for c in value):
+        if len(value) != 14 or not value[12:].isdigit():
+            return False
+        if not all(c.isdigit() or "A" <= c <= "Z" for c in value):
             return False
         if len(set(value)) == 1:
             return False

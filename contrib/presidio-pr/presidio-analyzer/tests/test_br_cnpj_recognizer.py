@@ -51,3 +51,20 @@ def test_when_cnpj_in_text_then_expected_results(
 def test_country_code(recognizer):
     assert recognizer.COUNTRY_CODE == "br"
     assert recognizer.supported_language == "pt"
+
+
+@pytest.mark.parametrize(
+    "value",
+    [
+        # fmt: off
+        "123",                # too short
+        "112223330001811",    # too long
+        "11222333000 1AB",    # check digits are not numeric
+        "12@BC34501DE35",     # character outside 0-9 and A-Z
+        # fmt: on
+    ],
+)
+def test_when_value_is_malformed_then_validation_fails(value, recognizer):
+    # validate_result is public API, so it is called directly with input the
+    # regex would never produce
+    assert recognizer.validate_result(value) is False

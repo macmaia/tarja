@@ -30,7 +30,11 @@ class BrCpfRecognizer(PatternRecognizer):
 
     PATTERNS = [
         Pattern("CPF (formatted)", r"\b\d{3}\.\d{3}\.\d{3}-\d{2}\b", 0.5),
-        Pattern("CPF (irregular punctuation)", r"\b\d{3}[\s.]?\d{3}[\s.]?\d{3}[\s\-./]?\d{2}\b", 0.3),
+        Pattern(
+            "CPF (irregular punctuation)",
+            r"\b\d{3}[\s.]?\d{3}[\s.]?\d{3}[\s\-./]?\d{2}\b",
+            0.3,
+        ),
         Pattern("CPF (digits only)", r"\b\d{11}\b", 0.1),
     ]
 
@@ -53,7 +57,13 @@ class BrCpfRecognizer(PatternRecognizer):
         supported_entity: str = "BR_CPF",
         replacement_pairs: Optional[List[Tuple[str, str]]] = None,
     ):
-        self.replacement_pairs = replacement_pairs or [("-", ""), (".", ""), (" ", ""), ("/", ""), ("\n", "")]
+        self.replacement_pairs = replacement_pairs or [
+            ("-", ""),
+            (".", ""),
+            (" ", ""),
+            ("/", ""),
+            ("\n", ""),
+        ]
         patterns = patterns if patterns else self.PATTERNS
         context = context if context else self.CONTEXT
         super().__init__(
