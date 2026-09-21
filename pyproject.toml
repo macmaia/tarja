@@ -9,7 +9,7 @@ build-backend = "hatchling.build"
 [project]
 name = "tarja"
 dynamic = ["version"]
-description = "Finds Brazilian personal identifiers (CPF, CNPJ incl. alphanumeric, CNS, CNJ case numbers...) in free text. / Detecta CPF, CNPJ (inclusive alfanum), CNS, processo CNJ e outros docs BR em texto."
+description = "Detects, validates and masks Brazilian personal identifiers in free text, using Portuguese context and check digits. CPF, CNPJ (incl. alphanumeric), CNS, CNJ case numbers and 13 more. / Detecta, valida e mascara identificadores pessoais brasileiros em texto livre, c/ contexto em portugues e digito verificador."
 readme = "README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"
