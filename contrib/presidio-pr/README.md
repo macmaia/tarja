@@ -11,7 +11,7 @@ PT: o código aqui segue as convenções **do Presidio**, não as do tarja: come
 
 | file / arquivo | goes to / vai p/ | step |
 |---|---|---|
-| `presidio-analyzer/presidio_analyzer/predefined_recognizers/country_specific/br/*.py` | same path / mesmo caminho | E3.4 |
+| `presidio-analyzer/presidio_analyzer/predefined_recognizers/country_specific/brazil/*.py` | same path / mesmo caminho | E3.4 |
 | `presidio-analyzer/tests/test_br_*_recognizer.py` | same path / mesmo caminho | E3.6 |
 | `default_recognizers.yaml.snippet` | `presidio-analyzer/presidio_analyzer/conf/default_recognizers.yaml` | E3.5 |
 | `predefined_recognizers__init__.snippet` | `presidio-analyzer/presidio_analyzer/predefined_recognizers/__init__.py` | E3.5 |
@@ -32,7 +32,7 @@ pip install -e ".[dev]"   # or / ou: the command in docs/development.md
 
 # E3.4 + E3.6 EN: copy the files / PT: copia os arquivos
 T=~/Desktop/EBAPE/doxxing-vaccine/tarja/contrib/presidio-pr/presidio-analyzer
-cp -R $T/presidio_analyzer/predefined_recognizers/country_specific/br presidio_analyzer/predefined_recognizers/country_specific/
+cp -R $T/presidio_analyzer/predefined_recognizers/country_specific/brazil presidio_analyzer/predefined_recognizers/country_specific/
 cp $T/tests/test_br_*_recognizer.py tests/
 
 # E3.5 EN: paste the two snippets by hand / PT: colar os 2 trechos a mao
@@ -40,7 +40,7 @@ cp $T/tests/test_br_*_recognizer.py tests/
 #   predefined_recognizers__init__.snippet -> presidio_analyzer/predefined_recognizers/__init__.py
 
 # E3.6 EN: run the tests + coverage / PT: roda testes + cobertura
-pytest tests/test_br_cpf_recognizer.py tests/test_br_cnpj_recognizer.py --cov=presidio_analyzer/predefined_recognizers/country_specific/br --cov-report=term-missing
+pytest tests/test_br_cpf_recognizer.py tests/test_br_cnpj_recognizer.py --cov=presidio_analyzer/predefined_recognizers/country_specific/brazil --cov-report=term-missing
 pytest   # EN: the whole suite must still pass / PT: a suite toda tem q continuar passando
 ruff check . && ruff format --check .
 

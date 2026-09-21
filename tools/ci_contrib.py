@@ -16,7 +16,9 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parents[1]
 KIT = ROOT / "contrib" / "presidio-pr" / "presidio-analyzer"
-IMPORT_LINE = "from presidio_analyzer.predefined_recognizers.country_specific.br import BrCnpjRecognizer, BrCpfRecognizer\n"
+IMPORT_LINE = (
+    "from presidio_analyzer.predefined_recognizers.country_specific.brazil import BrCnpjRecognizer, BrCpfRecognizer\n"
+)
 
 SHIM_INIT = """
 import pytest
@@ -47,10 +49,10 @@ def main() -> int:
     import presidio_analyzer
 
     pkg = Path(presidio_analyzer.__file__).parent / "predefined_recognizers"
-    dest = pkg / "country_specific" / "br"
+    dest = pkg / "country_specific" / "brazil"
     if dest.exists():
         shutil.rmtree(dest)
-    shutil.copytree(KIT / "presidio_analyzer" / "predefined_recognizers" / "country_specific" / "br", dest)
+    shutil.copytree(KIT / "presidio_analyzer" / "predefined_recognizers" / "country_specific" / "brazil", dest)
     init = pkg / "__init__.py"
     if IMPORT_LINE not in init.read_text(encoding="utf-8"):
         with init.open("a", encoding="utf-8") as fh:
