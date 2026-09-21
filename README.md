@@ -4,13 +4,13 @@
 
 Built for anyone shipping software in Brazil, incl. foreign companies adapting to the LGPD (Brazil's GDPR). Plenty of CPF/CNPJ validators exist already (brutils, validate-docbr). What's missing is finding the ID *inside* text, scoring it with Portuguese context, and covering what paid DLPs skip: alphanumeric CNPJ (Jul/2026), CNS (health card), CNJ case numbers.
 
-Status: pre-alpha (`0.5.0.dev0`). API will change.
+Status: alpha (`0.5.0`, first release on PyPI). The API can still change before 1.0.
 
 **PT** · Detecta docs brasileiros (CPF, CNPJ etc) em texto livre, p/ mascarar antes de mandar dado p/ LLM, log, BI, onde for.
 
 Serve p/ qq um q desenvolve p/ o Brasil, inclusive empresa gringa se adaptando à LGPD. Validador de CPF/CNPJ já tem de monte (brutils, validate-docbr). O q falta é achar o doc *dentro* do texto, dar score c/ contexto em pt-BR e cobrir o q os DLPs pagos ignoram: CNPJ alfanumérico (jul/2026), CNS, nº de processo CNJ.
 
-Status: pré-alfa (`0.5.0.dev0`). A API ainda muda.
+Status: alfa (`0.5.0`, 1ª versão no PyPI). A API ainda pode mudar antes da 1.0.
 
 ## limits / limites
 
