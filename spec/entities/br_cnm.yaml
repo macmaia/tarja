@@ -1,0 +1,52 @@
+# spec/entities/br_cnm.yaml
+# [SPEC-CNM] EN: CNM (Codigo Nacional de Matricula) spec. Follows spec/schema.json
+# [SPEC-CNM] PT: spec de CNM (Codigo Nacional de Matricula). Segue spec/schema.json
+
+id: BR_CNM
+name: "CNM (Codigo Nacional de Matricula)"
+description: "Brazilian national property registry number (CNM), CCCCCC.L.NNNNNNN-DD. 16 digits, ISO 7064 mod 97-10 check digits."
+description_pt: "Codigo Nacional de Matricula do registro de imoveis, CCCCCC.L.NNNNNNN-DD. 16 digitos, DV ISO 7064 mod 97-10."
+country_code: br
+tier: N1
+status: beta
+since: "0.4"
+lgpd:
+  category: pessoal
+  note: "EN: identifies a property, and through the registry its owner. PT: identifica o imovel e, pelo registro, o dono."
+
+# EN: candidate regexes / PT: regex de candidatos
+patterns:
+  - name: cnm_formatted  # 123456.2.1234567-44
+    regex: '\b\d{6}\.[23]\.\d{7}-?\d{2}\b'
+    score: 0.6
+  - name: cnm_compact  # 1234562123456744
+    regex: '\b\d{6}[23]\d{9}\b'
+    score: 0.1
+  - name: cnm_spaced  # 123456 2 1234567 44
+    regex: '\b\d{6}[\s.][23][\s.]\d{7}[\s-]\d{2}\b'
+    score: 0.3
+
+validator:
+  function: tarja.validators.cnm.is_valid
+  algorithm: "ISO 7064 mod 97-10, DD = 98 - (int(14 digits + 00) % 97)"
+
+# EN: nearby words (Portuguese on purpose) / PT: palavras de contexto (em PT de proposito)
+context:
+  words: ["cnm", "codigo nacional de matricula", "matricula", "registro de imoveis", "imovel"]
+  window: 60
+  required: false
+
+score:
+  valid_with_context: 0.95
+  valid_without_context: 0.9
+  invalid_dv: null
+
+sources:
+  - title: "CNJ, Provimento 143/2023"
+    url: https://atos.cnj.jus.br/atos/detalhar/5057
+    accessed: "2026-09-19"
+
+# EN: generated test examples / PT: exemplos gerados p/ teste
+examples:
+  valid: ["123456.2.1234567-44", "1234562123456744"]
+  invalid: ["123456.2.1234567-45", "123456.4.1234567-44", "12345621234567"]

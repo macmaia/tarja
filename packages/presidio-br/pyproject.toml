@@ -1,0 +1,28 @@
+# packages/presidio-br/pyproject.toml
+# EN: Presidio plugin for tarja: registers every tarja entity as a Presidio PatternRecognizer (E3.1)
+# PT: plugin do Presidio p/ o tarja: registra toda entidade do tarja como PatternRecognizer do Presidio (E3.1)
+
+[build-system]
+requires = ["hatchling>=1.24"]
+build-backend = "hatchling.build"
+
+[project]
+name = "presidio-br"
+version = "0.1.0.dev0"
+description = "Brazilian identifiers for Microsoft/Data Privacy Stack Presidio, powered by tarja. / Identificadores brasileiros p/ o Presidio, via tarja."
+readme = "README.md"
+requires-python = ">=3.10"
+license = "Apache-2.0"
+authors = [{ name = "Maria Alice Maia", email = "tarja@micah6ai.com" }]  # https://github.com/macmaia
+keywords = ["presidio", "pii", "lgpd", "brazil", "cpf", "cnpj"]
+# EN: tarja does the validation, Presidio does the orchestration / PT: tarja valida, Presidio orquestra
+dependencies = ["tarja", "presidio-analyzer>=2.2"]
+
+[project.optional-dependencies]
+dev = ["pytest>=8"]
+
+[project.urls]
+Source = "https://github.com/macmaia/tarja"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/presidio_br"]

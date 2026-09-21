@@ -1,0 +1,7 @@
+Tarja
+Copyright 2026 Maria Alice Maia (https://github.com/macmaia) <tarja@micah6ai.com>
+
+EN: Licensed under the Apache License 2.0, see LICENSE.
+    Check-digit algorithms follow public Brazilian standards (Receita Federal etc), sources in spec/entities/*.yaml.
+PT: Licenca Apache 2.0, ver LICENSE.
+    Os algoritmos de DV seguem normas publicas (Receita Federal etc), fontes em spec/entities/*.yaml.

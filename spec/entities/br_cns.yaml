@@ -1,0 +1,55 @@
+# spec/entities/br_cns.yaml
+# [SPEC-CNS] EN: CNS spec (national health card / SUS card). Follows spec/schema.json
+# [SPEC-CNS] PT: spec do CNS (cartao do SUS). Segue spec/schema.json
+
+id: BR_CNS
+name: CNS
+description: Brazilian national health card number ("Cartao Nacional de Saude", SUS card). 15 digits, weighted mod-11 check.
+description_pt: Cartao Nacional de Saude (cartao do SUS). 15 digitos, soma ponderada mod 11.
+country_code: br
+tier: N1            # EN: strong check digit / PT: DV forte
+status: beta  # EN: official Ministry of Health routine read and matched / PT: rotina oficial do MS lida e conferida
+since: "0.2"
+lgpd:
+  category: pessoal
+  note: "EN: in a health context it reveals the person uses the public health system, treat as sensitive (art. 5 II). PT: em contexto de saude revela uso do SUS, tratar como sensivel (art. 5 II)."
+
+# EN: candidate regexes / PT: regex de candidatos
+patterns:
+  - name: cns_formatted  # 898 0012 3456 7890
+    regex: '\b[12789]\d{2}[\s.]\d{4}[\s.]\d{4}[\s.]\d{4}\b'
+    score: 0.5
+  - name: cns_compact    # 898001234567890
+    regex: '\b[12789]\d{14}\b'
+    score: 0.2
+
+validator:
+  function: tarja.validators.cns.is_valid
+  algorithm: "1/2: pis(11) + 000|001 + dv per official routine; 7/8/9: sum(d * (15..1)) % 11 == 0"
+
+# EN: nearby words (Portuguese on purpose) / PT: palavras de contexto (em PT de proposito)
+context:
+  words: [cns, "cartao sus", "cartao do sus", "cartao nacional de saude", sus]
+  window: 50
+  required: false
+
+score:
+  valid_with_context: 0.95
+  valid_without_context: 0.85
+  invalid_dv: null
+
+sources:
+  - title: "Anvisa RNI, regra de validacao do CNS"
+    url: https://rni-docs.anvisa.gov.br/docs/regras_gerais/validacoes/validacaoCNS/
+    accessed: "2026-09-19"
+  - title: "DATASUS, Cartao Nacional de Saude (rotina de validacao Java no Cartao Net)"
+    url: https://datasus.saude.gov.br/cartao-nacional-de-saude/
+    accessed: "2026-09-19"
+  - title: Ministerio da Saude, Cartao Nacional de Saude
+    url: https://www.gov.br/saude/pt-br/composicao/seidigi/cartao-nacional-de-saude
+    accessed: "2026-09-19"
+
+# EN: generated test examples / PT: exemplos gerados p/ teste
+examples:
+  valid: ["729141777631701", "866 9074 3915 0002", "898 0000 0004 3208", "180636083770008"]
+  invalid: ["729141777631702", "329141777631701", "72914177763170", "180636083778351"]

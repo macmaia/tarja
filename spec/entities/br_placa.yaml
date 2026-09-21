@@ -1,0 +1,52 @@
+# spec/entities/br_placa.yaml
+# [SPEC-PLACA] EN: Placa de veiculo spec. Follows spec/schema.json
+# [SPEC-PLACA] PT: spec de Placa de veiculo. Segue spec/schema.json
+
+id: BR_PLACA
+name: "Placa de veiculo"
+description: "Brazilian vehicle number plate, old (ABC1234) or Mercosur (ABC1D23) layout. Format only, no check digit."
+description_pt: "Placa de veiculo, layout antigo (ABC1234) ou Mercosul (ABC1D23). So formato, sem DV."
+country_code: br
+tier: N2
+status: beta
+since: "0.3"
+lgpd:
+  category: pessoal
+  note: "EN: identifies a vehicle, and through it the owner. PT: identifica o veiculo e, por ele, o dono."
+
+# EN: candidate regexes / PT: regex de candidatos
+patterns:
+  - name: placa_old  # ABC1234 / ABC-1234
+    regex: '\b[A-Z]{3}-?\d{4}\b'
+    score: 0.4
+  - name: placa_mercosur  # ABC1D23
+    regex: '\b[A-Z]{3}\d[A-Z]\d{2}\b'
+    score: 0.5
+
+validator:
+  function: tarja.validators.placa.is_valid
+  algorithm: "format only / so formato"
+
+# EN: nearby words (Portuguese on purpose) / PT: palavras de contexto (em PT de proposito)
+context:
+  words: ["placa", "veiculo", "carro", "moto", "automovel"]
+  window: 50
+  required: false
+
+score:
+  valid_with_context: 0.7
+  valid_without_context: 0.5
+  invalid_dv: null
+
+sources:
+  - title: "Contran, Resolucao 969/2022 (PIV/Mercosul, substituicao do 2o caractere numerico, Anexo II)"
+    url: https://www.gov.br/transportes/pt-br/assuntos/transito/conteudo-contran/resolucoes/resolucao9692022.pdf
+    accessed: "2026-09-19"
+  - title: "Contran, Resolucao 780/2019"
+    url: https://www.gov.br/transportes/pt-br/assuntos/transito/conteudo-contran/resolucoes
+    accessed: "2026-09-19"
+
+# EN: generated test examples / PT: exemplos gerados p/ teste
+examples:
+  valid: ["ABC1234", "ABC-1234", "ABC1D23"]
+  invalid: ["AB1234", "ABC12345", "abc1d2"]

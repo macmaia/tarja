@@ -1,0 +1,16 @@
+cff-version: 1.2.0
+message: "If you use tarja-bench, please cite it as below. / Se usar o tarja-bench, cite assim."
+title: "tarja-bench: a benchmark for detecting Brazilian personal identifiers in Portuguese text"
+type: dataset
+version: 0.1.0
+date-released: 2026-10-01
+license: CC-BY-4.0
+authors:
+  - family-names: Maia
+    given-names: Maria Alice
+    affiliation: FGV EBAPE
+repository-code: "https://github.com/macmaia/tarja"
+contact:
+  - email: tarja@micah6ai.com
+keywords: [PII detection, Portuguese, Brazil, benchmark, LGPD]
+# doi: 10.5281/zenodo.XXXXXXX   # EN: fill after upload / PT: preencher dps do upload

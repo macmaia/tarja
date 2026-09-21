@@ -1,0 +1,17 @@
+{
+  "title": "tarja-bench v0.1: a benchmark for detecting Brazilian personal identifiers in Portuguese text",
+  "upload_type": "dataset",
+  "version": "0.1.0",
+  "language": "por",
+  "license": "cc-by-4.0",
+  "access_right": "open",
+  "creators": [
+    {"name": "Maia, Maria Alice", "affiliation": "FGV EBAPE"}
+  ],
+  "description": "<p>Synthetic and semi-real Portuguese documents annotated with character offsets for 17 Brazilian personal identifier types (CPF, CNPJ including the alphanumeric CNPJ, CNS, NIS, CNJ case number, voter ID, CNH, RENAVAM, plates, PIX keys, phones, CEP, CNM, CIB, IPTU, property registry number, payment card). Six difficulty levels (D0 to D5) cover layout variation, line breaks, invalid look-alikes, OCR noise and misleading context. No personal data: every identifier is generated. Files are reproducible from the generator (seed 42), with sha256 in manifest.json. Code: https://github.com/macmaia/tarja (Apache 2.0).</p>",
+  "keywords": ["personal data", "PII detection", "de-identification", "Portuguese", "Brazil", "benchmark", "LGPD", "named entity recognition", "data loss prevention"],
+  "related_identifiers": [
+    {"identifier": "https://github.com/macmaia/tarja", "relation": "isSupplementTo", "scheme": "url"}
+  ],
+  "notes": "Datasheet in DATASHEET.md. Contact: tarja@micah6ai.com"
+}

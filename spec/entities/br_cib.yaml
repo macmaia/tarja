@@ -1,0 +1,55 @@
+# spec/entities/br_cib.yaml
+# [SPEC-CIB] EN: CIB (Cadastro Imobiliario Brasileiro) spec. Follows spec/schema.json
+# [SPEC-CIB] PT: spec de CIB (Cadastro Imobiliario Brasileiro). Segue spec/schema.json
+
+id: BR_CIB
+name: "CIB (Cadastro Imobiliario Brasileiro)"
+description: "Brazilian national property cadastre ID (CIB), 7 Crockford base-32 chars + 1 check char (A3N8Z4F-Y). Numeric codes use the NIRF mod-11 rule, alphanumeric ones mod 31."
+description_pt: "Cadastro Imobiliario Brasileiro (CIB), 7 caracteres base 32 Crockford + 1 DV (A3N8Z4F-Y). Codigo numerico usa a regra mod 11 do NIRF, alfanumerico usa mod 31."
+country_code: br
+tier: N1
+status: beta  # EN: official rule read, official example A3N8Z4F-Y matches / PT: regra oficial lida, exemplo oficial A3N8Z4F-Y bate
+since: "0.4"
+lgpd:
+  category: pessoal
+  note: "EN: identifies a property. PT: identifica o imovel."
+
+# EN: candidate regexes / PT: regex de candidatos
+patterns:
+  - name: cib  # A3N8Z4F-Y
+    regex: '\b[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{7}-?[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]\b'
+    score: 0.2
+  - name: cib_spaced  # A3N8Z4F Y
+    regex: '\b[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]{7}\s[0-9A-HJKMNP-TV-Za-hjkmnp-tv-z]\b'
+    score: 0.2
+
+validator:
+  function: tarja.validators.cib.is_valid
+  algorithm: "numeric: weights 8..2 mod 11 (0/1 -> 0); alphanumeric: Crockford values, weights 4,3,9,5,7,1,8, mod 31"
+
+# EN: nearby words (Portuguese on purpose) / PT: palavras de contexto (em PT de proposito)
+# EN: context stays required, 8-char numeric codes collide with CEP and others
+# PT: contexto continua obrigatorio, codigo numerico de 8 colide c/ CEP e outros
+# EN: required = no match without a context word / PT: required = sem palavra de contexto nao sai match
+context:
+  words: ["cib", "cadastro imobiliario brasileiro", "cadastro imobiliario"]
+  window: 50
+  required: true
+
+score:
+  valid_with_context: 0.95
+  valid_without_context: 0.9
+  invalid_dv: null
+
+sources:
+  - title: "Receita Federal, Identificador do Cafir/CIB (regra do DV e exemplo A3N8Z4F-Y)"
+    url: https://www.gov.br/receitafederal/pt-br/assuntos/orientacao-tributaria/cadastros/cafir/identificador-do-cafir
+    accessed: "2026-09-19"
+  - title: "Receita Federal, CIB"
+    url: https://www.gov.br/receitafederal/pt-br/acesso-a-informacao/acoes-e-programas/programas-e-atividades/sinter/cib
+    accessed: "2026-09-19"
+
+# EN: generated test examples / PT: exemplos gerados p/ teste
+examples:
+  valid: ["A3N8Z4F-Y", "a3n8z4fy", "ABC1234-J"]
+  invalid: ["A3N8Z4F-X", "ABC1234-5", "1234567-5"]

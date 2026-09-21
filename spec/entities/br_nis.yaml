@@ -1,0 +1,52 @@
+# spec/entities/br_nis.yaml
+# [SPEC-NIS] EN: NIS / PIS / PASEP / NIT spec (social security worker ID). Follows spec/schema.json
+# [SPEC-NIS] PT: spec do NIS / PIS / PASEP / NIT. Segue spec/schema.json
+
+id: BR_NIS
+name: NIS/PIS/PASEP/NIT
+description: Brazilian social identification number, shared by PIS, PASEP, NIT and NIS. 11 digits, 1 mod-11 check digit.
+description_pt: Numero de Identificacao Social, o mesmo numero do PIS, PASEP, NIT e NIS. 11 digitos, 1 DV mod 11.
+country_code: br
+tier: N1            # EN: strong check digit / PT: DV forte
+status: experimental  # EN: no official algorithm doc found / PT: sem doc oficial do algoritmo
+since: "0.2"
+lgpd:
+  category: pessoal
+
+# EN: candidate regexes. The compact form collides with CPF, overlaps are resolved by score/context
+# PT: regex de candidatos. O compacto colide c/ CPF, sobreposicao resolvida por score/contexto
+patterns:
+  - name: nis_formatted  # 120.37567.08-3
+    regex: '\b\d{3}\.\d{5}\.\d{2}-\d\b'
+    score: 0.5
+  - name: nis_compact    # 12037567083
+    regex: '\b\d{11}\b'
+    score: 0.1
+  - name: nis_spaced     # 120 37567 08 3
+    regex: '\b\d{3}[\s.]\d{5}[\s.]\d{2}[\s-]\d\b'
+    score: 0.3
+
+validator:
+  function: tarja.validators.nis.is_valid
+  algorithm: mod 11, weights/pesos 3,2,9,8,7,6,5,4,3,2, 10/11 -> 0
+
+context:
+  words: [nis, pis, pasep, nit, "pis/pasep", "numero de identificacao social"]
+  window: 50
+  required: false
+
+# EN: without context a bit below CPF, 11 bare digits are more often a CPF
+# PT: sem contexto um pouco abaixo do CPF, 11 digitos soltos costumam ser CPF
+score:
+  valid_with_context: 0.95
+  valid_without_context: 0.80
+  invalid_dv: null
+
+sources:
+  - title: Caixa Economica Federal, PIS
+    url: https://www.caixa.gov.br/beneficios-trabalhador/pis/Paginas/default.aspx
+    accessed: "2026-09-19"
+
+examples:
+  valid: ["120.37567.08-3", "12037567083"]
+  invalid: ["120.37567.08-4", "11111111111", "1203756708"]

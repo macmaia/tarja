@@ -1,0 +1,28 @@
+# .pre-commit-config.yaml
+# EN: runs lint/format + basic hygiene before every commit. Setup once: pip install pre-commit && pre-commit install
+# PT: roda lint/format + higiene basica antes de cada commit. Setup 1x: pip install pre-commit && pre-commit install
+# EN: bump versions with `pre-commit autoupdate` / PT: atualizar versoes c/ `pre-commit autoupdate`
+
+repos:
+  # [PRECOMMIT-HYGIENE] EN: whitespace, EOF, yaml/json/toml syntax, big files, merge markers, private keys
+  # [PRECOMMIT-HYGIENE] PT: espaco sobrando, fim de arquivo, sintaxe yaml/json/toml, arquivo grande, conflito de merge, chave privada
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-toml
+      - id: check-added-large-files
+        args: ["--maxkb=500"]
+      - id: check-merge-conflict
+      - id: detect-private-key
+
+  # [PRECOMMIT-RUFF] EN: lint (with autofix) + format / PT: lint (c/ autofix) + format
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.15.11
+    hooks:
+      - id: ruff-check
+        args: ["--fix"]
+      - id: ruff-format

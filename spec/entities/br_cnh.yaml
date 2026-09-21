@@ -1,0 +1,49 @@
+# spec/entities/br_cnh.yaml
+# [SPEC-CNH] EN: CNH spec. Follows spec/schema.json
+# [SPEC-CNH] PT: spec de CNH. Segue spec/schema.json
+
+id: BR_CNH
+name: "CNH"
+description: "Brazilian driving licence registration number (CNH). 11 digits, 2 check digits."
+description_pt: "Numero de registro da CNH. 11 digitos, 2 DVs."
+country_code: br
+tier: N1
+status: experimental  # EN: no public official spec, implementations disagree on an edge case / PT: sem especificacao oficial publica, implementacoes divergem num caso de borda
+since: "0.3"
+lgpd:
+  category: pessoal
+
+# EN: candidate regexes / PT: regex de candidatos
+patterns:
+  - name: cnh_compact  # 12345678900
+    regex: '\b\d{11}\b'
+    score: 0.1
+
+validator:
+  function: tarja.validators.cnh.is_valid
+  algorithm: "DV1 = sum(base*(9..1)) % 11 (>=10 -> 0, discount 2), DV2 = sum(base*(1..9)) % 11 minus discount"
+
+# EN: nearby words (Portuguese on purpose) / PT: palavras de contexto (em PT de proposito)
+# EN: required = no match without a context word / PT: required = sem palavra de contexto nao sai match
+context:
+  words: ["cnh", "carteira de habilitacao", "carteira nacional de habilitacao", "habilitacao", "registro da cnh"]
+  window: 50
+  required: true
+
+score:
+  valid_with_context: 0.95
+  valid_without_context: 0.85
+  invalid_dv: null
+
+sources:
+  - title: "Contran, Resolucao 511/2014, art. 2, I (registro nacional: 9 caracteres + 2 DVs; algoritmo nao publicado)"
+    url: https://www.gov.br/transportes/pt-br/assuntos/transito/conteudo-contran/resolucoes/resolucao5112014.pdf
+    accessed: "2026-09-19"
+  - title: "Senatran, Carteira Nacional de Habilitacao"
+    url: https://www.gov.br/transportes/pt-br/assuntos/transito/senatran
+    accessed: "2026-09-19"
+
+# EN: generated test examples / PT: exemplos gerados p/ teste
+examples:
+  valid: ["12345678900", "10000000100"]
+  invalid: ["12345678901", "11111111111", "1234567890"]

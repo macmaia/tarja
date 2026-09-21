@@ -1,0 +1,82 @@
+# tarja/validators/cns.py
+# [CNS] CNS validation (Cartao Nacional de Saude, Brazil's national health card / SUS card), 15 digits.
+#
+# Rules, straight from the Ministry of Health routine (Java code attached to the Anvisa RNI doc):
+#   - starts with 1 or 2 (definitive, derived from PIS): take the first 11 digits (pis), sum pis[i] * (15..5),
+#     dv = 11 - sum % 11, dv 11 -> 0. If dv == 10: add 2 to the sum, recompute, and the card is pis + "001" + dv.
+#     Otherwise the card is pis + "000" + dv. The whole 15-digit number must equal that.
+#   - starts with 7, 8 or 9 (provisional): sum of all 15 digits * (15..1) must be divisible by 11.
+#
+# Source (read and checked): Anvisa RNI, "Validacao CNS", Ministry of Health algorithm in annex
+
+from __future__ import annotations
+
+import re
+
+# [CNS-REGEX] strips dots, dashes, whitespace
+_STRIP = re.compile(r"[\s.\-]")
+# [CNS-REGEX] 15 digits, first one in 1,2,7,8,9
+_CNS = re.compile(r"[12789]\d{14}")
+
+
+def normalise(value: str) -> str:
+    """EN: Strip punctuation and whitespace. Does not validate.
+    PT: Tira pontuacao e espaco. Nao valida.
+    """
+    return _STRIP.sub("", value)
+
+
+def weighted_sum(digits: str) -> int:
+    """EN: Sum of digit * weight, weights 15..1 (or len..1). Exposed for tests and generators.
+    PT: Soma de digito * peso, pesos 15..1 (ou len..1). Exposto p/ testes e geradores.
+    """
+    # [CNS-SUM]
+    n = len(digits)
+    return sum(int(d) * (n - i) for i, d in enumerate(digits))
+
+
+def definitive_from_pis(pis11: str) -> str:
+    """EN: Build the definitive CNS (prefix 1/2) from its 11-digit PIS part, per the official routine.
+    PT: Monta o CNS definitivo (prefixo 1/2) a partir da parte PIS de 11 digitos, pela rotina oficial.
+    """
+    # [CNS-DEFINITIVE]
+    if not re.fullmatch(r"[12]\d{10}", pis11):
+        raise ValueError("pis11 must be 11 digits starting with 1 or 2 / pis11 precisa de 11 digitos comecando c/ 1 ou 2")
+    total = sum(int(d) * (15 - i) for i, d in enumerate(pis11))
+    dv = 11 - total % 11
+    if dv == 11:
+        dv = 0
+    if dv == 10:
+        # the "001" branch
+        dv = 11 - (total + 2) % 11
+        return f"{pis11}001{dv}"
+    return f"{pis11}000{dv}"
+
+
+def is_valid(value: str) -> bool:
+    """EN: True if value is a valid CNS (definitive or provisional). Accepts 898 0000 0004 3208 or digits only.
+    PT: True se for CNS valido (definitivo ou provisorio). Aceita 898 0000 0004 3208 ou so digitos.
+    """
+    # [CNS-VALID] wrong type -> False
+    if not isinstance(value, str):
+        return False
+    v = normalise(value)
+    # wrong format / first digit -> False
+    if not _CNS.fullmatch(v):
+        return False
+    if v[0] in "12":
+        # definitive: must be exactly what the routine builds
+        return definitive_from_pis(v[:11]) == v
+    # provisional: weighted sum multiple of 11
+    return weighted_sum(v) % 11 == 0
+
+
+def format(value: str) -> str:  # noqa: A001  shadows builtin on purpose
+    """EN: Format as 000 0000 0000 0000. Raises ValueError if invalid.
+    PT: Formata como 000 0000 0000 0000. Da ValueError se for invalido.
+    """
+    # [CNS-FORMAT]
+    v = normalise(value)
+    if not is_valid(v):
+        raise ValueError("invalid CNS / CNS invalido")
+    return f"{v[:3]} {v[3:7]} {v[7:11]} {v[11:]}"

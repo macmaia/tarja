@@ -1,0 +1,59 @@
+# spec/entities/br_cnpj.yaml
+# [SPEC-CNPJ] EN: CNPJ spec (Brazilian company ID, numeric + alphanumeric from Jul/2026). Follows spec/schema.json
+# [SPEC-CNPJ] PT: spec do CNPJ (numerico + alfanum de jul/2026). Segue spec/schema.json
+
+id: BR_CNPJ
+name: CNPJ
+description: Brazilian company ID ("Cadastro Nacional da Pessoa Juridica"). Numeric or alphanumeric (since Jul/2026). 2 mod-11 check digits using ord(c) - 48.
+description_pt: Cadastro Nacional da Pessoa Juridica. Numerico ou alfanum (desde jul/2026). 2 DVs mod 11 c/ ord(c) - 48.
+country_code: br
+tier: N1            # EN: strong check digit / PT: DV forte
+status: beta
+since: "0.1"
+lgpd:
+  category: nao_pessoal
+  note: "EN: identifies a company, but for sole traders (MEI) it can point to an individual. PT: identifica PJ, mas em MEI/empresario individual pode apontar p/ pessoa fisica."
+
+# EN: candidate regexes, letters allowed in the first 12 positions
+# PT: regex de candidatos, aceita letra nas 12 primeiras posicoes
+patterns:
+  - name: cnpj_formatted   # 12.ABC.345/01DE-35
+    regex: '\b[0-9A-Za-z]{2}\.[0-9A-Za-z]{3}\.[0-9A-Za-z]{3}/[0-9A-Za-z]{4}-\d{2}\b'
+    score: 0.5
+  - name: cnpj_compact     # 12ABC34501DE35
+    regex: '\b[0-9A-Za-z]{12}\d{2}\b'
+    score: 0.1
+  - name: cnpj_spaced      # 12 ABC 345 01DE 35 (PDF/OCR text, spaces for separators)
+    regex: '\b[0-9A-Za-z]{2}[\s.][0-9A-Za-z]{3}[\s.][0-9A-Za-z]{3}[\s/][0-9A-Za-z]{4}[\s-]\d{2}\b'
+    score: 0.3
+
+# EN: check-digit function / PT: funcao q valida o DV
+validator:
+  function: tarja.validators.cnpj.is_valid
+  algorithm: mod 11, weights/pesos 5..2,9..2 and/e 6..2,9..2, value/valor = ord(c) - 48
+
+# EN: nearby words (Portuguese on purpose) / PT: palavras q sobem o score
+context:
+  words: [cnpj, "cadastro nacional da pessoa juridica", "inscrita no cnpj", "inscrita sob o", "pessoa juridica", empresa]
+  window: 50
+  required: false
+
+# EN: final score / PT: score final
+score:
+  valid_with_context: 0.95
+  valid_without_context: 0.85
+  invalid_dv: null
+
+sources:
+  - title: Receita Federal, CNPJ Alfanumerico
+    url: https://www.gov.br/receitafederal/pt-br/acesso-a-informacao/acoes-e-programas/programas-e-atividades/cnpj-alfanumerico
+    accessed: "2026-09-18"
+  - title: Receita Federal, CNPJ Alfanumerico, FAQ (PDF)
+    url: https://www.gov.br/receitafederal/pt-br/centrais-de-conteudo/publicacoes/perguntas-e-respostas/cnpj/cnpj-alfanumerico.pdf
+    accessed: "2026-09-18"
+
+# EN: test examples (12.ABC.345/01DE-35 is the official Receita example)
+# PT: exemplos p/ teste (12.ABC.345/01DE-35 e o exemplo oficial da Receita)
+examples:
+  valid: ["12.ABC.345/01DE-35", "12ABC34501DE35", "11.222.333/0001-81"]
+  invalid: ["12.ABC.345/01DE-36", "00.000.000/0000-00", "11.222.333/0001-8"]

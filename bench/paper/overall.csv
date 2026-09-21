@@ -1,0 +1,7 @@
+dataset,system,mode,precision,recall,f1,f1_ci_low,f1_ci_high,latency_ms_median
+synthetic_adversarial.test,tarja,exact,0.9454,0.7268,0.8218,0.8104,0.8344,0.26270800003658223
+synthetic_adversarial.test,tarja,partial,0.9655,0.7423,0.8393,0.8285,0.851,0.26270800003658223
+synthetic_adversarial.test,tarja,untyped,0.9965,0.7661,0.8662,0.8558,0.8778,0.26270800003658223
+synthetic_controlled.test,tarja,exact,0.9895,0.9703,0.9798,0.9777,0.9818,0.24972850019366888
+synthetic_controlled.test,tarja,partial,0.9933,0.974,0.9836,0.9818,0.9851,0.24972850019366888
+synthetic_controlled.test,tarja,untyped,0.9962,0.9769,0.9865,0.9849,0.9878,0.24972850019366888

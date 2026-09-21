@@ -1,0 +1,291 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/macmaia/tarja/blob/main/spec/schema.json",
+  "title": "tarja: entity spec / spec de entidade",
+  "description": "EN: schema for entity yaml files. PT: schema dos yaml de entidade.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "id",
+    "name",
+    "country_code",
+    "tier",
+    "status",
+    "patterns",
+    "validator",
+    "context",
+    "score",
+    "sources",
+    "examples"
+  ],
+  "properties": {
+    "id": {
+      "type": "string",
+      "pattern": "^BR_[A-Z0-9_]+$",
+      "description": "EN: entity code, BR_ prefix (Presidio convention), e.g. BR_CPF. PT: codigo da entidade, prefixo BR_ (padrao Presidio). Ex: BR_CPF."
+    },
+    "name": {
+      "type": "string",
+      "minLength": 3,
+      "description": "EN: short name, e.g. CPF. PT: nome curto. Ex: CPF."
+    },
+    "description": {
+      "type": "string",
+      "description": "EN: description in UK English. PT: descricao em ingles UK."
+    },
+    "country_code": {
+      "const": "br",
+      "description": "EN: always br. PT: sempre br."
+    },
+    "tier": {
+      "enum": [
+        "N1",
+        "N2",
+        "N3",
+        "N4"
+      ],
+      "description": "EN: N1 strong check digit, N2 format only, N3 context-dependent, N4 NER. PT: N1 DV forte, N2 so formato, N3 depende de contexto, N4 NER."
+    },
+    "status": {
+      "enum": [
+        "experimental",
+        "beta",
+        "stable"
+      ],
+      "description": "EN: experimental -> beta -> stable. PT: experimental -> beta -> stable."
+    },
+    "since": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+(\\.\\d+)?$",
+      "description": "EN: version the entity was added in. PT: versao em q a entidade entrou."
+    },
+    "lgpd": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "category": {
+          "enum": [
+            "pessoal",
+            "pessoal_sensivel",
+            "nao_pessoal"
+          ]
+        },
+        "note": {
+          "type": "string"
+        }
+      },
+      "description": "EN: category under the LGPD (Brazil's data protection law). PT: categoria na LGPD."
+    },
+    "patterns": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "name",
+          "regex",
+          "score"
+        ],
+        "properties": {
+          "name": {
+            "type": "string"
+          },
+          "regex": {
+            "type": "string"
+          },
+          "score": {
+            "type": "number",
+            "minimum": 0,
+            "maximum": 1
+          },
+          "flags": {
+            "type": "array",
+            "items": {
+              "enum": [
+                "IGNORECASE",
+                "MULTILINE"
+              ]
+            }
+          }
+        }
+      },
+      "description": "EN: candidate regexes. Score here is BEFORE the check digit is validated. PT: regex de candidatos. Score aqui e ANTES de validar o DV."
+    },
+    "validator": {
+      "type": [
+        "object",
+        "null"
+      ],
+      "additionalProperties": false,
+      "required": [
+        "function",
+        "algorithm"
+      ],
+      "properties": {
+        "function": {
+          "type": "string",
+          "pattern": "^tarja\\.validators\\.[a-z0-9_]+\\.[a-z_]+$"
+        },
+        "algorithm": {
+          "type": "string"
+        },
+        "dlp_portable": {
+          "type": "object",
+          "description": "EN: can the check digit be reproduced inside each DLP? fill in at E5.1. PT: da p/ reproduzir o DV em cada DLP? preencher no E5.1.",
+          "additionalProperties": false,
+          "properties": {
+            "purview": {
+              "type": "boolean"
+            },
+            "macie": {
+              "type": "boolean"
+            },
+            "google_sdp": {
+              "type": "boolean"
+            }
+          }
+        }
+      },
+      "description": "EN: check-digit function (python path) + algorithm summary. null if the entity has no check digit. PT: funcao de DV (caminho python) + resumo do algoritmo. null se nao tiver DV."
+    },
+    "context": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "words"
+      ],
+      "properties": {
+        "words": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "window": {
+          "type": "integer",
+          "minimum": 1,
+          "default": 50
+        },
+        "required": {
+          "type": "boolean",
+          "default": false
+        },
+        "adjacent": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": [
+            "gap"
+          ],
+          "properties": {
+            "before": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "after": {
+              "type": "array",
+              "items": {
+                "type": "string"
+              }
+            },
+            "gap": {
+              "type": "integer",
+              "minimum": 0,
+              "maximum": 20
+            }
+          },
+          "description": "EN: optional tight context, replaces the window search: a word right before or right after the value, at most gap characters away (one short linking word like 'no'/'do' is also allowed after). PT: contexto colado opcional, substitui a janela."
+        }
+      },
+      "description": "EN: words that raise the score when nearby (window in characters). Words are in Portuguese on purpose: they are matched against Brazilian text. PT: palavras q sobem o score se estao perto (janela em caracteres). Ficam em PT de proposito, pq sao buscadas em texto BR."
+    },
+    "score": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "valid_with_context",
+        "valid_without_context"
+      ],
+      "properties": {
+        "valid_with_context": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "valid_without_context": {
+          "type": "number",
+          "minimum": 0,
+          "maximum": 1
+        },
+        "invalid_dv": {
+          "type": [
+            "number",
+            "null"
+          ],
+          "minimum": 0,
+          "maximum": 1
+        }
+      },
+      "description": "EN: final score after check-digit validation. PT: score final depois de validar o DV."
+    },
+    "sources": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": [
+          "title",
+          "url"
+        ],
+        "properties": {
+          "title": {
+            "type": "string"
+          },
+          "url": {
+            "type": "string",
+            "format": "uri"
+          },
+          "accessed": {
+            "type": "string",
+            "format": "date"
+          }
+        }
+      },
+      "description": "EN: official standard for the algorithm. Mandatory. PT: norma oficial do algoritmo. Obrigatorio."
+    },
+    "examples": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "valid",
+        "invalid"
+      ],
+      "properties": {
+        "valid": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        },
+        "invalid": {
+          "type": "array",
+          "items": {
+            "type": "string"
+          },
+          "minItems": 1
+        }
+      },
+      "description": "EN: examples used in the tests (never real data). PT: exemplos usados nos testes (nunca dado real)."
+    },
+    "description_pt": {
+      "type": "string",
+      "description": "PT: descricao em pt-BR (a 'description' fica em EN-UK)"
+    }
+  },
+  "$comment": "EN: one yaml per entity in spec/entities/. Drives the lib, the Presidio plugin, DLP exports and docs. PT: 1 yaml por entidade em spec/entities/. Daqui sai lib, plugin presidio, export p/ DLP e docs. Author/autoria: https://github.com/macmaia"
+}

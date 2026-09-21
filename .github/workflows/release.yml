@@ -1,0 +1,63 @@
+# .github/workflows/release.yml
+# [RELEASE] EN: publish to PyPI when a tag like v0.1.0 is pushed (E1.6). Uses PyPI Trusted Publishing, no token stored.
+# [RELEASE] PT: publica no PyPI qdo sobe uma tag tipo v0.1.0 (E1.6). Usa Trusted Publishing do PyPI, sem token guardado.
+#
+# EN: one-off setup (manual, see PENDING.md): register this workflow as a trusted publisher on PyPI
+#     (project "tarja", owner macmaia, repo tarja, workflow release.yml, environment pypi)
+# PT: setup 1x (manual, ver PENDING.md): cadastrar este workflow como trusted publisher no PyPI
+#     (projeto "tarja", owner macmaia, repo tarja, workflow release.yml, environment pypi)
+#
+# EN: to release: bump __version__ in src/tarja/__init__.py, commit, then: git tag v0.1.0 && git push origin v0.1.0
+# PT: p/ lancar: sobe o __version__ em src/tarja/__init__.py, commit, dps: git tag v0.1.0 && git push origin v0.1.0
+
+name: release
+
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  # [RELEASE-BUILD] EN: tests again, checks tag == package version, builds sdist + wheel
+  # [RELEASE-BUILD] PT: roda os testes de novo, confere tag == versao do pacote, gera sdist + wheel
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
+        with:
+          python-version: "3.12"
+      - run: pip install -e ".[dev]" build
+      - run: pytest
+      # EN: tag v0.1.0 must match __version__ 0.1.0, otherwise fail
+      # PT: tag v0.1.0 tem q bater c/ __version__ 0.1.0, senao falha
+      - name: check version / confere versao
+        run: |
+          PKG=$(python -c "import tarja; print(tarja.__version__)")
+          TAG=${GITHUB_REF_NAME#v}
+          echo "package=$PKG tag=$TAG"
+          test "$PKG" = "$TAG"
+      - run: python -m build
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5
+        with:
+          name: dist
+          path: dist/
+
+  # [RELEASE-PUBLISH] EN: uploads to PyPI via OIDC (id-token), protected by the "pypi" environment
+  # [RELEASE-PUBLISH] PT: sobe p/ o PyPI via OIDC (id-token), protegido pelo environment "pypi"
+  publish:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment:
+      name: pypi
+      url: https://pypi.org/project/tarja/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
+        with:
+          name: dist
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33  # release/v1

@@ -1,0 +1,54 @@
+# spec/entities/br_cnj.yaml
+# [SPEC-CNJ] EN: CNJ court case number spec. Follows spec/schema.json
+# [SPEC-CNJ] PT: spec do numero unico de processo (CNJ). Segue spec/schema.json
+
+id: BR_CNJ
+name: Numero de processo CNJ
+description: Brazilian unified court case number (CNJ standard), NNNNNNN-DD.AAAA.J.TR.OOOO. ISO 7064 mod 97-10 check digits.
+description_pt: Numero unico de processo (padrao CNJ), NNNNNNN-DD.AAAA.J.TR.OOOO. DV ISO 7064 mod 97-10.
+country_code: br
+tier: N1            # EN: strong check digit / PT: DV forte
+status: beta
+since: "0.2"
+lgpd:
+  category: pessoal
+  note: "EN: not personal by itself, but links to parties in public court records. PT: nao e pessoal sozinho, mas liga as partes em registro publico do tribunal."
+
+patterns:
+  - name: cnj_formatted  # 0000001-83.2017.8.26.0100
+    regex: '\b\d{7}-\d{2}\.\d{4}\.\d\.\d{2}\.\d{4}\b'
+    score: 0.6
+  - name: cnj_compact    # 00000018320178260100
+    regex: '\b\d{20}\b'
+    score: 0.1
+  - name: cnj_spaced     # 0000001 83 2017 8 26 0100
+    regex: '\b\d{7}[\s-]\d{2}[\s.]\d{4}[\s.]\d[\s.]\d{2}[\s.]\d{4}\b'
+    score: 0.3
+
+validator:
+  function: tarja.validators.cnj.is_valid
+  algorithm: ISO 7064 mod 97-10, DD = 98 - (N AAAA J TR OOOO 00 mod 97)
+
+context:
+  words: [processo, autos, "proc.", "numero do processo", acao, recurso]
+  window: 60
+  required: false
+
+# EN: the formatted layout is so specific that no-context score stays high
+# PT: o layout formatado e tao especifico q o score sem contexto fica alto
+score:
+  valid_with_context: 0.95
+  valid_without_context: 0.9
+  invalid_dv: null
+
+sources:
+  - title: "CNJ, Resolucao 65/2008 compilada, Anexo VIII (calculo do DV, lido e conferido)"
+    url: https://atos.cnj.jus.br/atos/detalhar/119
+    accessed: "2026-09-19"
+  - title: CNJ, Resolucao 65/2008 (numeracao unica de processos)
+    url: https://atos.cnj.jus.br/atos/detalhar/119
+    accessed: "2026-09-19"
+
+examples:
+  valid: ["0000001-83.2017.8.26.0100", "00000018320178260100"]
+  invalid: ["0000001-84.2017.8.26.0100", "0000001-83.2017.0.26.0100", "0000001-83.2017.8.26.010"]
