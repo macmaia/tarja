@@ -38,6 +38,38 @@ PT: o tarja ajuda a detectar, **não garante conformidade c/ a LGPD** e não ano
 
 PT: nada disso tira as suas obrigações: base legal, registros, medidas de segurança e resposta ao titular continuam suas.
 
+## intended use / uso pretendido
+
+EN: tarja exists so that whoever holds personal data can find it and cover it before the data leaves for an LLM, a log, a BI tool or a third party. That is the use it is built, tested and documented for.
+
+EN: **it is dual use, and pretending otherwise would be dishonest.** A detector that finds identifiers in order to mask them also finds identifiers, full stop. Pointing it at documents you have no business holding, to harvest CPFs, is a use this project rejects. It is also already unlawful in Brazil: under the LGPD, data that was made public does not become free data (art. 7, para. 3, keeps purpose and good faith in force), and art. 42 attaches liability for the damage caused. None of that depends on tarja existing.
+
+EN: the licence is Apache 2.0 and does not restrict fields of use, on purpose. A "do no evil" clause would stop being open source under the OSI definition, would block contribution upstream, and would not deter anyone who already ignores the law. So this section is not a legal instrument. It states what good faith looks like here, which is what makes "I did not know what it was for" indefensible.
+
+### what is deliberately absent / o que falta de propósito
+
+EN: these are design decisions, not gaps waiting to be filled. Pull requests adding them will be declined.
+
+- **No collector.** tarja reads text you already have. It does not crawl, does not call any official gazette, registry or open-data API, and ships no mass-collection script. The research pipeline used for our own gazette study lives outside this repository and is not published.
+- **No enrichment.** A detected identifier is never resolved into a name, an address or a record. tarja never queries the Receita Federal, any government service or any external database. It has zero runtime dependencies, so it cannot phone anywhere.
+- **No value output by default.** `tarja scan` prints entity type, offsets and score, and hides the values. Printing them takes an explicit `--show-values`, so nothing leaks into a terminal history, a log or a CI artefact by accident.
+- **No stored mapping.** `Vault` keeps its map in memory for one process and it dies with the object (see limits above).
+
+PT: o tarja existe p/ quem tem dado pessoal achar e cobrir esse dado antes dele sair p/ um LLM, um log, um BI ou um terceiro. É p/ isso q ele foi feito, testado e documentado.
+
+PT: **é uso dual, e fingir o contrário seria desonesto.** Um detector q acha identificador p/ mascarar também acha identificador, ponto. Apontar p/ documento q não é seu, p/ garimpar CPF, é uso q este projeto rejeita. E já é ilícito no Brasil: na LGPD, dado tornado público não vira dado livre (art. 7, par. 3, mantém finalidade e boa-fé), e o art. 42 responsabiliza por dano. Nada disso depende de o tarja existir.
+
+PT: a licença é Apache 2.0 e não restringe campo de uso, de propósito. Cláusula de "não usar p/ o mal" deixaria de ser open source pela definição da OSI, travaria a contribuição upstream e não deteria quem já ignora a lei. Então esta seção não é instrumento jurídico. Ela diz o q é boa-fé aqui, q é o q torna indefensável o "não sabia p/ q servia".
+
+### o que falta de propósito
+
+PT: são decisões de desenho, não lacunas esperando preenchimento. PR q adicionar isso será recusado.
+
+- **Sem coletor.** O tarja lê texto q vc já tem. Não rastreia, não chama API de diário oficial, cartório ou dados abertos, e não traz script de coleta em massa. O pipeline da nossa própria pesquisa c/ diários fica fora deste repositório e não é publicado.
+- **Sem enriquecimento.** Identificador detectado nunca vira nome, endereço ou cadastro. O tarja não consulta a Receita, nenhum serviço público e nenhuma base externa. Ele tem zero dependência em tempo de execução, então não tem p/ onde ligar.
+- **Sem mostrar valor por padrão.** O `tarja scan` imprime tipo, posição e score, e esconde os valores. P/ imprimir, exige `--show-values`, então nada vaza p/ histórico de terminal, log ou artefato de CI por descuido.
+- **Sem mapa guardado.** O `Vault` mantém o mapa em memória num processo só e ele morre c/ o objeto (ver limites acima).
+
 ## install / instalar
 
 ```bash

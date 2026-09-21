@@ -50,6 +50,7 @@ PT: estrutura segue Gebru et al., "Datasheets for Datasets" (CACM 64(12), 2021, 
 
 - **Intended.** Comparing PII detectors, DLP products, NER models and LLMs on Brazilian identifiers. Regression tests for detectors.
 - **Not intended.** Training a model and reporting on the same test split. Claims about real-world prevalence of personal data. Any attempt to re-identify people.
+- **Dual use.** Every identifier here is generated, so the dataset itself carries no re-identification risk. The tool it evaluates does: a detector that finds identifiers in order to mask them also finds identifiers. This dataset must not be used to tune or advertise a system whose purpose is to harvest personal data from documents its operator has no lawful basis to process. Under the LGPD, data made public does not become free data (art. 7, para. 3) and art. 42 attaches liability for the damage caused. The intended-use statement in the tarja README applies to anything built with this benchmark.
 - **Bias and risk.** Results on synthetic text overstate performance on messy real documents. Tools tuned on English defaults are disadvantaged by design, which is the point of the comparison but must be stated when reporting.
 
 ### 6. Distribution
@@ -104,6 +105,7 @@ PT: estrutura segue Gebru et al., "Datasheets for Datasets" (CACM 64(12), 2021, 
 
 - **Previstos.** Comparar detectores de PII, DLPs, NER e LLMs em identificadores brasileiros. Teste de regressão.
 - **Não previstos.** Treinar e reportar na mesma partição de teste. Afirmar prevalência real de dado pessoal. Qualquer tentativa de reidentificação.
+- **Uso dual.** Todo identificador aqui é gerado, então o conjunto em si não tem risco de reidentificação. A ferramenta q ele avalia tem: detector q acha identificador p/ mascarar também acha identificador. Este conjunto não deve ser usado p/ ajustar ou divulgar sistema cuja finalidade seja garimpar dado pessoal em documento q o operador não tem base legal p/ tratar. Na LGPD, dado tornado público não vira dado livre (art. 7, par. 3) e o art. 42 responsabiliza por dano. A seção de uso pretendido do README do tarja vale p/ qualquer coisa construída c/ este benchmark.
 - **Viés e risco.** Resultado em texto sintético superestima o desempenho em documento real bagunçado. Ferramentas c/ padrão em inglês ficam em desvantagem por desenho, o q é o objetivo da comparação mas precisa ser dito ao reportar.
 
 ### 6. Distribuição
