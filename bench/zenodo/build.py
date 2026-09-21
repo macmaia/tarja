@@ -74,7 +74,7 @@ def build(data: Path, out: Path) -> Path:
 def main(argv=None) -> int:
     # [BENCH-ZENODO-CLI]
     p = argparse.ArgumentParser(description="Build the Zenodo zip / Monta o zip do Zenodo")
-    p.add_argument("--data", default="bench/data/v0.1")
+    p.add_argument("--data", default="bench/data/v0.2")
     p.add_argument("--out", default="dist")
     a = p.parse_args(argv)
     build(Path(a.data), Path(a.out))

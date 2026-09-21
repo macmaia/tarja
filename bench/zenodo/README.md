@@ -1,4 +1,4 @@
-# tarja-bench v0.1
+# tarja-bench v0.2
 
 **EN** · Portuguese documents annotated for 17 Brazilian personal identifier types. All identifiers are synthetic. Full description, intended uses and limits in `DATASHEET.md`.
 
@@ -20,8 +20,8 @@ EN: one JSON per line / PT: 1 JSON por linha: `{"id", "domain", "difficulty", "t
 
 ```bash
 pip install tarja  # or/ou: git clone https://github.com/macmaia/tarja && pip install -e .
-python -m bench.generate --seed 42 --out bench/data/v0.1
-sha256sum bench/data/v0.1/*.jsonl   # EN: compare with manifest.json / PT: compare c/ o manifest.json
+python -m bench.generate --seed 42 --out bench/data/v0.2
+sha256sum bench/data/v0.2/*.jsonl   # EN: compare with manifest.json / PT: compare c/ o manifest.json
 ```
 
 ## licence / licença

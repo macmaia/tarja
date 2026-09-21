@@ -8,7 +8,7 @@
 # EN: usage / PT: uso:  bash bench/run_all.sh [split]   (default: test)
 set -u
 SPLIT="${1:-test}"
-DATA=bench/data/v0.1
+DATA=bench/data/v0.2
 OUT=bench/results
 mkdir -p "$OUT"
 

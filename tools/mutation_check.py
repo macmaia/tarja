@@ -100,6 +100,19 @@ M = [
     ("low-entropy salt accepted", "src/tarja/mask.py", "if len(set(key)) < MIN_SALT_DISTINCT:", "if False:"),
     ("placeholder salt accepted", "src/tarja/mask.py", "for w in WEAK_SALTS)", "for w in ())"),
     ("cli size cap off", "src/tarja/cli.py", "if len(text) > limit:", "if False:"),
+    # [MUTATION-CARTAO] 0.6: the issuer prefix is what keeps Luhn from firing on every 10th long number
+    (
+        "cartao brand check off",
+        "src/tarja/validators/cartao.py",
+        "return brand(v) is not None if require_brand else True",
+        "return True",
+    ),
+    (
+        "cartao ignores length",
+        "src/tarja/validators/cartao.py",
+        "if len(v) in lengths and low <= v[: len(low)] <= high:",
+        "if low <= v[: len(low)] <= high:",
+    ),
     ("reference cpf weights", "bench/reference.py", "list(range(10, 1, -1))", "list(range(9, 0, -1))"),
 ]
 

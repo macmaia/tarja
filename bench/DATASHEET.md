@@ -1,4 +1,4 @@
-# Datasheet · tarja-bench v0.1
+# Datasheet · tarja-bench v0.2
 
 EN: structure follows Gebru et al., "Datasheets for Datasets" (CACM 64(12), 2021, doi:10.1145/3458723). Portuguese version below.
 PT: estrutura segue Gebru et al., "Datasheets for Datasets" (CACM 64(12), 2021, doi:10.1145/3458723). Versão em português abaixo.
@@ -17,7 +17,7 @@ PT: estrutura segue Gebru et al., "Datasheets for Datasets" (CACM 64(12), 2021, 
 ### 2. Composition
 
 - **Instances.** Short Portuguese documents (one to seven sentences) with character-offset annotations `{start, end, entity}`.
-- **Subsets in v0.1.**
+- **Subsets in v0.2.**
 
 | subset | dev | test | spans (test) | levels | source |
 |---|---|---|---|---|---|
@@ -79,7 +79,7 @@ PT: estrutura segue Gebru et al., "Datasheets for Datasets" (CACM 64(12), 2021, 
 ### 2. Composição
 
 - **Instâncias.** Documentos curtos em português (1 a 7 frases) c/ anotação por offset de caractere `{start, end, entity}`.
-- **Subconjuntos da v0.1.** Ver a tabela da seção EN (mesmos números).
+- **Subconjuntos da v0.2.** Ver a tabela da seção EN (mesmos números).
 - **Entidades.** 17 tipos, em `spec/entities/`. N1 (DV), N2 (formato), N3 (exige contexto).
 - **Níveis.** D0 layout canônico. D1 sem pontuação ou espaço como separador. D2 quebra de linha, colado, célula de tabela. D3 parecido inválido como distrator (não anotado). D4 ruído de OCR, O no lugar de 0, l no lugar de 1 (anotado). D5 contexto enganoso (palavra diz CPF, número é NIS).
 - **Domínios.** saúde, jurídico, administrativo, financeiro. O semi-real acrescenta texto de lei federal.

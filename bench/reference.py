@@ -2,12 +2,15 @@
 # [BENCH-REF] Reference check-digit validators, kept apart from src/tarja on purpose.
 #   The generator asserts every value against BOTH tarja and these, so the benchmark gold does not rest on
 #   tarja's own code alone. Written straight from the official rules (docs/SOURCES.md) in a deliberately
-#   different style: no shared helpers, no regexes, no imports from tarja.
+#   different style: no shared helpers and no imports from tarja. The card brand table is the one place
+#   that uses regexes, precisely because the library states the same rule as numeric prefix ranges:
+#   two different notations for one rule is what makes the cross-check worth anything.
 #   Entities without a reference here (CNH, CNM, CIB) are flagged in the datasheet as tarja-only checks.
 #   Third-party cross-check: tests/test_bench.py also compares with validate-docbr when it is installed.
 
 from __future__ import annotations
 
+import re
 from collections.abc import Callable
 
 
@@ -107,8 +110,31 @@ def renavam(value: str) -> bool:
     return int(d[10]) == (0 if dv == 10 else dv)
 
 
+# [BENCH-REF-IIN] written as regexes on purpose, so this stays an INDEPENDENT implementation of the same rule
+#   the library expresses as numeric prefix ranges. If the two ever disagree, one of them is wrong, which is
+#   the whole point of keeping this file.
+_CARD_BRANDS = (
+    (r"3[47]\d{13}",),  # amex, 15
+    (r"3(?:0[0-5]|[689]\d)\d{11}",),  # diners, 14
+    (r"30(?:95)\d{10}",),  # diners, 14
+    (r"35(?:2[89]|[3-8]\d)\d{12}",),  # jcb, 16
+    (r"3841\d{12}", r"3841\d{15}"),  # hipercard
+    (r"4\d{12}", r"4\d{15}", r"4\d{18}"),  # visa, 13/16/19
+    (r"5[1-5]\d{14}",),  # mastercard, 16
+    (r"2(?:22[1-9]|2[3-9]\d|[3-6]\d\d|7[01]\d|720)\d{12}",),  # mastercard 2-series, 16
+    (r"6011\d{12}", r"6011\d{15}"),  # discover
+    (
+        r"62(?:212[6-9]|21[3-9]\d|2[2-8]\d\d|29(?:[01]\d|2[0-5]))\d{10}",
+        r"62(?:212[6-9]|21[3-9]\d|2[2-8]\d\d|29(?:[01]\d|2[0-5]))\d{13}",
+    ),  # discover 622126-622925, 16/19
+    (r"64[4-9]\d{13}", r"64[4-9]\d{16}", r"65\d{14}", r"65\d{17}"),  # discover, 16/19
+    (r"606282\d{10}", r"606282\d{13}"),  # hipercard
+    (r"627780\d{10}", r"636297\d{10}", r"636368\d{10}"),  # elo
+)
+
+
 def cartao(value: str) -> bool:
-    # [BENCH-REF-CARTAO] ISO/IEC 7812-1 Luhn, 13 to 19 digits
+    # [BENCH-REF-CARTAO] ISO/IEC 7812-1: registered issuer prefix with the brand's length, plus the Luhn digit
     d = _digits(value)
     if not 13 <= len(d) <= 19 or d == d[0] * len(d):
         return False
@@ -116,7 +142,9 @@ def cartao(value: str) -> bool:
     for i, ch in enumerate(reversed(d)):
         x = int(ch) * (2 if i % 2 else 1)
         total += x - 9 if x > 9 else x
-    return total % 10 == 0
+    if total % 10:
+        return False
+    return any(re.fullmatch(pat, d) for group in _CARD_BRANDS for pat in group)
 
 
 REFERENCE: dict[str, Callable[[str], bool]] = {

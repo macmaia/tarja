@@ -4,8 +4,8 @@
 
 id: BR_CARTAO
 name: "Cartao de pagamento"
-description: "Payment card number (credit/debit, incl. Brazilian brands Elo and Hipercard). 13-19 digits, Luhn check digit."
-description_pt: "Numero de cartao (credito/debito, inclusive Elo e Hipercard). 13-19 digitos, DV Luhn."
+description: "Payment card number (credit/debit, incl. Brazilian brands Elo and Hipercard). Registered issuer prefix, the length that issuer uses, and a Luhn check digit."
+description_pt: "Numero de cartao (credito/debito, inclusive Elo e Hipercard). Prefixo de emissor registrado, comprimento da bandeira e DV Luhn."
 country_code: br
 tier: N1            # EN: Luhn check digit / PT: DV Luhn
 status: beta
@@ -28,7 +28,9 @@ patterns:
 
 validator:
   function: tarja.validators.cartao.is_valid
-  algorithm: "Luhn (mod 10), 13-19 digits"
+  # EN: Luhn alone passes about 1 in 10 long numeric strings, so the issuer prefix carries most of the weight
+  # PT: Luhn sozinho passa ~1 em 10 sequencias longas, entao o prefixo de emissor carrega a maior parte
+  algorithm: "ISO/IEC 7812-1 issuer prefix + brand length + Luhn (mod 10)"
 
 context:
   words: ["cartao", "credito", "debito", "visa", "mastercard", "elo", "hipercard", "amex", "final"]
@@ -48,4 +50,7 @@ sources:
 # EN: public test numbers published by card networks / PT: numeros de teste publicos das bandeiras
 examples:
   valid: ["4111 1111 1111 1111", "5555555555554444", "3782 822463 10005"]
-  invalid: ["4111 1111 1111 1112", "0000000000000000", "411111111111"]
+  # EN: the last four pass Luhn but have no registered issuer prefix, which is exactly the noise Luhn alone lets through
+  # PT: os 4 ultimos passam no Luhn mas nao tem prefixo de emissor, q e o ruido q o Luhn sozinho deixa passar
+  invalid: ["4111 1111 1111 1112", "0000000000000000", "411111111111",
+            "1002003004005005", "9000123456789016", "7000000000000013", "1234567890123452"]

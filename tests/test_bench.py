@@ -96,8 +96,8 @@ class TestGenerator(unittest.TestCase):
             self.assertEqual(tarja.find(f), [], f)
 
     def test_committed_manifest_is_reproducible(self):
-        # [TEST-BENCH-GEN] regenerating v0.1 gives the sha256 recorded in the committed manifest
-        manifest = json.loads((ROOT / "bench/data/v0.1/manifest.json").read_text(encoding="utf-8"))
+        # [TEST-BENCH-GEN] regenerating v0.2 gives the sha256 recorded in the committed manifest
+        manifest = json.loads((ROOT / "bench/data/v0.2/manifest.json").read_text(encoding="utf-8"))
         with tempfile.TemporaryDirectory() as tmp:
             m = gen.write(pathlib.Path(tmp), gen.build(manifest["seed"], 5000, 3000), manifest["seed"])
         self.assertEqual({k: v["sha256"] for k, v in m["files"].items()},

@@ -4,13 +4,13 @@
 
 Built for anyone shipping software in Brazil, incl. foreign companies adapting to the LGPD (Brazil's GDPR). Plenty of CPF/CNPJ validators exist already (brutils, validate-docbr). What's missing is finding the ID *inside* text, scoring it with Portuguese context, and covering what paid DLPs skip: alphanumeric CNPJ (Jul/2026), CNS (health card), CNJ case numbers.
 
-Status: alpha (`0.5.1`). The API can still change before 1.0.
+Status: alpha (`0.6.0`). The API can still change before 1.0.
 
 **PT** · Detecta, valida e mascara identificadores pessoais brasileiros em texto livre, c/ contexto em português e dígito verificador. Cobre o dado antes de mandar p/ LLM, log, BI, onde for.
 
 Serve p/ qq um q desenvolve p/ o Brasil, inclusive empresa gringa se adaptando à LGPD. Validador de CPF/CNPJ já tem de monte (brutils, validate-docbr). O q falta é achar o doc *dentro* do texto, dar score c/ contexto em pt-BR e cobrir o q os DLPs pagos ignoram: CNPJ alfanumérico (jul/2026), CNS, nº de processo CNJ.
 
-Status: alfa (`0.5.1`). A API ainda pode mudar antes da 1.0.
+Status: alfa (`0.6.0`). A API ainda pode mudar antes da 1.0.
 
 ## limits / limites
 
@@ -154,7 +154,10 @@ PT: exit code 1 qdo acha algo, 0 qdo limpo, 2 em erro. Útil em CI. Entrada limi
 | `BR_CIB` | national property cadastre / Cadastro Imobiliário Brasileiro (needs context / exige contexto) | N1 | beta |
 | `BR_IPTU` | municipal property tax ID / inscrição do IPTU (needs context / exige contexto) | N3 | experimental |
 | `BR_MATRICULA_IMOVEL` | property registry number / matrícula do imóvel (needs context / exige contexto) | N3 | experimental |
-| `BR_CARTAO` | payment card, Luhn / cartão de crédito ou débito | N1 | beta |
+| `BR_CARTAO` | payment card: issuer prefix + Luhn / cartão, prefixo de emissor + Luhn | N1 | beta |
+
+EN: **changed in 0.6.** `BR_CARTAO` now also requires a registered issuer prefix and the length that issuer uses, not the Luhn digit alone. Luhn on its own accepts about one in ten long numeric sequences, and administrative text is full of protocol and account numbers that long. `tarja.validators.cartao.is_valid(value, require_brand=False)` keeps the old behaviour when you really want it, and `cartao.brand(value)` returns the network.
+PT: **mudou na 0.6.** O `BR_CARTAO` passou a exigir tb prefixo de emissor registrado e o comprimento daquela bandeira, não só o DV Luhn. Luhn sozinho aceita ~1 em 10 sequências numéricas longas. O `is_valid(valor, require_brand=False)` mantém o comportamento antigo, e o `cartao.brand(valor)` devolve a bandeira.
 
 EN: N1 = strong check digit, N2 = format only, N3 = needs context, N4 = NER. Scores: N1 0.95 with a context word nearby, 0.8 to 0.9 without. N2 0.7 / 0.5. N3 only with context, 0.5. Wrong check digit = dropped (unless `report_invalid=True`). Speed: ~1 ms per 100 tokens, 17 entities.
 PT: N1 = DV forte, N2 = só formato, N3 = depende de contexto, N4 = NER. Score: N1 0.95 c/ palavra de contexto perto, 0.8 a 0.9 sem. N2 0.7 / 0.5. N3 só c/ contexto, 0.5. DV errado = descartado (exceto c/ `report_invalid=True`). Velocidade: ~1 ms por 100 tokens, 17 entidades.

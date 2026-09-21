@@ -2,7 +2,7 @@
 # [BENCH-RUN] run one system over one JSONL file, write predictions + latency + system info.
 #
 # usage
-#   python -m bench.run --system tarja --data bench/data/v0.1/synthetic_adversarial.test.jsonl --out bench/results/
+#   python -m bench.run --system tarja --data bench/data/v0.2/synthetic_adversarial.test.jsonl --out bench/results/
 #   python -m bench.run --system llm --provider anthropic --model <model-id> --data ... --out ...
 
 from __future__ import annotations

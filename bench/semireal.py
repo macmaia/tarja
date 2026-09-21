@@ -96,7 +96,7 @@ def main(argv=None) -> int:
     p.add_argument("--src", required=True)
     p.add_argument("--n", type=int, default=2000)
     p.add_argument("--seed", type=int, default=7)
-    p.add_argument("--out", default="bench/data/v0.1")
+    p.add_argument("--out", default="bench/data/v0.2")
     a = p.parse_args(argv)
     docs = build(Path(a.src), a.n, a.seed)
     cut = int(len(docs) * 0.3)

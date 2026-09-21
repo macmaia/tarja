@@ -2,7 +2,7 @@
 # [BENCH-EVAL] score a predictions file against gold, all 3 modes, print a table and write JSON.
 #
 # usage
-#   python -m bench.evaluate --gold bench/data/v0.1/synthetic_adversarial.test.jsonl --pred bench/results/tarja__...json
+#   python -m bench.evaluate --gold bench/data/v0.2/synthetic_adversarial.test.jsonl --pred bench/results/tarja__...json
 
 from __future__ import annotations
 

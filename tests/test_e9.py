@@ -76,6 +76,38 @@ class TestCartao(unittest.TestCase):
         self.assertEqual(cartao.luhn_check_digit("411111111111111"), "1")
         self.assertEqual(cartao.luhn_check_digit("7992739871"), "3")
 
+    def test_every_network_is_recognised(self):
+        # [TEST-CARTAO-BRAND] public test numbers, one per network the IIN table claims to cover
+        for value, expected in (
+            ("4111 1111 1111 1111", "visa"),
+            ("5555555555554444", "mastercard"),
+            ("2223003122003222", "mastercard"),
+            ("3782 822463 10005", "amex"),
+            ("6011111111111117", "discover"),
+            ("3056 9309 0259 04", "diners"),
+            ("3530111333300000", "jcb"),
+            ("6062 8288 8866 6688", "hipercard"),
+        ):
+            self.assertEqual(cartao.brand(value), expected, value)
+            self.assertTrue(cartao.is_valid(value), value)
+
+    def test_luhn_alone_is_not_enough(self):
+        # [TEST-CARTAO-FP] these pass Luhn and are NOT cards: no registered issuer prefix. This is the noise
+        #   that made 29 false positives appear in a corpus of real administrative documents.
+        for v in ("1002003004005005", "9000123456789016", "7000000000000013", "1234567890123452"):
+            self.assertTrue(cartao.luhn_ok(cartao.normalise(v)), v)
+            self.assertIsNone(cartao.brand(v), v)
+            self.assertFalse(cartao.is_valid(v), v)
+            # the old behaviour is still reachable, explicitly
+            self.assertTrue(cartao.is_valid(v, require_brand=False), v)
+
+    def test_length_must_match_the_brand(self):
+        # 15-digit Amex prefix on a 16-digit number is not an Amex
+        self.assertIsNone(cartao.brand("3782822463100051"))
+
+    def test_detector_drops_the_luhn_only_numbers(self):
+        self.assertEqual(tarja.find("protocolo 1002003004005005"), [])
+
     def test_detect(self):
         found = tarja.find("pago no cartao de credito 4111 1111 1111 1111")
         self.assertEqual([(m.entity, m.score) for m in found], [("BR_CARTAO", 0.95)])

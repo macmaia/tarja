@@ -26,11 +26,11 @@ Split: 30% dev / 70% test.
 
 ## data / dados
 
-EN: the JSONL files are NOT committed (they'd trip the 500 KB pre-commit limit and they're 100% reproducible). `bench/data/v0.1/manifest.json` is committed with each file's sha256, and a test regenerates everything and checks the hashes. To get the files:
+EN: the JSONL files are NOT committed (they'd trip the 500 KB pre-commit limit and they're 100% reproducible). `bench/data/v0.2/manifest.json` is committed with each file's sha256, and a test regenerates everything and checks the hashes. To get the files:
 PT: os JSONL NÃO são commitados (passariam do limite de 500 KB do pre-commit e são 100% reprodutíveis). O `manifest.json` vai p/ o git c/ o sha256 de cada arquivo, e um teste regera tudo e confere. P/ ter os arquivos:
 
 ```bash
-python -m bench.generate --seed 42 --out bench/data/v0.1
+python -m bench.generate --seed 42 --out bench/data/v0.2
 ```
 
 EN: format, one JSON per line / PT: formato, 1 JSON por linha:
@@ -39,8 +39,8 @@ EN: format, one JSON per line / PT: formato, 1 JSON por linha:
 ## run a system / rodar um sistema
 
 ```bash
-python -m bench.run --system tarja --data bench/data/v0.1/synthetic_adversarial.test.jsonl
-python -m bench.evaluate --gold bench/data/v0.1/synthetic_adversarial.test.jsonl --pred bench/results/tarja__synthetic_adversarial.test.json
+python -m bench.run --system tarja --data bench/data/v0.2/synthetic_adversarial.test.jsonl
+python -m bench.evaluate --gold bench/data/v0.2/synthetic_adversarial.test.jsonl --pred bench/results/tarja__synthetic_adversarial.test.json
 ```
 
 | system | EN: needs / PT: precisa |
@@ -83,9 +83,35 @@ PT: toda vez q o tarja rodou no TESTE, e por quê. Ajuste só no dev. Reportar e
 | 2026-09-19 | 0.5.0.dev0 | v0.1 + BR_CARTAO | new entity changed the data / entidade nova mudou os dados | 0.950 | 0.791 |
 | 2026-09-19 | 0.5.0.dev0 | v0.1 + reference validators | gold regenerated (look-alikes stricter) / gold regerado | 0.950 | 0.797 |
 | 2026-09-19 | 0.5.0.dev0 | same / igual | after fixes tuned on dev (spaced separators, matricula adjacency) / dps das correções ajustadas no dev | 0.980 | 0.822 |
+| 2026-09-21 | 0.6.0.dev0 | **v0.2** | BR_CARTAO now needs a registered issuer prefix, not Luhn alone, which changed the D3 look-alikes. Generation also moved to one random stream per document, so a future validator change moves only the documents that use that entity / BR_CARTAO passou a exigir prefixo de emissor, e a geração passou a ter um fluxo aleatório por documento | 0.978 | 0.825 |
 
-EN: the bench data changed twice before any release, so `BENCH_VERSION` stays 0.1.0 until the Zenodo freeze. From then on, any change bumps it.
-PT: os dados mudaram 2x antes de qq publicação, entao o `BENCH_VERSION` fica 0.1.0 até congelar no Zenodo. Dali em diante, qq mudança sobe a versão.
+EN: the bench data changed twice before any release, so `BENCH_VERSION` stayed 0.1.0 up to 20/09. The card
+validator change on 21/09 altered the generated corpus, so the version moved to **0.2.0**. Nothing had been
+published to Zenodo yet, which is why this was cheap. From the Zenodo freeze on, any change bumps the version
+and gets a row here before the numbers are quoted anywhere.
+PT: os dados mudaram 2x antes de qq publicação, entao o `BENCH_VERSION` ficou em 0.1.0 até 20/09. A mudança no
+validador de cartão em 21/09 alterou o corpus gerado, entao a versão foi p/ **0.2.0**. Nada tinha subido no
+Zenodo ainda, e por isso saiu barato. A partir do congelamento no Zenodo, qq mudança sobe a versão e ganha uma
+linha aqui antes de o número ser citado em qq lugar.
+
+EN: the v0.1 to v0.2 move is within resampling noise, which is the reassuring answer: controlled 0.980 to
+0.978, adversarial 0.822 to 0.825, semi-real 0.990 unchanged. Per difficulty, partial F1 went D0 1.000,
+D1 0.958 to 0.957, D2 0.972 to 0.963, D3 0.997 unchanged, D4 0.255 to 0.266, D5 0.884 to 0.895. Requiring an
+issuer prefix on BR_CARTAO cost nothing measurable here, because the benchmark's cards were always generated
+with a Visa prefix. What it buys is on real text, where Luhn alone fires on roughly one in ten long numeric
+strings.
+PT: a passagem da v0.1 p/ a v0.2 fica dentro do ruido de reamostragem, q e a resposta tranquilizadora:
+controlado 0.980 p/ 0.978, adversarial 0.822 p/ 0.825, semi-real 0.990 igual. Exigir prefixo de emissor no
+BR_CARTAO nao custou nada aqui, pq o cartao do benchmark sempre foi gerado c/ prefixo Visa. O ganho esta em
+texto real.
+
+EN: **why one random stream per document.** With a single shared stream, the generator asks the validator
+whether a candidate look-alike is invalid, and a stricter validator changes that answer, which shifts every
+draw after the first difference and rewrites the whole corpus. Deriving the stream from (seed, subset, index)
+keeps the damage local: only documents that use the changed entity move.
+PT: **por que um fluxo aleatório por documento.** C/ um fluxo só, mudar o validador deslocava todos os sorteios
+seguintes e reescrevia o corpus inteiro. Derivando de (semente, subconjunto, índice), só os documentos da
+entidade alterada mudam.
 
 ## related benchmarks / benchmarks relacionados
 

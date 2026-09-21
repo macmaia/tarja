@@ -107,19 +107,29 @@ def make_doc(doc_id: str, domain: str, level: str, rng: random.Random) -> dict:
     return {"id": doc_id, "domain": domain, "difficulty": level, "text": text, "spans": spans}
 
 
+def _doc_rng(seed: int, subset: str, index: int) -> random.Random:
+    """EN: One independent random stream per document. PT: Um fluxo aleatorio independente por documento."""
+    # [BENCH-GEN-SEED] derived from (seed, subset, index) instead of drawing from one shared stream. With a
+    #   single stream, changing a validator shifts every draw after the first difference, so the whole corpus
+    #   changes and the committed hashes stop matching. Per document, a validator change moves only the
+    #   documents that use that entity, and the rest stay byte-identical.
+    h = hashlib.sha256(f"{seed}|{subset}|{index}".encode()).digest()
+    return random.Random(int.from_bytes(h[:8], "big"))
+
+
 def build(seed: int, n_controlled: int, n_adversarial: int, dev_share: float = 0.3) -> dict[str, list[dict]]:
     """EN: All subsets and splits. PT: Todos os subconjuntos e splits."""
     # [BENCH-GEN-BUILD] controlled = D0/D1, adversarial = D2..D5
-    rng = random.Random(seed)
     domains = sorted(TEMPLATES)
     out: dict[str, list[dict]] = {}
     for name, n, levels, weights in (
         ("synthetic_controlled", n_controlled, ["D0", "D1"], [0.6, 0.4]),
         ("synthetic_adversarial", n_adversarial, ["D2", "D3", "D4", "D5"], [0.25] * 4),
     ):
-        docs = [
-            make_doc(f"{name}-{i:05d}", domains[i % len(domains)], rng.choices(levels, weights)[0], rng) for i in range(n)
-        ]
+        docs = []
+        for i in range(n):
+            r = _doc_rng(seed, name, i)
+            docs.append(make_doc(f"{name}-{i:05d}", domains[i % len(domains)], r.choices(levels, weights)[0], r))
         cut = int(n * dev_share)
         out[f"{name}.dev"], out[f"{name}.test"] = docs[:cut], docs[cut:]
     return out
@@ -147,7 +157,7 @@ def main(argv=None) -> int:
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--controlled", type=int, default=5000)
     p.add_argument("--adversarial", type=int, default=3000)
-    p.add_argument("--out", default="bench/data/v0.1")
+    p.add_argument("--out", default="bench/data/v0.2")
     a = p.parse_args(argv)
     m = write(Path(a.out), build(a.seed, a.controlled, a.adversarial), a.seed)
     print(json.dumps(m, indent=2))

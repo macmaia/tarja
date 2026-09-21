@@ -1,4 +1,4 @@
-# annotation guide / guia de anotação (v0.1)
+# annotation guide / guia de anotação (v0.2)
 
 EN: for the semi-real check and the restricted real subset (1,000 passages from official gazettes). Two annotators work independently on the same docs, then `bench/iaa.py` measures agreement, then disagreements are adjudicated.
 PT: p/ conferência do semi-real e o subconjunto real restrito (1.000 trechos de diários oficiais). 2 anotadores trabalham de forma independente nos mesmos docs, dps o `bench/iaa.py` mede a concordância, dps as divergências são arbitradas.

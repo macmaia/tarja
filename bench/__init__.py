@@ -3,4 +3,4 @@
 # author/autoria: https://github.com/macmaia
 
 # bump when the generator output changes (dataset version, goes into the manifest)
-BENCH_VERSION = "0.1.0"
+BENCH_VERSION = "0.2.0"
