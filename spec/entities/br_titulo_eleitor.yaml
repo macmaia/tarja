@@ -29,8 +29,13 @@ context:
   #   22/09/2026: the certificates write "Inscricao: NNNN NNNN NNNN" and "Eleitora: NAME", and neither
   #   matched. Without them a real number scored 0.8, the same as a run of years in a table.
   # PT: "inscricao" solto e o feminino "eleitora" vieram de dossies reais medidos em 22/09/2026.
+  # EN: "zona" and "secao" are the fields printed next to the number on the certificate itself.
+  #   "filiacao" is deliberately left out: it sits next to an RG or a CPF just as often, and the documents
+  #   that use it already carry "inscricao" or "eleitor" nearby.
+  # PT: "zona" e "secao" sao os campos impressos ao lado do numero na propria certidao. "filiacao" fica de
+  #   fora de proposito: aparece tanto perto de RG e CPF, e os documentos q a usam ja tem "inscricao" perto.
   words: ["titulo de eleitor", "titulo eleitoral", "inscricao eleitoral", "inscricao", "eleitor",
-          "eleitora", "zona eleitoral", "justica eleitoral"]
+          "eleitora", "zona eleitoral", "justica eleitoral", "zona", "secao"]
   window: 60
   required: false
 

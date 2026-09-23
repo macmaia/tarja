@@ -199,6 +199,8 @@ ENTITIES: dict[str, EntitySpec] = {
             "eleitora",
             "zona eleitoral",
             "justica eleitoral",
+            "zona",
+            "secao",
         ),
         context_window=60,
         context_required=False,
