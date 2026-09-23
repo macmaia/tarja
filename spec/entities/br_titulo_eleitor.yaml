@@ -25,7 +25,12 @@ validator:
 
 # EN: nearby words (Portuguese on purpose) / PT: palavras de contexto (em PT de proposito)
 context:
-  words: ["titulo de eleitor", "titulo eleitoral", "inscricao eleitoral", "eleitor"]
+  # EN: "inscricao" bare and the feminine "eleitora" come from real nomination dossiers measured on
+  #   22/09/2026: the certificates write "Inscricao: NNNN NNNN NNNN" and "Eleitora: NAME", and neither
+  #   matched. Without them a real number scored 0.8, the same as a run of years in a table.
+  # PT: "inscricao" solto e o feminino "eleitora" vieram de dossies reais medidos em 22/09/2026.
+  words: ["titulo de eleitor", "titulo eleitoral", "inscricao eleitoral", "inscricao", "eleitor",
+          "eleitora", "zona eleitoral", "justica eleitoral"]
   window: 60
   required: false
 
