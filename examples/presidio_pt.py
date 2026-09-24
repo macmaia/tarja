@@ -2,13 +2,13 @@
 # [EXAMPLE-PRESIDIO] E3.2, runs the docs/presidio.md example for real and CHECKS the result (exit 1 if wrong).
 #
 # setup once
-#   pip install -e . -e packages/presidio-br presidio-analyzer spacy   (in a venv)
+#   pip install -e . -e packages/tarja-presidio presidio-analyzer spacy   (in a venv)
 #   python -m spacy download pt_core_news_md
 # run
 
 import sys
 
-import presidio_br
+import tarja_presidio
 from presidio_analyzer import AnalyzerEngine, RecognizerRegistry
 from presidio_analyzer.nlp_engine import NlpEngineProvider
 
@@ -20,7 +20,7 @@ nlp_engine = NlpEngineProvider(
 # [EXAMPLE-PRESIDIO-REGISTRY] Presidio's own pt recognizers + all tarja entities
 registry = RecognizerRegistry(supported_languages=["pt"])
 registry.load_predefined_recognizers(languages=["pt"], nlp_engine=nlp_engine)
-presidio_br.register(registry)
+tarja_presidio.register(registry)
 analyzer = AnalyzerEngine(registry=registry, nlp_engine=nlp_engine, supported_languages=["pt"])
 
 text = "Paciente Maria, CPF 529.982.247-25, cartao SUS 898 0000 0004 3208, CEP 22290-140."

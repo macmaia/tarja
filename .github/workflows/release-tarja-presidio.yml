@@ -1,0 +1,67 @@
+# .github/workflows/release-tarja-presidio.yml
+# [RELEASE-BR] EN: publishes the tarja-presidio plugin to PyPI when a tag like tarja-presidio-v0.1.0 is pushed.
+# [RELEASE-BR] PT: publica o plugin tarja-presidio no PyPI qdo sobe uma tag tipo tarja-presidio-v0.1.0.
+#
+# EN: the tag prefix matters. release.yml listens on "v*", which does NOT match "tarja-presidio-v*", so the two
+#     workflows never fire on the same tag. Keep it that way: an unprefixed tag would publish the wrong package.
+# PT: o prefixo da tag importa. O release.yml escuta "v*", q NAO casa c/ "tarja-presidio-v*", entao os 2 nunca
+#     disparam na mesma tag. Mantenha assim: tag sem prefixo publicaria o pacote errado.
+#
+# EN: one-off setup (manual): PyPI > Publishing > Add a new pending publisher, with
+#     project tarja-presidio, owner macmaia, repo tarja, workflow release-tarja-presidio.yml, environment pypi
+# PT: setup 1x (manual): PyPI > Publishing > Add a new pending publisher, c/ os campos acima
+
+name: release-tarja-presidio
+
+on:
+  push:
+    tags: ["tarja-presidio-v*"]
+
+permissions:
+  contents: read
+
+jobs:
+  build:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
+        with:
+          python-version: "3.12"
+      # EN: the plugin needs tarja itself, installed from this same checkout / PT: o plugin precisa do tarja daqui
+      - run: pip install -e . -e "packages/tarja-presidio[dev]" build
+      - run: pytest packages/tarja-presidio/tests -p no:cacheprovider --no-cov
+        env:
+          TARJA_REQUIRE_PRESIDIO: "1"
+      # EN: tag tarja-presidio-v0.1.0 must match __version__ 0.1.0 / PT: a tag tem q bater c/ o __version__
+      - name: check version / confere versao
+        run: |
+          PKG=$(python -c "import tarja_presidio; print(tarja_presidio.__version__)")
+          TAG=${GITHUB_REF_NAME#tarja-presidio-v}
+          echo "package=$PKG tag=$TAG"
+          test "$PKG" = "$TAG"
+      - run: python -m build packages/tarja-presidio --outdir dist/
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5
+        with:
+          name: dist-tarja-presidio
+          path: dist/
+
+  publish:
+    needs: build
+    runs-on: ubuntu-24.04
+    environment:
+      name: pypi
+      url: https://pypi.org/project/tarja-presidio/
+    permissions:
+      id-token: write
+    steps:
+      - uses: actions/download-artifact@634f93cb2916e3fdff6788551b99b062d0335ce0  # v5
+        with:
+          name: dist-tarja-presidio
+          path: dist/
+      - uses: pypa/gh-action-pypi-publish@dc37677b2e1c63e2034f94d8a5b11f265b73ba33  # release/v1
+        with:
+          # [RELEASE-BR-DUP] EN: a duplicated tag push fires this twice and the second upload hits "file already
+          #   exists", which is not a failure worth a red X. skip-existing keeps a genuine error red.
+          #   PT: tag disparada 2x faz o 2o upload bater em "file already exists", q nao e falha de verdade.
+          skip-existing: true

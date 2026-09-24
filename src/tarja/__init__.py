@@ -58,7 +58,7 @@ __all__ = [
 ]
 
 # version read by hatch at build time (see pyproject.toml, [tool.hatch.version])
-__version__ = "0.7.0"
+__version__ = "0.8.0.dev0"
 
 
 def validate(entity: str, value: str) -> bool:

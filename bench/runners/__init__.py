@@ -11,7 +11,7 @@ import importlib
 RUNNERS = {
     "tarja": "bench.runners.tarja_runner:TarjaRunner",
     "presidio-default": "bench.runners.presidio_runner:PresidioDefaultRunner",
-    "presidio-br": "bench.runners.presidio_runner:PresidioBrRunner",
+    "tarja-presidio": "bench.runners.presidio_runner:PresidioBrRunner",
     "azure": "bench.runners.cloud:AzureRunner",
     "google-sdp": "bench.runners.cloud:GoogleSdpRunner",
     "macie": "bench.runners.cloud:MacieRunner",

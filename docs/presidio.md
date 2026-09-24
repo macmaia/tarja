@@ -3,10 +3,10 @@
 EN: two ways to get Brazilian identifiers into Presidio.
 PT: 2 jeitos de ter identificadores brasileiros no Presidio.
 
-| | `presidio-br` (plugin, E3.1) | upstream PR (E3.4) |
+| | `tarja-presidio` (plugin, E3.1) | upstream PR (E3.4) |
 |---|---|---|
 | EN: entities / PT: entidades | all 16 tarja entities / todas as 16 | CPF + CNPJ |
-| EN: install / PT: instalação | `pip install presidio-br` | EN: built into Presidio once merged / PT: nativo qdo aceitarem |
+| EN: install / PT: instalação | EN: not on PyPI yet, install from the repo / PT: ainda não está no PyPI, instale do repo:<br>`pip install "tarja-presidio @ git+https://github.com/macmaia/tarja.git#subdirectory=packages/tarja-presidio"` | EN: built into Presidio once merged / PT: nativo qdo aceitarem |
 | EN: updates / PT: atualização | EN: follows tarja releases / PT: segue o tarja | EN: Presidio's release cycle / PT: ciclo do Presidio |
 
 ## example / exemplo (E3.2)
@@ -14,7 +14,7 @@ PT: 2 jeitos de ter identificadores brasileiros no Presidio.
 ```python
 from presidio_analyzer import AnalyzerEngine, RecognizerRegistry
 from presidio_analyzer.nlp_engine import NlpEngineProvider
-import presidio_br
+import tarja_presidio
 
 # EN: Portuguese NLP engine (spaCy). One-off: python -m spacy download pt_core_news_md
 # PT: motor NLP em portugues (spaCy). Uma vez: python -m spacy download pt_core_news_md
@@ -27,7 +27,7 @@ nlp_engine = NlpEngineProvider(
 
 registry = RecognizerRegistry(supported_languages=["pt"])
 registry.load_predefined_recognizers(languages=["pt"], nlp_engine=nlp_engine)  # EN: e-mail, names... / PT: e-mail, nomes...
-presidio_br.register(registry)  # EN: 16 Brazilian entities / PT: 16 entidades brasileiras
+tarja_presidio.register(registry)  # EN: 16 Brazilian entities / PT: 16 entidades brasileiras
 
 analyzer = AnalyzerEngine(registry=registry, nlp_engine=nlp_engine, supported_languages=["pt"])
 
@@ -41,7 +41,7 @@ PT: esperado: `BR_CPF` e `BR_CNS` c/ 1.0 (DV válido), `BR_CEP` só se o enhance
 
 ## scores
 
-| tarja | Presidio (`presidio-br`) |
+| tarja | Presidio (`tarja-presidio`) |
 |---|---|
 | EN: wrong check digit / PT: DV errado | `validate_result -> False`, EN: dropped / PT: descartado |
 | EN: valid check digit / PT: DV válido | `validate_result -> True`, score 1.0 |

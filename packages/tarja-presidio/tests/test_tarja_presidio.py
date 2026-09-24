@@ -1,4 +1,4 @@
-# packages/presidio-br/tests/test_presidio_br.py
+# packages/tarja-presidio/tests/test_tarja_presidio.py
 # [TEST-PRESIDIO-BR] runs against the REAL presidio-analyzer. Locally it's skipped if Presidio isn't installed,
 #   but in CI TARJA_REQUIRE_PRESIDIO=1 turns a missing Presidio into a hard failure (no silent skip).
 
@@ -12,7 +12,7 @@ if os.environ.get("TARJA_REQUIRE_PRESIDIO") == "1":
 else:
     pytest.importorskip("presidio_analyzer")
 
-import presidio_br  # noqa: E402
+import tarja_presidio  # noqa: E402
 import yaml  # noqa: E402
 
 from tarja.entities import ENTITIES  # noqa: E402
@@ -28,7 +28,7 @@ def _examples(entity_id):
 
 def test_one_recognizer_per_entity():
     # [TEST-PRESIDIO-BR] all entities, right names and country
-    recs = presidio_br.get_recognizers()
+    recs = tarja_presidio.get_recognizers()
     assert [r.supported_entities[0] for r in recs] == list(ENTITIES)
     assert all(r.COUNTRY_CODE == "br" and r.supported_language == "pt" for r in recs)
     assert recs[0].name == "BrCpfRecognizer"
@@ -37,7 +37,7 @@ def test_one_recognizer_per_entity():
 @pytest.mark.parametrize("entity_id", list(ENTITIES))
 def test_examples_through_presidio(entity_id):
     # [TEST-PRESIDIO-BR] valid examples are found (with a context word), invalid ones are not
-    rec = presidio_br.TarjaRecognizer(entity_id)
+    rec = tarja_presidio.TarjaRecognizer(entity_id)
     word = ENTITIES[entity_id].context_words[0]
     valid, invalid = _examples(entity_id)
     for v in valid:
@@ -52,9 +52,9 @@ def test_examples_through_presidio(entity_id):
 
 def test_validate_result_mapping():
     # [TEST-PRESIDIO-BR] True for valid N1, False for wrong DV, None when context is required
-    assert presidio_br.TarjaRecognizer("BR_CPF").validate_result("529.982.247-25") is True
-    assert presidio_br.TarjaRecognizer("BR_CPF").validate_result("529.982.247-24") is False
-    assert presidio_br.TarjaRecognizer("BR_CEP").validate_result("22290-140") is None
+    assert tarja_presidio.TarjaRecognizer("BR_CPF").validate_result("529.982.247-25") is True
+    assert tarja_presidio.TarjaRecognizer("BR_CPF").validate_result("529.982.247-24") is False
+    assert tarja_presidio.TarjaRecognizer("BR_CEP").validate_result("22290-140") is None
 
 
 def test_register_and_analyzer_engine():
@@ -62,7 +62,7 @@ def test_register_and_analyzer_engine():
     from presidio_analyzer import AnalyzerEngine, RecognizerRegistry
 
     registry = RecognizerRegistry(supported_languages=["pt"])
-    presidio_br.register(registry, ["BR_CPF", "BR_CNPJ"])
+    tarja_presidio.register(registry, ["BR_CPF", "BR_CNPJ"])
     engine = AnalyzerEngine(registry=registry, supported_languages=["pt"], nlp_engine=_NoNlp())
     res = engine.analyze("cpf 529.982.247-25 e cnpj 12.ABC.345/01DE-35", language="pt")
     assert sorted(r.entity_type for r in res) == ["BR_CNPJ", "BR_CPF"]
@@ -71,7 +71,7 @@ def test_register_and_analyzer_engine():
 def test_unknown_entity():
     # [TEST-PRESIDIO-BR] clear error
     with pytest.raises(KeyError):
-        presidio_br.TarjaRecognizer("BR_XYZ")
+        tarja_presidio.TarjaRecognizer("BR_XYZ")
 
 
 class _NoNlp:

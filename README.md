@@ -80,6 +80,11 @@ pip install -e ".[dev]"
 
 ## usage / uso
 
+EN: docs and a runnable notebook: <https://macmaia.github.io/tarja/> ·
+[![Open In Colab](https://colab.research.google.com/assets/colab-badge.svg)](https://colab.research.google.com/github/macmaia/tarja/blob/main/notebooks/tarja_quickstart.ipynb)
+PT: documentação e um caderno que roda no navegador, sem instalar nada.
+
+
 ```python
 import os
 

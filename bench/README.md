@@ -46,7 +46,7 @@ python -m bench.evaluate --gold bench/data/v0.2/synthetic_adversarial.test.jsonl
 | system | EN: needs / PT: precisa |
 |---|---|
 | `tarja` | - |
-| `presidio-default`, `presidio-br` | `pip install presidio-analyzer` (+ `packages/presidio-br`) |
+| `presidio-default`, `tarja-presidio` | `pip install presidio-analyzer` (+ `packages/tarja-presidio`) |
 | `azure` | `pip install azure-ai-textanalytics`, `AZURE_LANGUAGE_ENDPOINT`, `AZURE_LANGUAGE_KEY` |
 | `google-sdp` | `pip install google-cloud-dlp`, `GOOGLE_CLOUD_PROJECT`, `gcloud auth application-default login` |
 | `macie` | EN: upload each doc as `s3://bucket/bench/<id>.txt`, run a Macie classification job, export findings JSON, `MACIE_FINDINGS_JSON=...` / PT: sobe cada doc como `<id>.txt`, roda job de classificação, exporta os findings, `MACIE_FINDINGS_JSON=...` |

@@ -80,15 +80,15 @@ jobs:
 
   # [CI-PRESIDIO-BR] EN: plugin tests against the REAL presidio-analyzer, skipping is forbidden here
   # [CI-PRESIDIO-BR] PT: testes do plugin contra o presidio-analyzer DE VERDADE, pular e proibido aqui
-  presidio-br:
+  tarja-presidio:
     runs-on: ubuntu-24.04
     steps:
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
         with:
           python-version: "3.12"
-      - run: pip install -e ".[dev]" -e packages/presidio-br
-      - run: pytest packages/presidio-br/tests -p no:cacheprovider --no-cov
+      - run: pip install -e ".[dev]" -e packages/tarja-presidio
+      - run: pytest packages/tarja-presidio/tests -p no:cacheprovider --no-cov
         env:
           TARJA_REQUIRE_PRESIDIO: "1"
 

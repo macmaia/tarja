@@ -15,7 +15,7 @@ import json
 from pathlib import Path
 
 # [BENCH-REPORT-ORDER] fixed order = fixed colour per system, never by rank
-SYSTEM_ORDER = ["tarja", "presidio-br", "presidio-default", "spacy", "azure", "google-sdp", "macie", "purview", "llm"]
+SYSTEM_ORDER = ["tarja", "tarja-presidio", "presidio-default", "spacy", "azure", "google-sdp", "macie", "purview", "llm"]
 PALETTE = ["#2a78d6", "#eb6834", "#1baf7a", "#eda100", "#e87ba4", "#008300", "#4a3aa7", "#e34948"]
 MODES = ("exact", "partial", "untyped")
 

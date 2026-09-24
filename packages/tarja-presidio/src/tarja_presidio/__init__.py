@@ -1,4 +1,4 @@
-# presidio_br/__init__.py
+# tarja_presidio/__init__.py
 # [PRESIDIO-BR] builds one Presidio PatternRecognizer per tarja entity, straight from tarja's registry,
 #   so regex, context words and check digits never drift from the core library.
 #

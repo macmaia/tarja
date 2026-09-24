@@ -1,0 +1,7 @@
+# docs/_config.yml
+# [PAGES] GitHub Pages config. Serve from the docs/ folder of main: Settings > Pages > Source: main, /docs.
+#   Nothing here is part of the package. Keep it boring: a theme, a title, no plugins to audit.
+title: tarja
+description: Brazilian personal identifiers in free Portuguese text, with check-digit validation
+theme: jekyll-theme-cayman
+show_downloads: false

@@ -1,6 +1,6 @@
 # bench/runners/presidio_runner.py
 # [BENCH-RUNNER-PRESIDIO] Presidio out of the box (English defaults, the "foreign tool" baseline) and
-#   Presidio + presidio-br. Needs: pip install presidio-analyzer (+ packages/presidio-br).
+#   Presidio + tarja-presidio. Needs: pip install presidio-analyzer (+ packages/tarja-presidio).
 
 from __future__ import annotations
 
@@ -28,16 +28,16 @@ class PresidioDefaultRunner(Runner):
 
 
 class PresidioBrRunner(Runner):
-    name = "presidio-br"
+    name = "tarja-presidio"
 
     def __init__(self, score_threshold: float = 0.4):
-        import presidio_br
+        import tarja_presidio
         from presidio_analyzer import RecognizerRegistry
 
         self.registry = RecognizerRegistry(supported_languages=["pt"])
-        presidio_br.register(self.registry)
+        tarja_presidio.register(self.registry)
         self.th = score_threshold
-        self.info = {"presidio_br_version": presidio_br.__version__, "score_threshold": score_threshold}
+        self.info = {"tarja_presidio_version": tarja_presidio.__version__, "score_threshold": score_threshold}
 
     def predict_one(self, text: str) -> list[dict]:
         # pattern recognizers only, no NLP model needed
