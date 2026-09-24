@@ -6,7 +6,7 @@ PT: 2 jeitos de ter identificadores brasileiros no Presidio.
 | | `tarja-presidio` (plugin, E3.1) | upstream PR (E3.4) |
 |---|---|---|
 | EN: entities / PT: entidades | all 16 tarja entities / todas as 16 | CPF + CNPJ |
-| EN: install / PT: instalação | EN: not on PyPI yet, install from the repo / PT: ainda não está no PyPI, instale do repo:<br>`pip install "tarja-presidio @ git+https://github.com/macmaia/tarja.git#subdirectory=packages/tarja-presidio"` | EN: built into Presidio once merged / PT: nativo qdo aceitarem |
+| EN: install / PT: instalação | `pip install tarja-presidio` | EN: built into Presidio once merged / PT: nativo qdo aceitarem |
 | EN: updates / PT: atualização | EN: follows tarja releases / PT: segue o tarja | EN: Presidio's release cycle / PT: ciclo do Presidio |
 
 ## example / exemplo (E3.2)

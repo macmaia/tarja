@@ -106,13 +106,12 @@ processo judicial usa ISO 7064 módulo 97-10. O CNPJ passou a aceitar letras. É
 O [tarja](https://github.com/macmaia/tarja) implementa as 16 entidades brasileiras com a validação de cada uma,
 e o `tarja-presidio` registra todas elas no Presidio de uma vez.
 
-O `tarja-presidio` ainda não está no PyPI. Hoje se instala direto do repositório:
-
 ```bash
-pip install tarja
-pip install "tarja-presidio @ git+https://github.com/macmaia/tarja.git#subdirectory=packages/tarja-presidio"
+pip install tarja-presidio
 python -m spacy download pt_core_news_md
 ```
+
+O `tarja` vem junto, é dependência do plugin.
 
 ```python
 from presidio_analyzer import AnalyzerEngine, RecognizerRegistry

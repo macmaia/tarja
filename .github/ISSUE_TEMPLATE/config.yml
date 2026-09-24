@@ -1,0 +1,11 @@
+# .github/ISSUE_TEMPLATE/config.yml
+# [ISSUE-CFG] EN: no blank issues: this project's issues need a real value or a normative source, and a blank
+#   box invites someone to paste a real identifier. / PT: sem issue em branco, q convida a colar dado real.
+blank_issues_enabled: false
+contact_links:
+  - name: Security vulnerability / Vulnerabilidade de segurança
+    url: https://github.com/macmaia/tarja/security/policy
+    about: "EN: do NOT open a public issue. Follow SECURITY.md. / PT: NÃO abra issue pública, siga o SECURITY.md."
+  - name: Question / Dúvida
+    url: https://github.com/macmaia/tarja/discussions
+    about: "EN: usage questions go to Discussions. / PT: dúvida de uso vai para Discussions."

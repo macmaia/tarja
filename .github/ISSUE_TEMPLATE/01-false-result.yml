@@ -1,0 +1,68 @@
+# .github/ISSUE_TEMPLATE/01-false-result.yml
+# [ISSUE-FALSE] EN: the commonest report: something was detected that should not have been, or the reverse.
+name: Wrong detection / Detecção errada
+description: "EN: something was detected that should not be, or was missed. / PT: achou o que não devia, ou deixou passar."
+labels: ["detection"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        **EN: never paste a real identifier here.** An issue is public and permanent. Build an example with a
+        valid check digit instead: `tarja` ships generators in `bench/`, and a wrong-digit number is useless for
+        reproducing a check-digit bug. If the case only reproduces with a real value, say so and follow
+        [SECURITY.md](https://github.com/macmaia/tarja/blob/main/SECURITY.md) instead of opening an issue.
+
+        **PT: nunca cole um identificador real aqui.** Issue é pública e permanente. Monte um exemplo com DV
+        válido. Se o caso só reproduz com valor real, diga isso e siga o SECURITY.md em vez de abrir issue.
+  - type: checkboxes
+    id: no-real-data
+    attributes:
+      label: Confirmation / Confirmação
+      options:
+        - label: "EN: the text below contains no real personal data / PT: o texto abaixo não tem dado pessoal real"
+          required: true
+  - type: dropdown
+    id: kind
+    attributes:
+      label: Kind / Tipo
+      options:
+        - "False positive: detected something that is not an identifier / Falso positivo"
+        - "False negative: missed a real identifier / Falso negativo"
+        - "Wrong entity type / Tipo de entidade errado"
+        - "Wrong offsets or score / Posição ou score errado"
+    validations:
+      required: true
+  - type: input
+    id: entity
+    attributes:
+      label: Entity / Entidade
+      placeholder: "BR_CPF, BR_CNJ, BR_CARTAO..."
+    validations:
+      required: true
+  - type: textarea
+    id: repro
+    attributes:
+      label: Minimal reproduction / Reprodução mínima
+      description: "EN: the code and the synthetic text. / PT: o código e o texto sintético."
+      render: python
+      value: |
+        import tarja
+        texto = "..."
+        print(tarja.__version__)
+        for m in tarja.find(texto):
+            print(m.entity, m.start, m.end, m.score, m.valid_dv)
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: Expected vs actual / Esperado e obtido
+    validations:
+      required: true
+  - type: input
+    id: version
+    attributes:
+      label: Version / Versão
+      description: "python -c 'import tarja; print(tarja.__version__)'"
+    validations:
+      required: true

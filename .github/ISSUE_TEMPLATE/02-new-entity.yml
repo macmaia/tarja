@@ -1,0 +1,58 @@
+# .github/ISSUE_TEMPLATE/02-new-entity.yml
+# [ISSUE-ENTITY] EN: an entity without a normative source cannot be defended in a paper or in an audit, so the
+#   source is required, not optional. / PT: entidade sem fonte normativa não se defende em artigo nem auditoria.
+name: New entity / Nova entidade
+description: "EN: propose a Brazilian identifier tarja does not cover. / PT: propor identificador que o tarja não cobre."
+labels: ["entity"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        EN: `spec/entities/*.yaml` is the single source of truth, and `src/tarja/entities.py` is generated from
+        it. Every rule in the repository cites where it comes from, and a proposal without a source cannot be
+        merged, because nobody can check it later.
+        PT: a fonte de verdade é o `spec/entities/*.yaml`. Proposta sem fonte não entra, porque ninguém consegue
+        conferir depois.
+  - type: input
+    id: name
+    attributes:
+      label: Identifier / Identificador
+      placeholder: "EN: official name, e.g. Certidão de Nascimento / PT: nome oficial"
+    validations:
+      required: true
+  - type: textarea
+    id: source
+    attributes:
+      label: Normative source / Fonte normativa
+      description: "EN: law, decree, official manual or agency page, with a link and the date you accessed it. / PT: lei, decreto, manual oficial ou página do órgão, com link e data de acesso."
+    validations:
+      required: true
+  - type: dropdown
+    id: tier
+    attributes:
+      label: Tier / Nível
+      options:
+        - "N1: has a check digit that can be verified / tem DV conferível"
+        - "N2: fixed format only / só formato fixo"
+        - "N3: needs a context word nearby / precisa de contexto"
+    validations:
+      required: true
+  - type: textarea
+    id: algorithm
+    attributes:
+      label: Check-digit rule / Regra do dígito verificador
+      description: "EN: for N1, the exact algorithm with weights and modulus. / PT: para N1, o algoritmo exato, com pesos e módulo."
+  - type: textarea
+    id: examples
+    attributes:
+      label: Examples / Exemplos
+      description: "EN: SYNTHETIC values only: valid ones and near-miss invalid ones. / PT: valores SINTÉTICOS: válidos e inválidos parecidos."
+    validations:
+      required: true
+  - type: checkboxes
+    id: no-real-data
+    attributes:
+      label: Confirmation / Confirmação
+      options:
+        - label: "EN: every example is synthetic / PT: todo exemplo é sintético"
+          required: true
