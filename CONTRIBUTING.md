@@ -21,7 +21,7 @@ EN:
 5. Tests: official case, wrong check digit, bad format, repeated digits (where it makes sense) and one property test (generate, validate, mutate).
 6. Add the id to `spec/registry.yaml` and run `python tools/gen_entities.py`. Never edit `src/tarja/entities.py` by hand: it is generated and CI checks it.
 
-EN: an identifier that only matters to you (a company ID, one state's IE) does not need a PR: use `tarja.register_entity()` at start-up.
+EN: an identifier that only matters to you (a company ID, one state's IE) does not need a PR: use `tarja.register_entity()` at start-up, then `tarja.freeze()` before serving requests. The registry is module-level state that `find()` reads on every call, so registration belongs in start-up and nowhere else. `freeze()` makes a late registration raise `RegistryFrozenError` instead of racing a reader.
 
 PT:
 1. Abre uma issue antes, c/ a entidade, a norma oficial e uns exemplos.
@@ -31,7 +31,7 @@ PT:
 5. Testes: caso oficial, DV errado, formato ruim, repetidos (qdo fizer sentido) e 1 teste de propriedade (gera, valida, muta).
 6. Põe o id no `spec/registry.yaml` e roda `python tools/gen_entities.py`. Nunca edite o `src/tarja/entities.py` à mão: ele é gerado e o CI confere.
 
-PT: identificador q só importa p/ vc (matrícula de empresa, IE de 1 estado) não precisa de PR: use `tarja.register_entity()` na inicialização.
+PT: identificador q só importa p/ vc (matrícula de empresa, IE de 1 estado) não precisa de PR: use `tarja.register_entity()` na inicialização e `tarja.freeze()` antes de servir requisição. O registro é estado de módulo q o `find()` lê a cada chamada, então registrar é coisa de start-up. O `freeze()` faz registro tardio levantar `RegistryFrozenError` em vez de correr contra um leitor.
 
 ## real data: no / dado real: não
 

@@ -23,6 +23,7 @@ EN: tarja is a detection aid, **not a guarantee of LGPD compliance**, and not an
 | **`Vault` keeps its map in memory, in one process.** The map dies with the object, so an ingestion job cannot hand tokens to a serving process. | The map IS the personal data. Persisting it drags in key custody, access control, retention, deletion on request, backups and audit, which are decisions about your risk, not a library default. Persistence with a KMS key, authenticated sessions and an audit trail is the paid Tarja Gateway. |
 | **`pseudonym_stable` is reversible by whoever holds the key.** | It is pseudonymisation, not anonymisation. Use `redact` when nothing may come back, or `Vault` when reversal must stay under your control. |
 | **Text in, text out. No OCR, no scanned PDF.** | Extract the text first with a tool of your choice. |
+| **A suspect is not debug output.** `find(report_invalid=True)` and `scan --suspect` return numbers shaped like a document with a failing check digit, which is nearly always a REAL identifier with a typo or an OCR error. | Treat it like the identifier itself: do not log it, do not put it in an error message or a monitoring event. Count it, or use `to_dict(include_value=False)`. The CLI already hides the value without `--show-values`. |
 
 EN: none of this removes your own obligations: legal basis, records, security measures and answering data subjects stay with you.
 
@@ -35,6 +36,7 @@ PT: o tarja ajuda a detectar, **não garante conformidade c/ a LGPD** e não ano
 | **O `Vault` guarda o mapa em memória, num processo só.** O mapa morre c/ o objeto, então um job de ingestão não consegue passar token p/ o processo q serve. | O mapa É o dado pessoal. Persistir puxa junto guarda de chave, controle de acesso, retenção, exclusão a pedido, backup e auditoria, q são decisões sobre o seu risco, não padrão de biblioteca. Persistência c/ chave em KMS, sessão autenticada e trilha de auditoria é o Tarja Gateway pago. |
 | **O `pseudonym_stable` é reversível por quem tem a chave.** | É pseudonimização, não anonimização. Use `redact` qdo nada pode voltar, ou o `Vault` qdo a reversão tem q ficar sob seu controle. |
 | **Entra texto, sai texto. Sem OCR, sem PDF escaneado.** | Extraia o texto antes, c/ a ferramenta q preferir. |
+| **Suspeito não é saída de depuração.** O `find(report_invalid=True)` e o `scan --suspect` devolvem número c/ cara de documento e DV errado, q quase sempre é identificador REAL c/ erro de digitação ou de OCR. | Trate como o próprio identificador: não logue, não ponha em mensagem de erro nem em evento de monitoramento. Conte, ou use `to_dict(include_value=False)`. O CLI já esconde o valor sem `--show-values`. |
 
 PT: nada disso tira as suas obrigações: base legal, registros, medidas de segurança e resposta ao titular continuam suas.
 
@@ -91,7 +93,7 @@ for m in tarja.find(text):
 tarja.mask(text)  # "Paciente CPF <BR_CPF>, cartao SUS <BR_CNS>, processo <BR_CNJ>"
 tarja.mask(text, strategy="pseudonym")  # <BR_CPF_1>, same value -> same label / mesmo valor -> mesmo rotulo
 # EN: same label in EVERY document, key from a secrets manager / PT: mesmo rotulo em TODO documento
-tarja.mask(text, strategy="pseudonym_stable", salt=os.environ["TARJA_SALT"])  # <BR_CPF:3f9a1c0b2e7d>
+tarja.mask(text, strategy="pseudonym_stable", salt=os.environ["TARJA_SALT"])  # <BR_CPF:24da:3f9a1c0b2e7d>, 24da = geracao da chave
 
 tarja.validate("BR_CNPJ", "12.ABC.345/01DE-35")  # True (alphanumeric CNPJ / CNPJ alfanum)
 
@@ -107,7 +109,7 @@ tarja.find("cpf 529.982.247-24", report_invalid=True)
 
 # EN: reversible tokens, e.g. before sending text to an LLM / PT: token reversivel, ex. antes de mandar p/ um LLM
 vault = tarja.Vault()
-safe = vault.protect(text)  # "Paciente CPF <BR_CPF:4b1a3edcd5f6c2e81a9d07b3>, ..."
+safe = vault.protect(text)  # "Paciente CPF <BR_CPF:cfa1:4b1a3edcd5f6c2e81a9d07b3>, ..."
 answer = call_your_llm(safe)                  # EN: safe is a plain str / PT: safe e uma str normal
 vault.reveal(answer, issued_by=safe)          # EN: only the tokens safe issued / PT: so os tokens do safe
 tarja.residual(safe)  # [] = nothing leaked / nada vazou
@@ -115,6 +117,47 @@ tarja.residual(safe)  # [] = nothing leaked / nada vazou
 
 EN: tokens are 96-bit HMACs, and a clash raises `VaultCollisionError` instead of mixing two people up. `reveal()` is scoped to the `protect()` call that issued the tokens, so a token echoed from someone else's text does not resolve, even when one vault serves several users. A scope is single use (`reuse=True` to repeat it) and expires after an hour (`Vault(ttl=...)`, `None` for never). `reveal(text, any_token=True)` turns all of that off and restores anything the vault ever issued: only for text you trust. Whoever holds the `Vault` object can reveal everything, same as holding a decryption key, and the mapping lives in memory for one process. For multi-tenant production use (key in KMS, rehydration tied to an authenticated session, probing quotas, audit trail) see the paid Tarja Gateway.
 PT: token é HMAC de 96 bits, e colisão levanta `VaultCollisionError` em vez de trocar uma pessoa por outra. O `reveal()` fica preso à chamada do `protect()` q emitiu os tokens, então token ecoado do texto de outra pessoa não resolve, mesmo c/ um cofre só p/ vários usuários. O escopo é de uso único (`reuse=True` p/ repetir) e vence em 1h (`Vault(ttl=...)`, `None` p/ nunca). O `reveal(texto, any_token=True)` desliga tudo isso e devolve qq token q o cofre já emitiu: só p/ texto confiável. Quem tem o objeto `Vault` na mão reverte tudo, igual a quem tem a chave, e o mapa fica em memória num processo só. P/ produção multi-tenant (chave em KMS, reidratação amarrada a sessão autenticada, quota anti-sondagem, trilha de auditoria) veja o Tarja Gateway pago.
+
+### the key, and what happens when it changes / a chave, e o que acontece quando ela muda
+
+EN: both `Vault` and `pseudonym_stable` produce a **stable** label: the same value always yields the same
+label. That stability holds under one key and only one. Rotate the key and the same CPF gets a different
+label, so a document masked last month stops joining with one masked today.
+
+EN: tarja makes that visible instead of silent. Every label carries a 4-hex **key generation marker** derived
+from the key itself (`<BR_CPF:24da:3f9a1c0b2e7d>`). Same key, same marker, on any machine and in any process.
+Different key, different marker. `Vault.key_id` exposes it, and `tarja.vault.key_id(key)` computes it for any
+key. It is not a secret and not an integrity check: it tells you which generation a label belongs to, so you
+can reindex incrementally and run two generations side by side during a migration.
+
+EN: what tarja does **not** do, and will not pretend to:
+
+- **No rotation.** There is no re-keying helper. Rotating means re-masking the source data under the new key,
+  which only you can schedule, because only you know where the documents are.
+- **No key storage.** The key lives in memory as `bytes`, for as long as your process holds it. CPython gives
+  no reliable way to wipe a `bytes` object: it may have been copied by the interpreter, the allocator or the
+  operating system's swap. Anything claiming to zeroise it in pure Python is theatre. The honest control is to
+  shorten the key's life, not to pretend it was erased: build the object late, drop the reference early, and
+  keep long-lived key material in a KMS or HSM where the process never sees it.
+- **No per-tenant keys, no audit of who revealed what.** That needs identity and durable storage, which is the
+  paid Tarja Gateway.
+
+PT: o `Vault` e o `pseudonym_stable` produzem rótulo **estável**: o mesmo valor sempre dá o mesmo rótulo. Essa
+estabilidade vale sob uma chave, e só uma. Trocou a chave, o mesmo CPF vira outro rótulo, e documento
+mascarado mês passado deixa de casar c/ um mascarado hoje.
+
+PT: o tarja torna isso visível em vez de silencioso. Todo rótulo leva um **marcador de geração da chave** de 4
+hex, derivado da própria chave (`<BR_CPF:24da:3f9a1c0b2e7d>`). Mesma chave, mesmo marcador, em qq máquina.
+O `Vault.key_id` expõe, e o `tarja.vault.key_id(chave)` calcula p/ qq chave. Não é segredo nem verificação de
+integridade: diz a qual geração o rótulo pertence, o q permite reindexar aos poucos e manter duas gerações
+durante uma migração.
+
+PT: o q o tarja **não** faz, e não vai fingir q faz: não tem rotação (rotacionar é remascarar a origem sob a
+chave nova, e só vc sabe onde os documentos estão), não guarda chave (ela fica em memória como `bytes`, e o
+CPython não dá jeito confiável de apagar, porque pode ter sido copiada pelo interpretador, pelo alocador ou
+pela troca de memória do sistema, então quem diz q apaga em Python puro está fazendo teatro, e o controle
+honesto é encurtar a vida da chave, não fingir q apagou), e não tem chave por tenant nem auditoria de quem
+reidentificou, q dependem de identidade e gravação durável e são o Tarja Gateway pago.
 
 EN: `pseudonym_stable` is pseudonymisation, not anonymisation under the LGPD. The `salt` is not a salt in the classic sense, it is **a secret key**: there are only 10⁹ valid CPFs, so whoever holds it hashes all of them in minutes and reverses every label. It was called `hash` until 0.5, and the name was wrong: nothing here is one way. tarja **refuses** a key under 16 bytes, one with fewer than 8 distinct bytes, and known placeholders like `changeme`. Generate one with `python -c "import secrets; print(secrets.token_hex(32))"`, keep it in a secrets manager, never in code, env files committed to git, or logs, and rotate it if it leaks. If you need something that cannot be reversed, use `redact`. If you need reversal under your control, use `Vault`.
 PT: `pseudonym_stable` é pseudonimização, não anonimização na LGPD. O `salt` não é salt no sentido clássico, é **chave secreta**: só existem 10⁹ CPFs válidos, então quem tem a chave calcula todos em minutos e reverte qq rótulo. Até a 0.5 a estratégia se chamava `hash`, e o nome estava errado: nada aqui é de mão única. O tarja **recusa** chave c/ menos de 16 bytes, c/ menos de 8 bytes distintos e placeholder conhecido tipo `changeme`. Gere c/ `secrets.token_hex(32)`, guarde num cofre de segredos, nunca em código, `.env` commitado ou log, e troque se vazar. Se precisa do q não volta, use `redact`. Se precisa reverter sob seu controle, use o `Vault`.

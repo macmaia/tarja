@@ -7,7 +7,14 @@
 from tarja.detect import Match, find, resolve_overlaps
 from tarja.entities import ENTITIES
 from tarja.mask import mask
-from tarja.registry import register_entity, unregister_entity
+from tarja.registry import (
+    RegistryFrozenError,
+    freeze,
+    is_frozen,
+    register_entity,
+    unfreeze,
+    unregister_entity,
+)
 from tarja.validators import cartao, cnj, cnpj, cns, cpf, nis
 from tarja.vault import (
     ProtectedText,
@@ -25,6 +32,7 @@ __all__ = [
     "ENTITIES",
     "Match",
     "ProtectedText",
+    "RegistryFrozenError",
     "Vault",
     "VaultCollisionError",
     "VaultConsumedError",
@@ -37,11 +45,14 @@ __all__ = [
     "cns",
     "cpf",
     "find",
+    "freeze",
+    "is_frozen",
     "mask",
     "nis",
     "register_entity",
     "residual",
     "resolve_overlaps",
+    "unfreeze",
     "unregister_entity",
     "validate",
 ]

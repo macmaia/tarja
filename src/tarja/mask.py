@@ -19,6 +19,7 @@ import warnings
 from collections.abc import Iterable
 
 from tarja.detect import Match, find
+from tarja.vault import key_id
 
 STRATEGIES = ("redact", "pseudonym", "pseudonym_stable")
 # [MASK-ALIAS] old name, still accepted, warns once per call site
@@ -92,6 +93,7 @@ def mask(
     # [MASK-KEY] always bytes, so the type is not Optional downstream. Empty only when the strategy needs no
     #   key, which the check above already guarantees.
     key = check_salt(salt) if salt is not None else b""
+    kid = key_id(key) if key else ""
     found = list(matches) if matches is not None else find(text, **find_kwargs)
 
     # [MASK-LABELS] build one label per match
@@ -103,8 +105,11 @@ def mask(
             return f"<{m.entity}>"
         canon = _canonical(m.value)
         if strategy == "pseudonym_stable":
+            # [MASK-KEY-ID] the label goes INTO the document and stays there, so it has to say which key
+            #   generation produced it. Without that, rotating the key silently breaks the join between a
+            #   document masked yesterday and one masked today. See [VAULT-KEY-ID].
             digest = hmac.new(key, f"{m.entity}:{canon}".encode(), hashlib.sha256).hexdigest()[:12]
-            return f"<{m.entity}:{digest}>"
+            return f"<{m.entity}:{kid}:{digest}>"
         # pseudonym
         k = (m.entity, canon)
         if k not in labels:

@@ -60,3 +60,67 @@ class TestRegistry(unittest.TestCase):
 
 if __name__ == "__main__":
     unittest.main()
+
+
+class TestFreeze(unittest.TestCase):
+    # [TEST-REGISTRY-FREEZE] the registry is module-level state that find() reads on every call, so the
+    #   supported shape is: register at start-up, freeze, then serve. These check the window really shuts.
+    def setUp(self):
+        tarja.unfreeze()
+        # addCleanup runs in reverse, so register the removal FIRST and the unfreeze SECOND: the unfreeze then
+        # happens before the removal, which would otherwise hit a frozen registry
+        self.addCleanup(tarja.unregister_entity, "FREEZE_TEST_ID")
+        self.addCleanup(tarja.unfreeze)
+
+    def test_registration_works_before_freezing(self):
+        tarja.register_entity("FREEZE_TEST_ID", [("t", r"\bFZ-\d{4}\b", 0.3)], context_words=["freeze"])
+        self.assertIn("FREEZE_TEST_ID", tarja.ENTITIES)
+
+    def test_register_after_freeze_raises(self):
+        tarja.freeze()
+        with self.assertRaises(tarja.RegistryFrozenError):
+            tarja.register_entity("FREEZE_TEST_ID", [("t", r"\bFZ-\d{4}\b", 0.3)], context_words=["freeze"])
+
+    def test_unregister_after_freeze_raises(self):
+        tarja.register_entity("FREEZE_TEST_ID", [("t", r"\bFZ-\d{4}\b", 0.3)], context_words=["freeze"])
+        tarja.freeze()
+        with self.assertRaises(tarja.RegistryFrozenError):
+            tarja.unregister_entity("FREEZE_TEST_ID")
+
+    def test_freeze_is_idempotent_and_reversible(self):
+        tarja.freeze()
+        tarja.freeze()
+        self.assertTrue(tarja.is_frozen())
+        tarja.unfreeze()
+        self.assertFalse(tarja.is_frozen())
+
+    def test_freezing_does_not_stop_detection(self):
+        tarja.freeze()
+        self.assertEqual([m.entity for m in tarja.find("cpf 529.982.247-25")], ["BR_CPF"])
+
+    def test_concurrent_registration_does_not_interleave(self):
+        # [TEST-REGISTRY-LOCK] not a proof of thread safety, just that the lock serialises writers and that
+        #   every registration either happened completely or raised
+        import threading
+
+        errors = []
+
+        def worker(i):
+            try:
+                tarja.register_entity(f"FZ_CONC_{i}", [("t", rf"\bFZ{i}-\d{{4}}\b", 0.3)], context_words=["fz"])
+            except Exception as exc:  # noqa: BLE001
+                errors.append(exc)
+
+        threads = [threading.Thread(target=worker, args=(i,)) for i in range(12)]
+        for t in threads:
+            t.start()
+        for t in threads:
+            t.join()
+        try:
+            self.assertEqual(errors, [])
+            for i in range(12):
+                self.assertIn(f"FZ_CONC_{i}", tarja.ENTITIES)
+                self.assertEqual(tarja.ENTITIES[f"FZ_CONC_{i}"].id, f"FZ_CONC_{i}")
+        finally:
+            for i in range(12):
+                tarja.unregister_entity(f"FZ_CONC_{i}")

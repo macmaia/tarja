@@ -23,8 +23,25 @@ from tarja.detect import Match, find
 
 # [VAULT-TOKEN-LEN] 24 hex = 96 bits. 12 hex (48 bits) made collisions plausible at millions of values
 TOKEN_HEX = 24
-# [VAULT-TOKEN-RE] vault tokens (24 hex) and mask(strategy="hash") tokens (12 hex), both blanked by residual()
-TOKEN_RE = re.compile(r"<([A-Z][A-Z0-9_]+):([0-9a-f]{12}(?:[0-9a-f]{12})?)>")
+# [VAULT-KEY-ID] 16 bits of key generation, derived from the key itself. It exists because a stable token is
+#   only stable under one key: rotate the key and the same value yields a different token, so a token stored
+#   yesterday stops joining with one computed today, silently. The id makes that visible instead of silent, and
+#   lets two generations coexist during a migration. It is HMAC of a fixed label under the key, so it changes
+#   when the key changes, needs no bookkeeping from the caller, and reveals nothing about the key.
+#   It is NOT a secret and NOT an integrity check: it says which generation, not that the token is authentic.
+KEY_ID_HEX = 4
+KEY_ID_LABEL = b"tarja-key-id-v1"
+# [VAULT-TOKEN-RE] matches vault tokens (24 hex) and mask(strategy="pseudonym_stable") tokens (12 hex), with or
+#   without the key id, so residual() still blanks tokens written before 0.7. Both are blanked by residual().
+TOKEN_RE = re.compile(r"<([A-Z][A-Z0-9_]+):(?:([0-9a-f]{" + str(KEY_ID_HEX) + r"}):)?([0-9a-f]{12}(?:[0-9a-f]{12})?)>")
+
+
+def key_id(key: bytes) -> str:
+    """EN: Short generation marker for a key. Same key, same id. PT: Marcador curto de geracao da chave."""
+    # [VAULT-KEY-ID-DERIVE]
+    return hmac.new(key, KEY_ID_LABEL, hashlib.sha256).hexdigest()[:KEY_ID_HEX]
+
+
 # [VAULT-TTL] one hour covers an LLM round trip and a normal batch job, and kills replay much later
 DEFAULT_TTL = 3600.0
 
@@ -92,6 +109,7 @@ class Vault:
     def __init__(self, key: bytes | str | None = None, ttl: float | None = DEFAULT_TTL):
         # [VAULT-INIT]
         self._key = key.encode() if isinstance(key, str) else (key or os.urandom(32))
+        self._key_id = key_id(self._key)
         self._ttl = ttl
         self._map: dict[str, str] = {}
         self._canon: dict[str, str] = {}
@@ -100,7 +118,12 @@ class Vault:
         """EN: Deterministic token for (entity, value) under this key. PT: Token deterministico p/ (entidade, valor)."""
         # [VAULT-HMAC] canonical value, so 529.982.247-25 and 52998224725 share a token
         digest = hmac.new(self._key, f"{entity}:{_canonical(value)}".encode(), hashlib.sha256).hexdigest()
-        return f"<{entity}:{digest[:TOKEN_HEX]}>"
+        return f"<{entity}:{self._key_id}:{digest[:TOKEN_HEX]}>"
+
+    @property
+    def key_id(self) -> str:
+        """EN: Which key generation this vault issues under. PT: Sob qual geracao de chave este cofre emite."""
+        return self._key_id
 
     def protect(
         self,

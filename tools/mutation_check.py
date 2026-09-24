@@ -113,6 +113,26 @@ M = [
         "if len(v) in lengths and low <= v[: len(low)] <= high:",
         "if low <= v[: len(low)] <= high:",
     ),
+    # [MUTATION-07] key generation marker and registry freeze, added in 0.7
+    (
+        "token drops the key id",
+        "src/tarja/vault.py",
+        'return f"<{entity}:{self._key_id}:{digest[:TOKEN_HEX]}>"',
+        'return f"<{entity}:{digest[:TOKEN_HEX]}>"',
+    ),
+    (
+        "key id ignores the key",
+        "src/tarja/vault.py",
+        "return hmac.new(key, KEY_ID_LABEL, hashlib.sha256).hexdigest()[:KEY_ID_HEX]",
+        "return '0' * KEY_ID_HEX",
+    ),
+    (
+        "mask label drops the key id",
+        "src/tarja/mask.py",
+        'return f"<{m.entity}:{kid}:{digest}>"',
+        'return f"<{m.entity}:{digest}>"',
+    ),
+    ("freeze does nothing", "src/tarja/registry.py", "    if _FROZEN:", "    if False:"),
     ("reference cpf weights", "bench/reference.py", "list(range(10, 1, -1))", "list(range(9, 0, -1))"),
 ]
 

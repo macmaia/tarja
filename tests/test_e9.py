@@ -145,7 +145,41 @@ class TestVaultHardening(unittest.TestCase):
     # [TEST-VAULT-HARDENING]
     def test_token_is_96_bits(self):
         tok = Vault().token("BR_CPF", VALID_CPF)
-        self.assertRegex(tok, r"^<BR_CPF:[0-9a-f]{24}>$")
+        self.assertRegex(tok, r"^<BR_CPF:[0-9a-f]{4}:[0-9a-f]{24}>$")
+
+    def test_token_carries_the_key_generation(self):
+        # [TEST-VAULT-KEY-ID] a stable token is only stable under one key. Without the generation marker,
+        #   rotating the key breaks a join between an old document and a new one with no visible sign.
+        from tarja.vault import key_id
+
+        a, b = Vault(key=b"a" * 32), Vault(key=b"b" * 32)
+        self.assertEqual(a.key_id, key_id(b"a" * 32))
+        self.assertNotEqual(a.key_id, b.key_id)
+        self.assertTrue(a.token("BR_CPF", VALID_CPF).startswith(f"<BR_CPF:{a.key_id}:"))
+        # same key, same id, across instances
+        self.assertEqual(Vault(key=b"a" * 32).key_id, a.key_id)
+
+    def test_key_id_is_short_deterministic_and_sensitive(self):
+        from tarja.vault import KEY_ID_HEX, key_id
+
+        self.assertEqual(len(key_id(b"k" * 32)), KEY_ID_HEX)
+        self.assertEqual(key_id(b"k" * 32), key_id(b"k" * 32))
+        # one bit of difference in the key must change the marker, otherwise it cannot tell generations apart
+        self.assertNotEqual(key_id(b"k" * 32), key_id(b"k" * 31 + b"j"))
+
+    def test_alphanumeric_cnpj_is_stable_across_spellings(self):
+        # [TEST-VAULT-CNPJ-ALNUM] the letters carry meaning here, and _canonical upper-cases. If that ever
+        #   stops holding, the deterministic join silently splits one company into two.
+        v = Vault(key=b"k" * 32)
+        spellings = ["12.ABC.345/01DE-35", "12abc34501de35", "12 ABC 345 01DE 35", "12.abc.345/01DE-35"]
+        tokens = {v.token("BR_CNPJ", x) for x in spellings}
+        self.assertEqual(len(tokens), 1, tokens)
+
+    def test_alphanumeric_cnpj_is_stable_in_mask_too(self):
+        salt = "7f3b9a1c5d2e8046"
+        a = tarja.mask("cnpj 12.ABC.345/01DE-35", strategy="pseudonym_stable", salt=salt)
+        b = tarja.mask("cnpj 12abc34501de35", strategy="pseudonym_stable", salt=salt)
+        self.assertEqual(a.split("cnpj ")[1], b.split("cnpj ")[1])
 
     def test_collision_raises(self):
         from tarja.vault import VaultCollisionError

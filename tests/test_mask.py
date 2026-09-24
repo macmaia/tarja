@@ -51,6 +51,28 @@ class TestMask(unittest.TestCase):
         tags = [w for w in a.split() if w.startswith("<BR_CPF:")]
         self.assertEqual(len({t.rstrip(",") for t in tags}), 1)
 
+    def test_stable_label_carries_the_key_generation(self):
+        # [TEST-MASK-KEY-ID] the label is written INTO the document and stays there, so it has to say which key
+        #   produced it. Two mutants hid here: dropping the marker from the label, and computing the digest
+        #   under a fixed key. Assert the marker AND the digest separately, or one masks the other.
+        import re
+
+        from tarja.vault import key_id
+
+        salt_a, salt_b = "7f3b9a1c5d2e8046", "c04e8d2a6b915f37"
+        a = tarja.mask(T, strategy="pseudonym_stable", salt=salt_a)
+        b = tarja.mask(T, strategy="pseudonym_stable", salt=salt_b)
+        pat = re.compile(r"<BR_CPF:([0-9a-f]{4}):([0-9a-f]{12})>")
+        ma, mb = pat.search(a), pat.search(b)
+        self.assertIsNotNone(ma, a)
+        self.assertIsNotNone(mb, b)
+        # the marker is the one derived from that key, not a constant
+        self.assertEqual(ma.group(1), key_id(salt_a.encode()))
+        self.assertEqual(mb.group(1), key_id(salt_b.encode()))
+        self.assertNotEqual(ma.group(1), mb.group(1))
+        # and the digest itself must depend on the key, independently of the marker
+        self.assertNotEqual(ma.group(2), mb.group(2))
+
     def test_bad_strategy(self):
         # [TEST-MASK] unknown strategy raises
         with self.assertRaises(ValueError):

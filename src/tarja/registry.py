@@ -7,11 +7,54 @@
 from __future__ import annotations
 
 import re
+import threading
 from collections.abc import Callable, Iterable
 
 from tarja.entities import ENTITIES, TIER_RANK, EntitySpec, Pattern
 
 _ID_RE = re.compile(r"^[A-Z][A-Z0-9_]{1,63}$")
+_LOCK = threading.RLock()
+_FROZEN = False
+
+
+class RegistryFrozenError(RuntimeError):
+    """EN: The registry was frozen and no longer accepts changes. PT: O registro foi congelado."""
+
+
+def freeze() -> None:
+    """EN: Close the registry. Any later register_entity() or unregister_entity() raises RegistryFrozenError.
+    Call it once, after start-up registration and before serving requests. Idempotent.
+    PT: Fecha o registro. Registro posterior levanta RegistryFrozenError. Chame 1x, dps do start-up e antes de
+    servir requisicao. Idempotente.
+    """
+    # [REGISTRY-FREEZE]
+    global _FROZEN
+    with _LOCK:
+        _FROZEN = True
+
+
+def unfreeze() -> None:
+    """EN: Reopen the registry. For tests and for a deliberate hot reload, not for request handling.
+    PT: Reabre o registro. P/ teste e recarga deliberada, nao p/ tratar requisicao.
+    """
+    # [REGISTRY-UNFREEZE]
+    global _FROZEN
+    with _LOCK:
+        _FROZEN = False
+
+
+def is_frozen() -> bool:
+    return _FROZEN
+
+
+def _check_open() -> None:
+    if _FROZEN:
+        raise RegistryFrozenError(
+            "registry is frozen: register entities at start-up, before freeze() / "
+            "registro congelado: registre as entidades no start-up, antes do freeze()"
+        )
+
+
 # ids shipped with tarja, frozen at import so replace/unregister can protect them
 BUILTIN_IDS = frozenset(ENTITIES)
 
@@ -73,7 +116,9 @@ def register_entity(
         score_with_context=score_with_context,
         score_without_context=score_without_context,
     )
-    ENTITIES[entity_id] = spec
+    with _LOCK:
+        _check_open()
+        ENTITIES[entity_id] = spec
     return spec
 
 
@@ -84,4 +129,6 @@ def unregister_entity(entity_id: str) -> None:
     # [REGISTRY-REMOVE]
     if entity_id in BUILTIN_IDS:
         raise ValueError(f"{entity_id} is built in, filter it with find(entities=...) instead")
-    ENTITIES.pop(entity_id, None)
+    with _LOCK:
+        _check_open()
+        ENTITIES.pop(entity_id, None)

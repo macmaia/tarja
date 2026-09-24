@@ -31,7 +31,10 @@ class Match:
     tier: str
     pattern: str
     has_context: bool
-    # [DETECT-SUSPECT] False = right shape, WRONG check digit (only with find(report_invalid=True), score 0)
+    # [DETECT-SUSPECT] False = right shape, WRONG check digit (only with find(report_invalid=True), score 0).
+    #   A suspect is NOT harmless: it is a sequence shaped like a document, which usually means a typo or
+    #   OCR noise on a REAL identifier. Treat it like the identifier itself. Do not log it, do not put it
+    #   in an error message and do not ship it to a monitoring service. Use to_dict(include_value=False).
     valid_dv: bool = True
 
     def to_dict(self, include_value: bool = True) -> dict:
@@ -157,10 +160,22 @@ def find(
     entities: subset of ids (e.g. ["BR_CPF"]), default all. min_score: drop anything below.
     resolve: resolve overlaps between entities (default True).
     report_invalid: also return N1 look-alikes with a WRONG check digit (valid_dv=False, score 0), e.g. typos.
+
+    WARNING on report_invalid: a suspect is near-personal-data, not debug output. A number shaped like a CPF
+    whose digit does not close is usually a REAL identifier with a typo or an OCR error, so it is roughly as
+    sensitive as the identifier itself and often re-identifies the same person. Do not log suspects, do not put
+    them in error messages, exception text or monitoring events. Count them, or carry them with
+    Match.to_dict(include_value=False), which drops the raw value.
+
     PT: Acha identificadores brasileiros no texto.
     entities: subconjunto de ids (ex: ["BR_CPF"]), padrao todos. min_score: descarta abaixo disso.
     resolve: resolve sobreposicao entre entidades (padrao True).
     report_invalid: devolve tb parecidos N1 c/ DV ERRADO (valid_dv=False, score 0), ex: erro de digitacao.
+
+    AVISO sobre o report_invalid: suspeito e quase dado pessoal, nao e saida de depuracao. Numero c/ cara de
+    CPF cujo DV nao fecha costuma ser um identificador REAL c/ erro de digitacao ou de OCR, entao e quase tao
+    sensivel quanto o identificador e muitas vezes reidentifica a mesma pessoa. Nao logue suspeito, nao ponha
+    em mensagem de erro nem em evento de monitoramento. Conte, ou use to_dict(include_value=False).
     """
     # [FIND] type check
     if not isinstance(text, str):
