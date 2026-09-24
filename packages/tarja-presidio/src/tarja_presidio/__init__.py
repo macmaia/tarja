@@ -19,7 +19,7 @@ from presidio_analyzer import Pattern, PatternRecognizer
 from tarja.entities import ENTITIES, EntitySpec
 
 __all__ = ["TarjaRecognizer", "get_recognizers", "register"]
-__version__ = "0.1.0.dev0"
+__version__ = "0.1.0"
 
 # [PRESIDIO-BR-SCORE] base score for entities that require context in tarja
 REQUIRED_CONTEXT_BASE_SCORE = 0.1
