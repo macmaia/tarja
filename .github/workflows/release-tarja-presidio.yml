@@ -29,7 +29,11 @@ jobs:
         with:
           python-version: "3.12"
       # EN: the plugin needs tarja itself, installed from this same checkout / PT: o plugin precisa do tarja daqui
-      - run: pip install -e . -e "packages/tarja-presidio[dev]" build
+      # [RELEASE-BR-DEV] EN: ".[dev]" matters: the root pytest config sets --cov, so --no-cov below only
+      #   exists when pytest-cov is installed, and it lives in the ROOT dev extra, not the plugin's.
+      #   PT: o ".[dev]" importa: a config de pytest da raiz usa --cov, entao o --no-cov abaixo so existe
+      #   c/ pytest-cov instalado, q esta no extra dev da RAIZ e nao no do plugin.
+      - run: pip install -e ".[dev]" -e "packages/tarja-presidio[dev]" build
       - run: pytest packages/tarja-presidio/tests -p no:cacheprovider --no-cov
         env:
           TARJA_REQUIRE_PRESIDIO: "1"
