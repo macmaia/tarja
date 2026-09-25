@@ -308,6 +308,16 @@ class TestBoardReReview(unittest.TestCase):
         tarja.check_regex(r"(\d{3}\.){2}")
         tarja.check_regex(r"(?:[0-9a-fA-F]){24}")
 
+    def test_an_inner_range_that_cannot_vary_is_not_ambiguous(self) -> None:
+        # [TEST-RR-RANGE] {2,5} inside a repeated group is ambiguous, {2,2} is not: it always consumes the
+        #   same number of characters, so there is a single parse and nothing to backtrack over. A surviving
+        #   mutant on 24/09/2026 showed no test could tell the two apart, which meant the distinction in the
+        #   code was decoration. Either test it or delete it.
+        tarja.check_regex(r"(\d{4,4}-){2}")
+        tarja.check_regex(r"(\d{4}-){2}")
+        with self.assertRaises(tarja.UnsafeRegexError):
+            tarja.check_regex(r"(\d{2,5}-){2}")
+
     def test_a_malformed_quantifier_does_not_raise_from_the_checker(self) -> None:
         # [TEST-RR-MALFORMED] the checker used to raise "invalid literal for int()" on {2,abc}, which tells
         #   the caller nothing about their pattern. It must stay quiet and leave the pattern to re, which
