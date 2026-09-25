@@ -1,0 +1,38 @@
+# .github/workflows/audit.yml
+# [AUDIT] EN: known vulnerabilities in what we install. Its own workflow, not a job inside ci.yml, because a
+#   schedule on ci.yml fires EVERY job in it. That would run nine jobs a week to answer one question, and each
+#   job checks the repository out, which shows up as a clone in the traffic numbers the project uses to read
+#   adoption. Measuring a thing must not move it.
+#   PT: vulnerabilidade conhecida no q instalamos. Workflow proprio, e nao job dentro do ci.yml, pq schedule no
+#   ci.yml dispara TODOS os jobs dele. Seriam 9 jobs por semana p/ responder 1 pergunta, e cada job faz
+#   checkout, q entra como clone na metrica de trafego. Medir nao pode mexer no q se mede.
+#
+# EN: the core has no runtime dependency, so this looks at the dev and adapter chain, which is where the risk
+#   is. Advisories are published without any commit of ours, hence the weekly run and not only on push.
+
+name: audit
+
+on:
+  schedule:
+    - cron: "17 6 * * 1"
+  push:
+    paths:
+      - "pyproject.toml"
+      - "packages/*/pyproject.toml"
+      - ".github/workflows/audit.yml"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  audit:
+    runs-on: ubuntu-24.04
+    steps:
+      - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
+      - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
+        with:
+          python-version: "3.12"
+      - run: pip install pip-audit
+      - run: pip install -e ".[dev]" -e "packages/tarja-presidio[dev]"
+      - run: pip-audit --strict --progress-spinner off

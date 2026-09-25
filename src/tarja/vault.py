@@ -14,7 +14,9 @@
 from __future__ import annotations
 
 import hashlib
+import heapq
 import hmac
+import itertools
 import os
 import re
 import time
@@ -34,6 +36,31 @@ KEY_ID_LABEL = b"tarja-key-id-v1"
 # [VAULT-TOKEN-RE] matches vault tokens (24 hex) and mask(strategy="pseudonym_stable") tokens (12 hex), with or
 #   without the key id, so residual() still blanks tokens written before 0.7. Both are blanked by residual().
 TOKEN_RE = re.compile(r"<([A-Z][A-Z0-9_]+):(?:([0-9a-f]{" + str(KEY_ID_HEX) + r"}):)?([0-9a-f]{12}(?:[0-9a-f]{12})?)>")
+
+# [VAULT-TOKEN-RE-LENIENT] the smallest tolerance that survives a language model, and nothing more. A model
+#   asked to keep a token often returns it wrapped across a line, spaced out, or with the hex in upper case.
+#   Whitespace and letter case carry no information here, so accepting them costs no entropy: the twelve or
+#   twenty-four hex digits still have to match exactly, and an attacker is no closer to forging one than
+#   before. Anything beyond this (a missing digit, a transposition, an edit distance) WOULD lower the bar,
+#   so reveal() does not do it. Decision B3 of the third board, 24/09/2026, recorded in PENDING.md.
+_HEX = r"[0-9a-fA-F]"
+TOKEN_RE_LENIENT = re.compile(
+    r"<\s*([A-Z][A-Z0-9_]+)\s*:\s*"
+    + rf"(?:((?:{_HEX}\s*){{{KEY_ID_HEX}}}):\s*)?"
+    # 24 hex first, then 12, so a full vault token is never cut short by the shorter alternative
+    + rf"((?:{_HEX}\s*){{24}}|(?:{_HEX}\s*){{12}})"
+    + r">",
+    re.ASCII,
+)
+
+
+def canonical_token(match: re.Match[str]) -> str:
+    """EN: The strict spelling of a token matched leniently. PT: A grafia estrita de um token casado c/ folga."""
+    # [VAULT-TOKEN-CANON] strip the whitespace the model added, fold the hex to lower case, rebuild the token
+    entity, kid, digest = match.group(1), match.group(2), match.group(3)
+    digest = re.sub(r"\s+", "", digest).lower()
+    kid = re.sub(r"\s+", "", kid).lower() if kid else None
+    return f"<{entity}:{kid}:{digest}>" if kid else f"<{entity}:{digest}>"
 
 
 def key_id(key: bytes) -> str:
@@ -74,12 +101,17 @@ def _canonical(value: str) -> str:
 
 class _Scope:
     # [VAULT-SCOPE] the tokens one protect() call issued, plus its expiry and single-use flag
-    __slots__ = ("tokens", "expires_at", "used")
+    __slots__ = ("tokens", "expires_at", "used", "retired")
 
     def __init__(self, tokens: set[str], ttl: float | None):
         self.tokens = tokens
         self.expires_at = None if ttl is None else time.monotonic() + ttl
         self.used = False
+        # [VAULT-SCOPE-RETIRED] a retired scope no longer keeps its values alive, see Vault.purge
+        self.retired = False
+
+    def expired(self, now: float) -> bool:
+        return self.expires_at is not None and now > self.expires_at
 
 
 class ProtectedText(str):
@@ -102,8 +134,19 @@ class ProtectedText(str):
 class Vault:
     """EN: key=None generates a random key (tokens change every run, on purpose). ttl is the default time to live
     of each protect() scope, in seconds, None for no expiry.
+
+    ONE PROCESS ONLY. The map from token to value lives in this object's memory and goes nowhere else. Two
+    replicas behind a load balancer do not reveal each other's tokens, so protect() and reveal() for one
+    document have to land on the same process. This is deliberate, not an oversight: durable storage for that
+    map needs identity and an audit trail to be safe, which is the paid Tarja Gateway. See AD-02 in PENDING.md.
+
     PT: key=None gera chave aleatoria (token muda a cada execucao, de proposito). ttl é o tempo de vida padrao de
     cada escopo do protect(), em segundos, None p/ nao expirar.
+
+    UM PROCESSO SO. O mapa de token p/ valor vive na memoria deste objeto e nao vai p/ lugar nenhum. Duas
+    replicas atras de um balanceador nao revelam o token uma da outra, entao protect() e reveal() do mesmo
+    documento tem q cair no mesmo processo. E de proposito: guardar esse mapa de forma duravel exige identidade
+    e trilha de auditoria p/ ser seguro, o q e o Gateway pago. Ver AD-02 no PENDING.md.
     """
 
     def __init__(self, key: bytes | str | None = None, ttl: float | None = DEFAULT_TTL):
@@ -113,6 +156,13 @@ class Vault:
         self._ttl = ttl
         self._map: dict[str, str] = {}
         self._canon: dict[str, str] = {}
+        # [VAULT-SCOPES] scopes that can expire, in a heap ordered by expiry, plus the ones that never do.
+        #   A plain list meant purge() walked every scope on every protect(), which is quadratic over the life
+        #   of a process: 8x the documents cost 15x the time, measured 24/09/2026. The heap only ever touches
+        #   what is actually due. _seq breaks ties so two scopes with the same deadline never compare _Scope.
+        self._expiring: list[tuple[float, int, _Scope]] = []
+        self._eternal: list[_Scope] = []
+        self._seq = itertools.count()
 
     def token(self, entity: str, value: str) -> str:
         """EN: Deterministic token for (entity, value) under this key. PT: Token deterministico p/ (entidade, valor)."""
@@ -158,9 +208,64 @@ class Vault:
             out = out[: m.start] + tok + out[m.end :]
             edge = m.start
         protected = ProtectedText(out)
-        protected._scope = _Scope(issued, self._ttl if ttl == -1.0 else ttl)
+        scope = _Scope(issued, self._ttl if ttl == -1.0 else ttl)
+        protected._scope = scope
         protected._vault = id(self)
+        if scope.expires_at is None:
+            self._eternal.append(scope)
+        else:
+            heapq.heappush(self._expiring, (scope.expires_at, next(self._seq), scope))
+        self.purge()
         return protected
+
+    def purge(self) -> int:
+        """EN: Drop the originals held only by scopes that have expired. Returns how many were dropped.
+        Runs on its own inside protect() and reveal(), so you rarely call it. A scope with ttl=None never
+        expires, so its values are kept on purpose.
+        PT: Solta os originais presos so por escopo vencido. Devolve quantos saiu. Roda sozinho dentro do
+        protect() e do reveal(). Escopo c/ ttl=None nunca vence, entao o valor fica de proposito.
+        """
+        # [VAULT-PURGE] the scope stopped working when it expired but the map kept the value in the clear for
+        #   the life of the process, so declared retention and real retention were different things. An
+        #   expired scope now releases what it held, and a value survives only while some live scope still
+        #   names its token. Retiring on use instead of on expiry would break reveal(reuse=True).
+        now = time.monotonic()
+        retired_any = False
+        # [VAULT-PURGE-HEAP] the earliest deadline is at the top, so the loop stops at the first live scope
+        while self._expiring and self._expiring[0][0] <= now:
+            _, _, sc = heapq.heappop(self._expiring)
+            if not sc.retired:
+                sc.retired = True
+                retired_any = True
+        if not retired_any:
+            return 0
+        return self._drop_unreferenced()
+
+    def _drop_unreferenced(self) -> int:
+        # [VAULT-DROP] a value survives only while some live scope still names its token
+        self._eternal = [sc for sc in self._eternal if not sc.retired]
+        self._expiring = [e for e in self._expiring if not e[2].retired]
+        heapq.heapify(self._expiring)
+        live: set[str] = set()
+        for sc in self._eternal:
+            live |= sc.tokens
+        for _, _, sc in self._expiring:
+            live |= sc.tokens
+        gone = [tok for tok in self._map if tok not in live]
+        for tok in gone:
+            del self._map[tok]
+            self._canon.pop(tok, None)
+        return len(gone)
+
+    def forget(self, protected: ProtectedText) -> int:
+        """EN: Retire one scope now, without waiting for its ttl. Returns how many originals were dropped.
+        PT: Aposenta um escopo agora, sem esperar o ttl. Devolve quantos originais sairam.
+        """
+        # [VAULT-FORGET] the explicit way out for a long-lived process that knows it is done with a document
+        if not isinstance(protected, ProtectedText) or protected._vault != id(self):
+            raise VaultScopeError("this text did not come from this vault / este texto nao veio deste cofre")
+        protected._scope.retired = True
+        return self._drop_unreferenced()
 
     def _scope_for(self, issued_by: ProtectedText | None, text: str) -> _Scope:
         # [VAULT-SCOPE-PICK] explicit scope first, then the text itself when it came from this vault
@@ -189,6 +294,7 @@ class Vault:
         cofre emitiu, so p/ texto confiavel. Ver [VAULT-TRUST].
         """
         # [VAULT-REVEAL]
+        self.purge()
         allowed: set[str] | None = None
         if not any_token:
             scope = self._scope_for(issued_by, text)
@@ -202,12 +308,13 @@ class Vault:
             allowed = scope.tokens
 
         def put_back(m: re.Match[str]) -> str:
-            tok = m.group(0)
+            # [VAULT-REVEAL-LENIENT] look up the strict spelling, put back the text as it was on no match
+            tok = canonical_token(m)
             if allowed is not None and tok not in allowed:
-                return tok
-            return self._map.get(tok, tok)
+                return m.group(0)
+            return self._map.get(tok, m.group(0))
 
-        return TOKEN_RE.sub(put_back, text)
+        return TOKEN_RE_LENIENT.sub(put_back, text)
 
     def __len__(self) -> int:
         return len(self._map)
@@ -217,8 +324,9 @@ def residual(text: str, min_score: float = 0.0) -> list[Match]:
     """EN: Second-pass check: identifiers still present AFTER masking (should be empty). Tokens are ignored.
     PT: Checagem de 2a passada: identificadores q sobraram DEPOIS de mascarar (devia ser vazio). Tokens ignorados.
     """
-    # [VAULT-RESIDUAL] blank tokens out (same length) so offsets still point at the original text
-    blanked = TOKEN_RE.sub(lambda m: " " * len(m.group(0)), text)
+    # [VAULT-RESIDUAL] blank tokens out (same length) so offsets still point at the original text. Lenient,
+    #   because a token a model reflowed is still a token and must not be reported as leftover personal data.
+    blanked = TOKEN_RE_LENIENT.sub(lambda m: " " * len(m.group(0)), text)
     found = find(blanked, min_score=min_score)
     return [Match(m.entity, m.start, m.end, text[m.start : m.end], m.score, m.tier, m.pattern, m.has_context)
             for m in found]  # fmt: skip

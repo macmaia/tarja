@@ -40,6 +40,18 @@ jobs:
           echo "package=$PKG tag=$TAG"
           test "$PKG" = "$TAG"
       - run: python -m build
+      # [RELEASE-SBOM] EN: a bill of materials for the release, in CycloneDX. The core has no runtime
+      #   dependency, so this file is short and slightly funny to look at, and that is the point: a vendor
+      #   review asks for an SBOM and the honest answer here is a very small one. It is uploaded as its own
+      #   artifact rather than into dist/, because anything in dist/ goes to PyPI.
+      #   PT: lista de materiais do release, em CycloneDX. O nucleo nao tem dependencia de execucao, entao o
+      #   arquivo e curto, e e justamente esse o argumento. Vai como artefato separado, pq dist/ sobe p/ o PyPI.
+      - run: pip install cyclonedx-bom
+      - run: cyclonedx-py environment --output-format json --outfile sbom.cdx.json
+      - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5
+        with:
+          name: sbom
+          path: sbom.cdx.json
       - uses: actions/upload-artifact@330a01c490aca151604b8cf639adc76d48f6c5d4  # v5
         with:
           name: dist

@@ -15,6 +15,80 @@ R = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # [MUTATION-LIST] (name, file, original snippet, mutated snippet)
 M = [
+    # [MUTATION-BOARD3] the four defects the third board confirmed on 24/09/2026
+    # [MUTATION-BOARD3-B] decisions B3 and B4, implemented the same day
+    (
+        "reveal goes back to strict matching",
+        "src/tarja/vault.py",
+        "        return TOKEN_RE_LENIENT.sub(put_back, text)",
+        "        return TOKEN_RE.sub(put_back, text)",
+    ),
+    (
+        "canonical token keeps the whitespace",
+        "src/tarja/vault.py",
+        '    digest = re.sub(r"\\s+", "", digest).lower()',
+        "    digest = digest.lower()",
+    ),
+    (
+        "regex safety check does nothing",
+        "src/tarja/registry.py",
+        "            if repeated and (_top_level_quantifier(body) or _duplicate_branches(body)):",
+        "            if False:",
+    ),
+    (
+        "unsafe_regex escape is always on",
+        "src/tarja/registry.py",
+        "    if not unsafe_regex:",
+        "    if False:",
+    ),
+    (
+        "Match repr shows the value again",
+        "src/tarja/detect.py",
+        '            f"pattern={self.pattern} context={self.has_context}{keep}, value hidden/valor oculto)"',
+        '            f"pattern={self.pattern} context={self.has_context}{keep}, value={self.value})"',
+    ),
+    (
+        "overlap sweep ignores the left neighbour",
+        "src/tarja/detect.py",
+        "        if i and kept[i - 1].end > m.start:",
+        "        if False:",
+    ),
+    (
+        "overlap sweep ignores the right neighbour",
+        "src/tarja/detect.py",
+        "        if i < len(kept) and m.end > kept[i].start:",
+        "        if False:",
+    ),
+    (
+        "input size limit does nothing",
+        "src/tarja/detect.py",
+        "    if max_chars is not None and len(text) > max_chars:",
+        "    if False:",
+    ),
+    (
+        "purge keeps expired values",
+        "src/tarja/vault.py",
+        "        while self._expiring and self._expiring[0][0] <= now:",
+        "        while False:",
+    ),
+    (
+        "purge drops values a live scope still needs",
+        "src/tarja/vault.py",
+        "        gone = [tok for tok in self._map if tok not in live]",
+        "        gone = list(self._map)",
+    ),
+    (
+        "exact repeat is not treated as a repeat",
+        "src/tarja/registry.py",
+        "        return int(inner) >= 2",
+        "        return False",
+    ),
+    (
+        "an exact inner count counts as variable",
+        "src/tarja/registry.py",
+        "        return True if not high.strip() else int(high) > int(low or 0)",
+        "        return True",
+    ),
     (
         "cpf always valid",
         "src/tarja/validators/cpf.py",
@@ -69,10 +143,12 @@ M = [
         "if False:",
     ),
     (
+        # [MUTATION-OVERLAP-OFF] rewritten on 24/09/2026: the all-pairs check became a sorted sweep, so the
+        #   way to disable overlap resolution now is to make the insertion unconditional.
         "overlap off",
         "src/tarja/detect.py",
-        "        if all(m.end <= k.start or m.start >= k.end for k in kept):",
-        "        if True:",
+        "        starts.insert(i, m.start)\n        kept.insert(i, m)",
+        "        starts.append(m.start)\n        kept.append(m)",
     ),
     ("overlap tier ignored", "src/tarja/detect.py", "return (TIER_RANK.get(m.tier, 9), -m.score", "return (0, -m.score"),
     ("normalise off", "src/tarja/normalise.py", "    if text.isascii():\n        return text", "    return text"),

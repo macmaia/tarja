@@ -16,9 +16,19 @@ _STRIP = re.compile(r"[\s\-]")
 _DIGITS = re.compile(r"\d{13,19}")
 
 # [CARTAO-IIN] (low prefix, high prefix, allowed lengths, brand). A value matches when its first N digits, N
-#   being the width of the prefix, fall in [low, high]. The international ranges are the published ones for
-#   each network. [VERIFICAR] the Elo and Hipercard ranges against the acquirer's current table before relying
-#   on them commercially: those two publish less, and the ranges move.
+#   being the width of the prefix, fall in [low, high].
+#
+#   Provenance differs by network, and this matters for what the table can be trusted to do:
+#     - international networks publish their ranges. Mastercard keeps a public account-range table, and the
+#       Visa, Amex, Discover, JCB and Diners prefixes are documented under ISO/IEC 7812-1.
+#     - Elo and Hipercard do NOT. Their ranges are distributed to acquirers under contract, and no issuer
+#       table is published. The only public lists are third-party compilations, which this project does not
+#       accept as a source. That is also why acquirers sell BIN lookup as a service.
+#
+#   So the Elo and Hipercard entries here are a FILTER, not brand identification. They exist to reject long
+#   numeric strings that are not cards, which is what detection needs, and they are deliberately narrow: a
+#   range this table does not know produces a missed card, never a wrong positive. Anything that routes or
+#   settles a payment must resolve the brand through its acquirer, never through this table.
 _IIN: tuple[tuple[str, str, frozenset[int], str], ...] = (
     ("34", "34", frozenset({15}), "amex"),
     ("37", "37", frozenset({15}), "amex"),
@@ -68,10 +78,14 @@ def luhn_check_digit(base: str) -> str:
 
 
 def brand(value: str) -> str | None:
-    """EN: Issuer network for a card-shaped value, or None when no registered range and length match.
-    Does NOT check the Luhn digit, so use is_valid() to decide whether something is a card.
-    PT: Bandeira emissora de um valor c/ cara de cartao, ou None se nenhuma faixa e comprimento batem.
-    NAO confere o DV, entao use is_valid() p/ decidir se e cartao.
+    """EN: Best-effort issuer network for a card-shaped value, or None when no known range and length match.
+    NOT authoritative: the Elo and Hipercard ranges are not published by their issuers, so a card of those
+    brands can come back None. Never use this to route or settle a payment, only to tell a card apart from
+    a long number that is not one. Does NOT check the Luhn digit, so use is_valid() to decide.
+    PT: Bandeira provavel de um valor c/ cara de cartao, ou None se nenhuma faixa conhecida bate.
+    NAO e autoritativo: as faixas da Elo e do Hipercard nao sao publicadas, entao cartao dessas bandeiras
+    pode voltar None. Nunca use p/ rotear nem liquidar pagamento, so p/ separar cartao de numero comprido.
+    NAO confere o DV, entao use is_valid() p/ decidir.
     """
     # [CARTAO-BRAND]
     if not isinstance(value, str):

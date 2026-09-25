@@ -16,7 +16,10 @@ license = "Apache-2.0"
 authors = [{ name = "Maria Alice Maia", email = "tarja@micah6ai.com" }]  # https://github.com/macmaia
 keywords = ["presidio", "pii", "lgpd", "brazil", "cpf", "cnpj"]
 # EN: tarja does the validation, Presidio does the orchestration / PT: tarja valida, Presidio orquestra
-dependencies = ["tarja", "presidio-analyzer>=2.2"]
+# [PKG-DEPS] tarja>=0.7 is a floor, not decoration: the plugin reads tarja.entities.EntitySpec and the
+#   key generation marker landed in 0.7. Without the floor an older tarja installs and the plugin
+#   breaks at import, silently, on somebody else's machine.
+dependencies = ["tarja>=0.7", "presidio-analyzer>=2.2"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]

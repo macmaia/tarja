@@ -23,7 +23,7 @@ EN: tarja is a detection aid, **not a guarantee of LGPD compliance**, and not an
 | **`Vault` keeps its map in memory, in one process.** The map dies with the object, so an ingestion job cannot hand tokens to a serving process. | The map IS the personal data. Persisting it drags in key custody, access control, retention, deletion on request, backups and audit, which are decisions about your risk, not a library default. Persistence with a KMS key, authenticated sessions and an audit trail is the paid Tarja Gateway. |
 | **`pseudonym_stable` is reversible by whoever holds the key.** | It is pseudonymisation, not anonymisation. Use `redact` when nothing may come back, or `Vault` when reversal must stay under your control. |
 | **Text in, text out. No OCR, no scanned PDF.** | Extract the text first with a tool of your choice. |
-| **A suspect is not debug output.** `find(report_invalid=True)` and `scan --suspect` return numbers shaped like a document with a failing check digit, which is nearly always a REAL identifier with a typo or an OCR error. | Treat it like the identifier itself: do not log it, do not put it in an error message or a monitoring event. Count it, or use `to_dict(include_value=False)`. The CLI already hides the value without `--show-values`. |
+| **A suspect is not debug output.** `find(report_invalid=True)` and `scan --suspect` return numbers shaped like a document with a failing check digit, which is nearly always a REAL identifier with a typo or an OCR error. | Treat it like the identifier itself. Printing a `Match` is safe: `repr()` hides the value, so logs, tracebacks and monitoring events never carry it by accident. Reading `.value` or `to_dict()` still gives it to you, on purpose. The CLI hides values without `--show-values`. |
 
 EN: none of this removes your own obligations: legal basis, records, security measures and answering data subjects stay with you.
 
@@ -36,7 +36,7 @@ PT: o tarja ajuda a detectar, **não garante conformidade c/ a LGPD** e não ano
 | **O `Vault` guarda o mapa em memória, num processo só.** O mapa morre c/ o objeto, então um job de ingestão não consegue passar token p/ o processo q serve. | O mapa É o dado pessoal. Persistir puxa junto guarda de chave, controle de acesso, retenção, exclusão a pedido, backup e auditoria, q são decisões sobre o seu risco, não padrão de biblioteca. Persistência c/ chave em KMS, sessão autenticada e trilha de auditoria é o Tarja Gateway pago. |
 | **O `pseudonym_stable` é reversível por quem tem a chave.** | É pseudonimização, não anonimização. Use `redact` qdo nada pode voltar, ou o `Vault` qdo a reversão tem q ficar sob seu controle. |
 | **Entra texto, sai texto. Sem OCR, sem PDF escaneado.** | Extraia o texto antes, c/ a ferramenta q preferir. |
-| **Suspeito não é saída de depuração.** O `find(report_invalid=True)` e o `scan --suspect` devolvem número c/ cara de documento e DV errado, q quase sempre é identificador REAL c/ erro de digitação ou de OCR. | Trate como o próprio identificador: não logue, não ponha em mensagem de erro nem em evento de monitoramento. Conte, ou use `to_dict(include_value=False)`. O CLI já esconde o valor sem `--show-values`. |
+| **Suspeito não é saída de depuração.** O `find(report_invalid=True)` e o `scan --suspect` devolvem número c/ cara de documento e DV errado, q quase sempre é identificador REAL c/ erro de digitação ou de OCR. | Trate como o próprio identificador. Imprimir um `Match` é seguro: o `repr()` esconde o valor, então log, traceback e evento de monitoramento não levam o dado por descuido. Ler `.value` ou `to_dict()` continua devolvendo, de propósito. O CLI esconde valor sem `--show-values`. |
 
 PT: nada disso tira as suas obrigações: base legal, registros, medidas de segurança e resposta ao titular continuam suas.
 
@@ -102,7 +102,10 @@ tarja.mask(text, strategy="pseudonym_stable", salt=os.environ["TARJA_SALT"])  # 
 
 tarja.validate("BR_CNPJ", "12.ABC.345/01DE-35")  # True (alphanumeric CNPJ / CNPJ alfanum)
 
-# EN: your own entity, no fork needed / PT: entidade própria, sem fork
+# EN: your own entity, no fork needed. Call it ONCE, at start-up, before serving requests: the registry is
+#     process-wide, so registering inside a request handler changes detection for everything else running in
+#     that process. tarja.freeze() closes it afterwards. / PT: entidade própria, sem fork. Chame 1x, no
+#     start-up, antes de servir requisição: o registro vale p/ o processo inteiro. O tarja.freeze() fecha dps.
 tarja.register_entity(
     "ACME_EMPLOYEE_ID",
     [("acme", r"\bAC-\d{6}\b", 0.3)],
@@ -122,6 +125,45 @@ tarja.residual(safe)  # [] = nothing leaked / nada vazou
 
 EN: tokens are 96-bit HMACs, and a clash raises `VaultCollisionError` instead of mixing two people up. `reveal()` is scoped to the `protect()` call that issued the tokens, so a token echoed from someone else's text does not resolve, even when one vault serves several users. A scope is single use (`reuse=True` to repeat it) and expires after an hour (`Vault(ttl=...)`, `None` for never). `reveal(text, any_token=True)` turns all of that off and restores anything the vault ever issued: only for text you trust. Whoever holds the `Vault` object can reveal everything, same as holding a decryption key, and the mapping lives in memory for one process. For multi-tenant production use (key in KMS, rehydration tied to an authenticated session, probing quotas, audit trail) see the paid Tarja Gateway.
 PT: token é HMAC de 96 bits, e colisão levanta `VaultCollisionError` em vez de trocar uma pessoa por outra. O `reveal()` fica preso à chamada do `protect()` q emitiu os tokens, então token ecoado do texto de outra pessoa não resolve, mesmo c/ um cofre só p/ vários usuários. O escopo é de uso único (`reuse=True` p/ repetir) e vence em 1h (`Vault(ttl=...)`, `None` p/ nunca). O `reveal(texto, any_token=True)` desliga tudo isso e devolve qq token q o cofre já emitiu: só p/ texto confiável. Quem tem o objeto `Vault` na mão reverte tudo, igual a quem tem a chave, e o mapa fica em memória num processo só. P/ produção multi-tenant (chave em KMS, reidratação amarrada a sessão autenticada, quota anti-sondagem, trilha de auditoria) veja o Tarja Gateway pago.
+
+### which strategy / qual estratégia
+
+EN: the three are not degrees of the same thing, they answer different questions. Pick by what you need to be
+able to do afterwards.
+
+| | what comes out | same value gives the same label | reversible | what it is for |
+|---|---|---|---|---|
+| `redact` | `<BR_CPF>` | no, everything looks alike | no, the value is gone | you never need it back and must not be able to get it back |
+| `pseudonym` | `<BR_CPF_1>` | **within one call only** | no | counting people in one document, reading it without the numbers |
+| `pseudonym_stable` | `<BR_CPF:24da:3f9a…>` | **across every document, under one key** | yes, by whoever holds the key | joining records about the same person across files and over time |
+
+EN: the distinction that matters is the middle column. `pseudonym` numbers what it sees in **that call** and
+starts again at 1 on the next one, so the same CPF is `_1` in one document and `_3` in another: you cannot
+join them, and that is the point. `pseudonym_stable` derives the label from the value and a secret key, so it
+is the same everywhere the key is the same, which is what lets you build a dataset about a person without the
+person's number in it.
+
+EN: that power is the risk. A stable label is **pseudonymisation, not anonymisation**: under the LGPD it is
+still personal data, because whoever has the key can reverse it, and even without the key a stable label lets
+you follow one person across your whole corpus. If nothing may ever come back, use `redact`.
+
+PT: as três não são graus da mesma coisa, respondem perguntas diferentes. Escolha pelo que você precisa
+conseguir fazer depois.
+
+| | o que sai | mesmo valor dá o mesmo rótulo | reversível | p/ quê |
+|---|---|---|---|---|
+| `redact` | `<BR_CPF>` | não, tudo fica igual | não, o valor sumiu | você nunca vai precisar de volta e não pode conseguir |
+| `pseudonym` | `<BR_CPF_1>` | **só dentro de uma chamada** | não | contar pessoas num documento, ler sem os números |
+| `pseudonym_stable` | `<BR_CPF:24da:3f9a…>` | **em todo documento, sob uma chave** | sim, por quem tem a chave | juntar registros da mesma pessoa entre arquivos e ao longo do tempo |
+
+PT: o que importa é a coluna do meio. O `pseudonym` numera o que vê **naquela chamada** e recomeça do 1 na
+próxima, então o mesmo CPF é `_1` num documento e `_3` noutro: você não consegue juntar, e é essa a intenção.
+O `pseudonym_stable` deriva o rótulo do valor e de uma chave secreta, então é o mesmo em todo lugar onde a
+chave é a mesma.
+
+PT: esse poder é o risco. Rótulo estável é **pseudonimização, não anonimização**: na LGPD continua sendo dado
+pessoal, porque quem tem a chave reverte, e mesmo sem a chave o rótulo estável deixa seguir uma pessoa pelo
+corpus inteiro. Se nada pode voltar, use `redact`.
 
 ### the key, and what happens when it changes / a chave, e o que acontece quando ela muda
 
@@ -228,6 +270,28 @@ PT:
 
 EN: official source for each rule, and whether it was checked: `docs/SOURCES.md`. Presidio plugin and upstream PR: `docs/presidio.md`. Benchmark: `bench/README.md`.
 PT: fonte oficial de cada regra, e se foi conferida: `docs/SOURCES.md`. Plugin do Presidio e PR: `docs/presidio.md`. Benchmark: `bench/README.md`.
+
+## stability / estabilidade
+
+EN: **0.x means the API can change.** Until 1.0, a public name may be renamed or removed in a minor release.
+Two have already moved: `mask(strategy="hash")` became `pseudonym_stable` in 0.6, and the Presidio plugin was
+published as `tarja-presidio`. What you can rely on before 1.0:
+
+- a rename ships with the old name still working and a `DeprecationWarning` for at least one minor release;
+- a change to what is detected is announced in `docs/decisions.md` with the benchmark numbers before and after;
+- pin an exact version (`tarja==0.7.0`) if you need none of this to reach you.
+
+EN: after 1.0 the usual rule applies: no breaking change outside a major release.
+
+PT: **0.x quer dizer q a API pode mudar.** Até a 1.0, nome público pode ser renomeado ou sumir numa versão
+menor. Dois já se moveram: `mask(strategy="hash")` virou `pseudonym_stable` na 0.6, e o plugin do Presidio saiu
+como `tarja-presidio`. O q dá p/ contar antes da 1.0:
+
+- renomeação sai c/ o nome antigo ainda funcionando e `DeprecationWarning` por pelo menos 1 versão menor;
+- mudança no q é detectado é anunciada no `docs/decisions.md` c/ o número do benchmark antes e depois;
+- fixe a versão exata (`tarja==0.7.0`) se você não quiser nada disso chegando até você.
+
+PT: dps da 1.0 vale a regra de sempre: nada q quebra fora de versão maior.
 
 ## licence / licença
 

@@ -9,6 +9,8 @@ from tarja.entities import ENTITIES
 from tarja.mask import mask
 from tarja.registry import (
     RegistryFrozenError,
+    UnsafeRegexError,
+    check_regex,
     freeze,
     is_frozen,
     register_entity,
@@ -33,6 +35,8 @@ __all__ = [
     "Match",
     "ProtectedText",
     "RegistryFrozenError",
+    "UnsafeRegexError",
+    "check_regex",
     "Vault",
     "VaultCollisionError",
     "VaultConsumedError",
