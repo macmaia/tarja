@@ -20,6 +20,7 @@ data/real/
 # EN: benchmark: data is regenerated from the seed, results/cache are local / PT: dados regerados pela seed, resultados/cache locais
 bench/data/**/*.jsonl
 bench/results/
+bench/results-*/
 bench/cache/
 # EN: private notes / PT: notas privadas
 docs/decisions.md

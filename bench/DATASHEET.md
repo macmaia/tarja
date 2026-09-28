@@ -1,4 +1,4 @@
-# Datasheet · tarja-bench v0.2
+# Datasheet · tarja-bench v0.3
 
 EN: structure follows Gebru et al., "Datasheets for Datasets" (CACM 64(12), 2021, doi:10.1145/3458723). Portuguese version below.
 PT: estrutura segue Gebru et al., "Datasheets for Datasets" (CACM 64(12), 2021, doi:10.1145/3458723). Versão em português abaixo.
@@ -17,7 +17,7 @@ PT: estrutura segue Gebru et al., "Datasheets for Datasets" (CACM 64(12), 2021, 
 ### 2. Composition
 
 - **Instances.** Short Portuguese documents (one to seven sentences) with character-offset annotations `{start, end, entity}`.
-- **Subsets in v0.2.**
+- **Subsets in v0.3.**
 
 | subset | dev | test | spans (test) | levels | source |
 |---|---|---|---|---|---|
@@ -32,18 +32,18 @@ PT: estrutura segue Gebru et al., "Datasheets for Datasets" (CACM 64(12), 2021, 
 - **Circularity.** The benchmark author also wrote tarja. Templates, noise levels and context phrases may favour tarja's design. D0 scores near 1.0 are expected by construction. Mitigations: independent reference validators, optional validate-docbr cross-check, semi-real subset, hand-annotated sample (E4.4). Report all results with this caveat.
 - **Personal data.** None. Every identifier is randomly generated. A generated value may coincide with a real number by chance, which is unavoidable for short numeric IDs, but nothing links it to a person. Semi-real texts are federal laws and official acts, which contain no personal data.
 - **Splits.** 30% dev, 70% test, fixed by seed. The test split is for reporting only.
-- **Known gaps.** No names, addresses or free-form personal data (out of scope, tier N4). Synthetic sentences are simpler than real documents. The semi-real subset only has D0 noise.
+- **Known gaps.** No names, addresses or free-form personal data (out of scope, tier N4). Synthetic sentences are simpler than real documents. The semi-real subset only has D0 noise. Semi-real insertion happens at a sentence boundary, never mid-sentence and never inside a table cell, so the identifier is always preceded by a sentence break: a declared limitation and future work.
 
 ### 3. Collection process
 
 - Synthetic subsets: `python -m bench.generate --seed 42`. Output is byte-identical across runs, and `manifest.json` stores the sha256 of each file, checked by the test suite.
-- Semi-real subset: `bench/fetch_public_texts.py` downloads compiled federal laws from planalto.gov.br. `bench/semireal.py` keeps paragraphs where tarja finds nothing, then inserts 1 to 3 generated identifiers with a context phrase at sentence boundaries. Source URL and retrieval date are stored per document.
+- Semi-real subset: `bench/fetch_public_texts.py` downloads compiled federal laws from planalto.gov.br. `bench/semireal.py` keeps paragraphs where tarja finds nothing, then inserts 1 to 3 generated identifiers at randomly drawn sentence boundaries. From v0.3 each entity type has three to five wordings (54 in all), differing in the context word, in case, in punctuation, and in whether the identifier sits in a short sentence of its own or inside a longer clause. Source URL and retrieval date are stored per document.
 - No crowdworkers. No human subjects. No ethics review needed (no personal data, no participants).
 
 ### 4. Preprocessing and labelling
 
 - Whitespace normalised in semi-real paragraphs. Revoked text (struck through on planalto) removed.
-- Paragraphs already containing something tarja flags are dropped from the semi-real pool, so gold stays clean. This favours tarja on precision in that subset and is reported as a limitation.
+- Paragraphs already containing something tarja flags are dropped from the semi-real pool, so gold stays clean. This uses the system under evaluation to select its own negatives, so it could favour tarja on precision in that subset. Measured with `bench.semireal --filter-report` on v0.3: of 5,902 paragraphs in the length range the filter removes 1 (0.02%), carrying a single finding, of an entity with no check digit. Regenerating with `--keep-flagged` gives precision, recall and F1 identical to three decimals, which is expected rather than confirmatory: with 2,808 annotated spans in the test split one extra false positive moves precision by 0.0004.
 - A 10% sample is double-annotated by hand to confirm generator labels, reported with span F1 and character-level Cohen's kappa (`bench/iaa.py`). [pending, E4.4]
 
 ### 5. Uses
@@ -79,7 +79,7 @@ PT: estrutura segue Gebru et al., "Datasheets for Datasets" (CACM 64(12), 2021, 
 ### 2. Composição
 
 - **Instâncias.** Documentos curtos em português (1 a 7 frases) c/ anotação por offset de caractere `{start, end, entity}`.
-- **Subconjuntos da v0.2.** Ver a tabela da seção EN (mesmos números).
+- **Subconjuntos da v0.3.** Ver a tabela da seção EN (mesmos números).
 - **Entidades.** 17 tipos, em `spec/entities/`. N1 (DV), N2 (formato), N3 (exige contexto).
 - **Níveis.** D0 layout canônico. D1 sem pontuação ou espaço como separador. D2 quebra de linha, colado, célula de tabela. D3 parecido inválido como distrator (não anotado). D4 ruído de OCR, O no lugar de 0, l no lugar de 1 (anotado). D5 contexto enganoso (palavra diz CPF, número é NIS).
 - **Domínios.** saúde, jurídico, administrativo, financeiro. O semi-real acrescenta texto de lei federal.
@@ -87,18 +87,18 @@ PT: estrutura segue Gebru et al., "Datasheets for Datasets" (CACM 64(12), 2021, 
 - **Circularidade.** A autora do benchmark também escreveu o tarja. Templates, níveis de ruído e frases de contexto podem favorecer o desenho do tarja. Score perto de 1,0 no D0 é esperado por construção. Mitigações: validadores de referência independentes, comparação opcional c/ validate-docbr, subconjunto semi-real, amostra anotada à mão (E4.4). Todo resultado deve ser reportado c/ essa ressalva.
 - **Dado pessoal.** Nenhum. Todo identificador é aleatório. Um valor gerado pode coincidir por acaso c/ um número real, o q é inevitável em ID numérico curto, mas nada o liga a uma pessoa. Os textos semi-reais são leis e atos oficiais, sem dado pessoal.
 - **Partições.** 30% dev, 70% teste, fixas pela seed. Teste só p/ reportar.
-- **Lacunas.** Sem nome, endereço ou dado pessoal livre (fora do escopo, N4). Frases sintéticas são mais simples q documento real. O semi-real só tem ruído D0.
+- **Lacunas.** Sem nome, endereço ou dado pessoal livre (fora do escopo, N4). Frases sintéticas são mais simples q documento real. O semi-real só tem ruído D0. A inserção semi-real acontece em fronteira de frase, nunca no meio de frase nem dentro de célula de tabela, então o identificador vem sempre depois de uma quebra: limitação declarada e trabalho futuro.
 
 ### 3. Coleta
 
 - Sintéticos: `python -m bench.generate --seed 42`. Saída idêntica byte a byte, e o `manifest.json` guarda o sha256 de cada arquivo, conferido pelos testes.
-- Semi-real: `bench/fetch_public_texts.py` baixa leis federais compiladas do planalto.gov.br. `bench/semireal.py` fica só c/ parágrafos onde o tarja não acha nada e insere 1 a 3 identificadores gerados c/ frase de contexto em fronteira de frase. URL e data de coleta ficam em cada documento.
+- Semi-real: `bench/fetch_public_texts.py` baixa leis federais compiladas do planalto.gov.br. `bench/semireal.py` fica só c/ parágrafos onde o tarja não acha nada e insere 1 a 3 identificadores gerados em fronteira de frase sorteada. Da v0.3 em diante cada tipo tem de 3 a 5 redações (54 no total), q variam na palavra de contexto, na caixa, na pontuação e em estar em oração curta própria ou dentro de outra. URL e data de coleta ficam em cada documento.
 - Sem crowdworkers, sem participantes humanos, sem necessidade de comitê de ética.
 
 ### 4. Pré-processamento e rotulagem
 
 - Espaços normalizados nos parágrafos semi-reais. Texto revogado (riscado no planalto) removido.
-- Parágrafo q já tem algo q o tarja marca sai do pool semi-real, p/ manter o gold limpo. Isso favorece o tarja em precisão nesse subconjunto e vai reportado como limitação.
+- Parágrafo q já tem algo q o tarja marca sai do pool semi-real, p/ manter o gold limpo. Isso usa o próprio sistema avaliado p/ escolher os negativos dele, o q poderia favorecer o tarja em precisão. Medido c/ `bench.semireal --filter-report` na v0.3: de 5.902 parágrafos na faixa, o filtro remove 1 (0,02%), c/ 1 achado, de entidade sem dígito verificador. Regerar c/ `--keep-flagged` dá número idêntico até a 3a casa, o q é esperado e não confirmatório: c/ 2.808 spans no teste, 1 falso positivo extra move a precisão em 0,0004.
 - Amostra de 10% c/ dupla anotação humana p/ conferir os rótulos, c/ F1 de span e kappa de Cohen por caractere (`bench/iaa.py`). [pendente, E4.4]
 
 ### 5. Usos

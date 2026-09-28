@@ -1,4 +1,4 @@
-# tarja-bench v0.2
+# tarja-bench v0.3
 
 **EN** · Portuguese documents annotated for 17 Brazilian personal identifier types. All identifiers are synthetic. Full description, intended uses and limits in `DATASHEET.md`.
 
@@ -20,9 +20,26 @@ EN: one JSON per line / PT: 1 JSON por linha: `{"id", "domain", "difficulty", "t
 
 ```bash
 pip install tarja  # or/ou: git clone https://github.com/macmaia/tarja && pip install -e .
-python -m bench.generate --seed 42 --out bench/data/v0.2
-sha256sum bench/data/v0.2/*.jsonl   # EN: compare with manifest.json / PT: compare c/ o manifest.json
+
+# EN: the four synthetic files, from the seed alone / PT: os 4 sintéticos, só pela seed
+python -m bench.generate --seed 42 --out bench/data/v0.3
+
+# EN: the two semi-real files also need the law texts, which are NOT in this package
+# PT: os 2 semi-reais precisam tb dos textos de lei, q NÃO vão neste pacote
+python -m bench.fetch_public_texts --out ../corpus_publico
+python -m bench.semireal --src ../corpus_publico --n 2000 --out bench/data/v0.3
+
+sha256sum bench/data/v0.3/*.jsonl   # EN: compare with manifest.json / PT: compare c/ o manifest.json
 ```
+
+EN: the four synthetic files reproduce from the seed alone and their sha256 is stable. The two semi-real files
+depend on what planalto.gov.br serves: if a law is amended, its paragraphs change and the sha256 will differ.
+Each semi-real document therefore carries its source URL and retrieval date, which is what makes that subset
+auditable even when it is not bit-reproducible.
+PT: os 4 sintéticos reproduzem só pela seed e o sha256 é estável. Os 2 semi-reais dependem do q o
+planalto.gov.br serve: se uma lei for alterada, os parágrafos mudam e o sha256 difere. Por isso cada documento
+semi-real carrega a URL de origem e a data de coleta, o q torna o subconjunto auditável mesmo sem ser
+reproduzível bit a bit.
 
 ## licence / licença
 

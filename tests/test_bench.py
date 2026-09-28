@@ -96,12 +96,17 @@ class TestGenerator(unittest.TestCase):
             self.assertEqual(tarja.find(f), [], f)
 
     def test_committed_manifest_is_reproducible(self):
-        # [TEST-BENCH-GEN] regenerating v0.2 gives the sha256 recorded in the committed manifest
-        manifest = json.loads((ROOT / "bench/data/v0.2/manifest.json").read_text(encoding="utf-8"))
+        # [TEST-BENCH-GEN] EN: regenerating from the seed gives the sha256 in the committed manifest. Only the
+        #   synthetic files: from v0.3 the manifest also lists the two semi-real files, which are built from
+        #   downloaded law texts and are not bit-reproducible offline (see bench/zenodo/README.md).
+        #   PT: so os sinteticos: da v0.3 em diante o manifest lista tb os 2 semi-reais, feitos de texto de lei
+        #   baixado, q nao sao reproduziveis bit a bit sem rede.
+        manifest = json.loads((ROOT / "bench/data/v0.3/manifest.json").read_text(encoding="utf-8"))
         with tempfile.TemporaryDirectory() as tmp:
             m = gen.write(pathlib.Path(tmp), gen.build(manifest["seed"], 5000, 3000), manifest["seed"])
-        self.assertEqual({k: v["sha256"] for k, v in m["files"].items()},
-                         {k: v["sha256"] for k, v in manifest["files"].items()})  # fmt: skip
+        expected = {k: v["sha256"] for k, v in manifest["files"].items() if k.startswith("synthetic_")}
+        self.assertEqual({k: v["sha256"] for k, v in m["files"].items()}, expected)
+        self.assertEqual(len(expected), 4)
 
 
 class TestMetrics(unittest.TestCase):

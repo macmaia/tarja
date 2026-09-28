@@ -5,7 +5,7 @@
 #
 # usage
 #   python -m bench.fetch_public_texts --out ../corpus_publico
-#   python -m bench.semireal --src ../corpus_publico --n 2000 --out bench/data/v0.2
+#   python -m bench.semireal --src ../corpus_publico --n 2000 --out bench/data/v0.3
 
 from __future__ import annotations
 

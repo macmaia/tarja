@@ -157,7 +157,7 @@ def main(argv=None) -> int:
     p.add_argument("--seed", type=int, default=42)
     p.add_argument("--controlled", type=int, default=5000)
     p.add_argument("--adversarial", type=int, default=3000)
-    p.add_argument("--out", default="bench/data/v0.2")
+    p.add_argument("--out", default="bench/data/v0.3")
     a = p.parse_args(argv)
     m = write(Path(a.out), build(a.seed, a.controlled, a.adversarial), a.seed)
     print(json.dumps(m, indent=2))
