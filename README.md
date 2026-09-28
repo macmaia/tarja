@@ -4,13 +4,13 @@
 
 Built for anyone shipping software in Brazil, incl. foreign companies adapting to the LGPD (Brazil's GDPR). Plenty of CPF/CNPJ validators exist already (brutils, validate-docbr). What's missing is finding the ID *inside* text, scoring it with Portuguese context, and covering what paid DLPs skip: alphanumeric CNPJ (Jul/2026), CNS (health card), CNJ case numbers.
 
-Status: alpha (`0.7.0`). The API can still change before 1.0.
+Status: alpha (`0.8.0`). The API can still change before 1.0.
 
 **PT** · Detecta, valida e mascara identificadores pessoais brasileiros em texto livre, c/ contexto em português e dígito verificador. Cobre o dado antes de mandar p/ LLM, log, BI, onde for.
 
 Serve p/ qq um q desenvolve p/ o Brasil, inclusive empresa gringa se adaptando à LGPD. Validador de CPF/CNPJ já tem de monte (brutils, validate-docbr). O q falta é achar o doc *dentro* do texto, dar score c/ contexto em pt-BR e cobrir o q os DLPs pagos ignoram: CNPJ alfanumérico (jul/2026), CNS, nº de processo CNJ.
 
-Status: alfa (`0.7.0`). A API ainda pode mudar antes da 1.0.
+Status: alfa (`0.8.0`). A API ainda pode mudar antes da 1.0.
 
 ## limits / limites
 
@@ -279,7 +279,7 @@ published as `tarja-presidio`. What you can rely on before 1.0:
 
 - a rename ships with the old name still working and a `DeprecationWarning` for at least one minor release;
 - a change to what is detected is announced in `docs/decisions.md` with the benchmark numbers before and after;
-- pin an exact version (`tarja==0.7.0`) if you need none of this to reach you.
+- pin an exact version (`tarja==0.8.0`) if you need none of this to reach you.
 
 EN: after 1.0 the usual rule applies: no breaking change outside a major release.
 
@@ -289,7 +289,7 @@ como `tarja-presidio`. O q dá p/ contar antes da 1.0:
 
 - renomeação sai c/ o nome antigo ainda funcionando e `DeprecationWarning` por pelo menos 1 versão menor;
 - mudança no q é detectado é anunciada no `docs/decisions.md` c/ o número do benchmark antes e depois;
-- fixe a versão exata (`tarja==0.7.0`) se você não quiser nada disso chegando até você.
+- fixe a versão exata (`tarja==0.8.0`) se você não quiser nada disso chegando até você.
 
 PT: dps da 1.0 vale a regra de sempre: nada q quebra fora de versão maior.
 
