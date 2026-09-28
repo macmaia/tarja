@@ -175,6 +175,13 @@ M = [
     ("short salt accepted", "src/tarja/mask.py", "if len(key) < MIN_SALT_BYTES:", "if False:"),
     ("low-entropy salt accepted", "src/tarja/mask.py", "if len(set(key)) < MIN_SALT_DISTINCT:", "if False:"),
     ("placeholder salt accepted", "src/tarja/mask.py", "for w in WEAK_SALTS)", "for w in ())"),
+    (
+        # [MUTATION-SALT-PT] the guard used to be English only, in a library for Portuguese text
+        "weak salt list forgets Portuguese",
+        "src/tarja/mask.py",
+        '    "chave", "exemplo", "minhachave", "minha-chave", "minhasenha", "minha-senha", "mude-me", "mudeme",',
+        '    "zzz-placeholder-inexistente",',
+    ),
     ("cli size cap off", "src/tarja/cli.py", "if len(text) > limit:", "if False:"),
     # [MUTATION-CARTAO] 0.6: the issuer prefix is what keeps Luhn from firing on every 10th long number
     (

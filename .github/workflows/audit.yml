@@ -16,6 +16,9 @@ on:
   schedule:
     - cron: "17 6 * * 1"
   push:
+    # [AUDIT-BRANCHES] branches matter: a path filter does NOT apply to a tag push, so without this the audit
+    #   fired on every release tag. Fixed 28/09/2026 after it ran twice on v0.8.0.
+    branches: [main]
     paths:
       - "pyproject.toml"
       - "packages/*/pyproject.toml"
@@ -35,4 +38,8 @@ jobs:
           python-version: "3.12"
       - run: pip install pip-audit
       - run: pip install -e ".[dev]" -e "packages/tarja-presidio[dev]"
-      - run: pip-audit --strict --progress-spinner off
+      # [AUDIT-EDITABLE] --skip-editable is not optional here: the editable installs above ARE tarja and
+      #   tarja-presidio, and pip-audit cannot look up a local development version on PyPI, which under
+      #   --strict is an error. We want the dependency chain audited, not ourselves. Fixed 28/09/2026 after
+      #   the job failed with "Dependency not found on PyPI: tarja (0.8.0.dev0)", which was not a finding.
+      - run: pip-audit --strict --skip-editable --progress-spinner off

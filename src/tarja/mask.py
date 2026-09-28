@@ -28,9 +28,19 @@ STRATEGY_ALIASES = {"hash": "pseudonym_stable"}
 #   enough ("aaaaaaaaaaaaaaaa" is 16 bytes and worthless), so the distinct-byte count goes with it.
 MIN_SALT_BYTES = 16
 MIN_SALT_DISTINCT = 8
+# [MASK-WEAK-SALTS] matched with startswith on the lowercased salt, so "secret-key-2026" is caught by
+#   "secret". The Portuguese half is not decoration: this library exists for Brazilian Portuguese text, and a
+#   Brazilian developer reaching for a placeholder types "chave-secreta" or "senha", not "password". Until
+#   28/09/2026 the list was English only, so the guard rejected "example-key-..." and waved through
+#   "chave-de-exemplo-...", which is the guard failing exactly where its users are. Found while writing the
+#   companion book, where the English placeholder was refused and the Portuguese one was not.
 WEAK_SALTS = frozenset({
+    # EN
     "admin", "change-me", "changeme", "default", "example", "letmein", "mysalt", "mysecret", "passwd",
     "password", "s3cr3t", "salt", "sample", "secret", "tarja", "test", "testing", "your-secret", "yoursecret",
+    # PT
+    "chave", "exemplo", "minhachave", "minha-chave", "minhasenha", "minha-senha", "mude-me", "mudeme",
+    "mudar", "padrao", "segredo", "senha", "teste", "testando", "troca", "trocar", "troque-me", "troqueme",
 })  # fmt: skip
 
 

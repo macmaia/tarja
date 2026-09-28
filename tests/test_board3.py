@@ -386,3 +386,42 @@ class TestLazyFoldingIsEquivalent(unittest.TestCase):
         cep = tarja.find("CEP 22290-140")
         self.assertTrue(all(m.has_context for m in cep if m.entity == "BR_CEP"))
         self.assertEqual(tarja.find("22290-140"), [])
+
+
+class TestWeakSaltGuardSpeaksPortuguese(unittest.TestCase):
+    """Found 28/09/2026 while writing the companion book: check_salt refused the English placeholder and
+    accepted the Portuguese one. A guard that only knows the words its users do not type is not a guard."""
+
+    def test_portuguese_placeholders_are_refused(self) -> None:
+        # [TEST-SALT-PT] every one of these passed before the fix
+        from tarja.mask import check_salt
+
+        for salt in (
+            "chave-de-exemplo-nao-use-em-producao",
+            "chave-secreta-de-teste",
+            "exemplo-de-chave-nao-usar",
+            "senha123456789012345678",
+            "segredo-do-sistema-inteiro",
+            "minha-chave-de-producao",
+            "troque-me-antes-de-usar",
+            "padrao-do-ambiente-atual",
+        ):
+            with self.subTest(salt=salt), self.assertRaises(ValueError):
+                check_salt(salt)
+
+    def test_english_placeholders_still_refused(self) -> None:
+        # [TEST-SALT-EN] the fix must not have dropped what already worked
+        from tarja.mask import check_salt
+
+        for salt in ("example-key-do-not-use-in-production", "changeme-please-now-ok", "secret-key-2026-abcd"):
+            with self.subTest(salt=salt), self.assertRaises(ValueError):
+                check_salt(salt)
+
+    def test_a_real_key_is_accepted(self) -> None:
+        # [TEST-SALT-REAL] and it must not get in the way of the thing it is asking people to do
+        import secrets
+
+        from tarja.mask import check_salt
+
+        for _ in range(50):
+            check_salt(secrets.token_hex(32))
