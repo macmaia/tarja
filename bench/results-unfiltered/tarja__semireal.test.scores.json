@@ -1,0 +1,502 @@
+{
+  "system": "tarja",
+  "info": {
+    "tarja_version": "0.8.0",
+    "min_score": 0.0
+  },
+  "latency_ms_median": 0.2106454921886325,
+  "results": {
+    "exact": {
+      "mode": "exact",
+      "docs": 1400,
+      "overall": {
+        "precision": 0.9869138495092693,
+        "recall": 0.9668803418803419,
+        "f1": 0.9767943874797625,
+        "tp": 2715,
+        "fp": 36,
+        "fn": 93,
+        "f1_ci95": [
+          0.9721528025705105,
+          0.9815817984832069
+        ]
+      },
+      "by_entity": {
+        "BR_CARTAO": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 175,
+          "fp": 0,
+          "fn": 0
+        },
+        "BR_CEP": {
+          "precision": 1.0,
+          "recall": 0.9939759036144579,
+          "f1": 0.9969788519637462,
+          "tp": 165,
+          "fp": 0,
+          "fn": 1
+        },
+        "BR_CIB": {
+          "precision": 0.994475138121547,
+          "recall": 1.0,
+          "f1": 0.9972299168975068,
+          "tp": 180,
+          "fp": 1,
+          "fn": 0
+        },
+        "BR_CNH": {
+          "precision": 1.0,
+          "recall": 0.6035502958579881,
+          "f1": 0.7527675276752768,
+          "tp": 102,
+          "fp": 0,
+          "fn": 67
+        },
+        "BR_CNJ": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 154,
+          "fp": 0,
+          "fn": 0
+        },
+        "BR_CNM": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 166,
+          "fp": 0,
+          "fn": 0
+        },
+        "BR_CNPJ": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 167,
+          "fp": 0,
+          "fn": 0
+        },
+        "BR_CNS": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 151,
+          "fp": 0,
+          "fn": 0
+        },
+        "BR_CPF": {
+          "precision": 0.9567901234567902,
+          "recall": 1.0,
+          "f1": 0.9779179810725552,
+          "tp": 155,
+          "fp": 7,
+          "fn": 0
+        },
+        "BR_IPTU": {
+          "precision": 0.9937106918238994,
+          "recall": 0.9294117647058824,
+          "f1": 0.9604863221884499,
+          "tp": 158,
+          "fp": 1,
+          "fn": 12
+        },
+        "BR_MATRICULA_IMOVEL": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 166,
+          "fp": 0,
+          "fn": 0
+        },
+        "BR_NIS": {
+          "precision": 0.8829787234042553,
+          "recall": 1.0,
+          "f1": 0.9378531073446328,
+          "tp": 166,
+          "fp": 22,
+          "fn": 0
+        },
+        "BR_PIX_EVP": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 155,
+          "fp": 0,
+          "fn": 0
+        },
+        "BR_PLACA": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 146,
+          "fp": 0,
+          "fn": 0
+        },
+        "BR_RENAVAM": {
+          "precision": 0.9937106918238994,
+          "recall": 0.9634146341463414,
+          "f1": 0.978328173374613,
+          "tp": 158,
+          "fp": 1,
+          "fn": 6
+        },
+        "BR_TELEFONE": {
+          "precision": 0.9764705882352941,
+          "recall": 0.9595375722543352,
+          "f1": 0.9679300291545189,
+          "tp": 166,
+          "fp": 4,
+          "fn": 7
+        },
+        "BR_TITULO_ELEITOR": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 185,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "by_difficulty": {
+        "D0": {
+          "precision": 0.9869138495092693,
+          "recall": 0.9668803418803419,
+          "f1": 0.9767943874797625,
+          "tp": 2715,
+          "fp": 36,
+          "fn": 93
+        }
+      }
+    },
+    "partial": {
+      "mode": "partial",
+      "docs": 1400,
+      "overall": {
+        "precision": 0.9869138495092693,
+        "recall": 0.9668803418803419,
+        "f1": 0.9767943874797625,
+        "tp": 2715,
+        "fp": 36,
+        "fn": 93,
+        "f1_ci95": [
+          0.9721528025705105,
+          0.9815817984832069
+        ]
+      },
+      "by_entity": {
+        "BR_CARTAO": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 175,
+          "fp": 0,
+          "fn": 0
+        },
+        "BR_CEP": {
+          "precision": 1.0,
+          "recall": 0.9939759036144579,
+          "f1": 0.9969788519637462,
+          "tp": 165,
+          "fp": 0,
+          "fn": 1
+        },
+        "BR_CIB": {
+          "precision": 0.994475138121547,
+          "recall": 1.0,
+          "f1": 0.9972299168975068,
+          "tp": 180,
+          "fp": 1,
+          "fn": 0
+        },
+        "BR_CNH": {
+          "precision": 1.0,
+          "recall": 0.6035502958579881,
+          "f1": 0.7527675276752768,
+          "tp": 102,
+          "fp": 0,
+          "fn": 67
+        },
+        "BR_CNJ": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 154,
+          "fp": 0,
+          "fn": 0
+        },
+        "BR_CNM": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 166,
+          "fp": 0,
+          "fn": 0
+        },
+        "BR_CNPJ": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 167,
+          "fp": 0,
+          "fn": 0
+        },
+        "BR_CNS": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 151,
+          "fp": 0,
+          "fn": 0
+        },
+        "BR_CPF": {
+          "precision": 0.9567901234567902,
+          "recall": 1.0,
+          "f1": 0.9779179810725552,
+          "tp": 155,
+          "fp": 7,
+          "fn": 0
+        },
+        "BR_IPTU": {
+          "precision": 0.9937106918238994,
+          "recall": 0.9294117647058824,
+          "f1": 0.9604863221884499,
+          "tp": 158,
+          "fp": 1,
+          "fn": 12
+        },
+        "BR_MATRICULA_IMOVEL": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 166,
+          "fp": 0,
+          "fn": 0
+        },
+        "BR_NIS": {
+          "precision": 0.8829787234042553,
+          "recall": 1.0,
+          "f1": 0.9378531073446328,
+          "tp": 166,
+          "fp": 22,
+          "fn": 0
+        },
+        "BR_PIX_EVP": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 155,
+          "fp": 0,
+          "fn": 0
+        },
+        "BR_PLACA": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 146,
+          "fp": 0,
+          "fn": 0
+        },
+        "BR_RENAVAM": {
+          "precision": 0.9937106918238994,
+          "recall": 0.9634146341463414,
+          "f1": 0.978328173374613,
+          "tp": 158,
+          "fp": 1,
+          "fn": 6
+        },
+        "BR_TELEFONE": {
+          "precision": 0.9764705882352941,
+          "recall": 0.9595375722543352,
+          "f1": 0.9679300291545189,
+          "tp": 166,
+          "fp": 4,
+          "fn": 7
+        },
+        "BR_TITULO_ELEITOR": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 185,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "by_difficulty": {
+        "D0": {
+          "precision": 0.9869138495092693,
+          "recall": 0.9668803418803419,
+          "f1": 0.9767943874797625,
+          "tp": 2715,
+          "fp": 36,
+          "fn": 93
+        }
+      }
+    },
+    "untyped": {
+      "mode": "untyped",
+      "docs": 1400,
+      "overall": {
+        "precision": 1.0,
+        "recall": 0.9797008547008547,
+        "f1": 0.9897463572584997,
+        "tp": 2751,
+        "fp": 0,
+        "fn": 57,
+        "f1_ci95": [
+          0.987074458401602,
+          0.9921456622634772
+        ]
+      },
+      "by_entity": {
+        "BR_CARTAO": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 175,
+          "fp": 0,
+          "fn": 0
+        },
+        "BR_CEP": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 166,
+          "fp": 0,
+          "fn": 0
+        },
+        "BR_CIB": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 180,
+          "fp": 0,
+          "fn": 0
+        },
+        "BR_CNH": {
+          "precision": 1.0,
+          "recall": 0.6627218934911243,
+          "f1": 0.797153024911032,
+          "tp": 112,
+          "fp": 0,
+          "fn": 57
+        },
+        "BR_CNJ": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 154,
+          "fp": 0,
+          "fn": 0
+        },
+        "BR_CNM": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 166,
+          "fp": 0,
+          "fn": 0
+        },
+        "BR_CNPJ": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 167,
+          "fp": 0,
+          "fn": 0
+        },
+        "BR_CNS": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 151,
+          "fp": 0,
+          "fn": 0
+        },
+        "BR_CPF": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 155,
+          "fp": 0,
+          "fn": 0
+        },
+        "BR_IPTU": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 170,
+          "fp": 0,
+          "fn": 0
+        },
+        "BR_MATRICULA_IMOVEL": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 166,
+          "fp": 0,
+          "fn": 0
+        },
+        "BR_NIS": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 166,
+          "fp": 0,
+          "fn": 0
+        },
+        "BR_PIX_EVP": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 155,
+          "fp": 0,
+          "fn": 0
+        },
+        "BR_PLACA": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 146,
+          "fp": 0,
+          "fn": 0
+        },
+        "BR_RENAVAM": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 164,
+          "fp": 0,
+          "fn": 0
+        },
+        "BR_TELEFONE": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 173,
+          "fp": 0,
+          "fn": 0
+        },
+        "BR_TITULO_ELEITOR": {
+          "precision": 1.0,
+          "recall": 1.0,
+          "f1": 1.0,
+          "tp": 185,
+          "fp": 0,
+          "fn": 0
+        }
+      },
+      "by_difficulty": {
+        "D0": {
+          "precision": 1.0,
+          "recall": 0.9797008547008547,
+          "f1": 0.9897463572584997,
+          "tp": 2751,
+          "fp": 0,
+          "fn": 57
+        }
+      }
+    }
+  }
+}

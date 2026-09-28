@@ -1,0 +1,22 @@
+{
+  "bench_version": "0.3.0",
+  "tarja_version": "0.8.0",
+  "files": {
+    "semireal.dev.jsonl": {
+      "docs": 600,
+      "spans": 1181,
+      "sha256": "6b47483dd56b0e3bddab14a7d62c498ef3d253d1b0fc790761f5e5ff1dee8417"
+    },
+    "semireal.test.jsonl": {
+      "docs": 1400,
+      "spans": 2808,
+      "sha256": "5694ef0311f9df056d454ec722e85e8e03d129ea7d3cf7cb558c8cb356666093"
+    }
+  },
+  "semireal": {
+    "seed": 7,
+    "n": 2000,
+    "src": "../corpus_publico",
+    "background_filtered": false
+  }
+}
