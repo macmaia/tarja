@@ -23,7 +23,42 @@ permissions:
 jobs:
   build:
     runs-on: ubuntu-24.04
+    permissions:
+      contents: read
+      # [RELEASE-PERM] EN: job-level permissions REPLACE the workflow-level block, so contents: read has to
+      #   be restated here or checkout breaks. actions: read is what lets gh read another workflow's runs.
+      #   PT: permissao de job SUBSTITUI a do workflow, entao o contents: read tem q ser repetido aqui,
+      #   senao o checkout quebra. O actions: read e o q deixa o gh ler run de outro workflow.
+      actions: read
     steps:
+      # [RELEASE-AUDIT-GATE] EN: refuse to publish while the latest audit run on main is not a success.
+      #   v0.8.0 went to PyPI while the audit job had been red for five days and nobody looked, and the
+      #   pypi environment had no protection rules, so there was no gate of any kind. A tag push does NOT
+      #   fire audit (its push trigger is branches: [main]), so this reads main's latest run and prints the
+      #   commit that run covered, because the paths filter means that commit can be older than this tag.
+      #   status is checked separately from conclusion: a run still in progress has an empty conclusion, and
+      #   without that check the gate would block a release for the wrong reason and not say so.
+      #   First step and before checkout on purpose: a blocked release then costs no clone, which keeps the
+      #   traffic numbers usable as an adoption signal (see the header of audit.yml).
+      #   PT: recusa publicar enquanto o ultimo run do audit na main nao for success. A v0.8.0 subiu p/ o
+      #   PyPI c/ o audit vermelho havia cinco dias e sem nenhuma regra no environment pypi. Tag nao dispara
+      #   o audit, entao le o ultimo run da main e imprime qual commit aquele run cobriu, pq o filtro de
+      #   paths permite que esse commit seja mais antigo que esta tag. O status e conferido separado da
+      #   conclusion, pq run em andamento tem conclusion vazia. Primeiro passo e antes do checkout de
+      #   proposito: release bloqueado assim nao custa clone.
+      - name: audit gate / portao do audit
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          read -r ID STATUS CONCL SHA <<<"$(gh run list -R ${{ github.repository }} \
+            --workflow=audit.yml --branch main --limit 1 \
+            --json databaseId,status,conclusion,headSha \
+            --jq '.[0] | "\(.databaseId) \(.status) \(.conclusion) \(.headSha)"')"
+          echo "audit run=$ID status=$STATUS conclusion=$CONCL commit=$SHA"
+          echo "this tag  = ${{ github.sha }}"
+          test -n "$ID"
+          test "$STATUS" = "completed"
+          test "$CONCL" = "success"
       - uses: actions/checkout@08c6903cd8c0fde910a37f88322edcfb5dd907a8 # v5.0.0
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
         with:

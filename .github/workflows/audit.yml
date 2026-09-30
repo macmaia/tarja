@@ -62,9 +62,10 @@ jobs:
       #   means what it says, and we are not looked up on PyPI. --strict stays because it is what stops a
       #   collection failure (PyPI unreachable, a private package) from being reported as "no known
       #   vulnerabilities". A real advisory fails the job with or without it, since pip-audit exits 1 on any
-      #   finding. As of this commit the chain has never been audited to completion, so the first green run
-      #   is the first real result this job has ever produced. Do not record a fix here without the run id
-      #   of the run that shows it working.
+      #   finding. VERIFIED: run 36767447452, 30/09/2026, the first green run this job has ever had and the
+      #   first time the chain was audited to completion. The assertion step reported no editable left, and
+      #   pip-audit --strict found no advisory in the presidio and spacy chain. Do not record a fix here
+      #   without the run id of the run that shows it working.
       #   PT: instala a cadeia, remove a gente do ambiente, audita o resto.
       #   O q os runs provam, e so isso. Em 30/09/2026 o `gh run list` listou sete runs, o mais antigo de
       #   cinco dias, e TODOS OS SETE FALHARAM. Este job nunca ficou verde. As duas formas de flag falharam:
@@ -74,6 +75,8 @@ jobs:
       #   O conserto em b60be7d RODOU, como run 36366259538, e falhou, e foi registrado aqui como feito sem
       #   ninguem abrir o run. Esse e o defeito que deixou tres consertos de flag passarem: nao foi passo
       #   nao executado, foi resultado nao lido.
+      #   VERIFICADO: run 36767447452, 30/09/2026, o primeiro verde deste job e a primeira vez que a cadeia
+      #   foi auditada por inteiro. Nenhum editable sobrou e nenhum advisory na cadeia do presidio e spacy.
       #   Nao registre conserto aqui sem o run id do run que mostra funcionando.
       - run: pip uninstall -y tarja tarja-presidio
       # [AUDIT-UNINSTALL-ASSERT] EN: pip uninstall exits 0 and only warns when a name is not installed
