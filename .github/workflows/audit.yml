@@ -36,10 +36,58 @@ jobs:
       - uses: actions/setup-python@ece7cb06caefa5fff74198d8649806c4678c61a1  # v6
         with:
           python-version: "3.12"
-      - run: pip install pip-audit
+      # [AUDIT-PIN] EN: pinned, because an unpinned tool in a workflow changes behaviour with no commit of
+      #   ours. The major ceiling takes patches and stops a breaking 3.x. Which version each past run
+      #   actually installed was never read, so no claim about version drift is made here.
+      #   Note: a pin inside a `run:` line is invisible to Dependabot, so it goes stale silently. Review it
+      #   when the audit job is next touched.
+      #   PT: fixado, pq ferramenta sem pino muda de comportamento sem commit nosso. Qual versao cada run
+      #   passado instalou nunca foi lido, entao nao se afirma nada sobre deriva de versao aqui.
+      #   Pino dentro de `run:` o Dependabot nao ve, envelhece em silencio.
+      - run: pip install "pip-audit>=2.10.1,<3"
       - run: pip install -e ".[dev]" -e "packages/tarja-presidio[dev]"
-      # [AUDIT-EDITABLE] --skip-editable is not optional here: the editable installs above ARE tarja and
-      #   tarja-presidio, and pip-audit cannot look up a local development version on PyPI, which under
-      #   --strict is an error. We want the dependency chain audited, not ourselves. Fixed 28/09/2026 after
-      #   the job failed with "Dependency not found on PyPI: tarja (0.8.0.dev0)", which was not a finding.
-      - run: pip-audit --strict --skip-editable --progress-spinner off
+      # [AUDIT-UNINSTALL-SELF] EN: install the chain, then remove ourselves from the environment, and audit
+      #   what is left.
+      #   What the runs prove, and nothing more. `gh run list --workflow=audit.yml` on 30/09/2026 listed
+      #   seven runs, the oldest five days old, and ALL SEVEN FAILED. This job has never been green. Two
+      #   flag shapes both failed: without --skip-editable it failed looking us up on PyPI, because a local
+      #   development version has no advisories ("Dependency not found on PyPI: tarja", runs 36081252652
+      #   and 36217159352, before b60be7d); with --skip-editable and --strict together it failed because
+      #   --strict escalates any skipped dependency into a failure, so the pair contradicted itself and the
+      #   job could only ever fail ("tarja: distribution marked as editable", run 36758854040). The fix in
+      #   b60be7d DID run, as run 36366259538, and that run failed. It was recorded in this file as fixed
+      #   without anyone opening it. That is the defect that let three flag fixes ship: not an unexecuted
+      #   step, an unread result.
+      #   Uninstalling instead of skipping keeps both properties: nothing is skipped, so --strict still
+      #   means what it says, and we are not looked up on PyPI. --strict stays because it is what stops a
+      #   collection failure (PyPI unreachable, a private package) from being reported as "no known
+      #   vulnerabilities". A real advisory fails the job with or without it, since pip-audit exits 1 on any
+      #   finding. As of this commit the chain has never been audited to completion, so the first green run
+      #   is the first real result this job has ever produced. Do not record a fix here without the run id
+      #   of the run that shows it working.
+      #   PT: instala a cadeia, remove a gente do ambiente, audita o resto.
+      #   O q os runs provam, e so isso. Em 30/09/2026 o `gh run list` listou sete runs, o mais antigo de
+      #   cinco dias, e TODOS OS SETE FALHARAM. Este job nunca ficou verde. As duas formas de flag falharam:
+      #   sem --skip-editable falhava nos procurando no PyPI, pq versao local de desenvolvimento nao tem
+      #   advisory (runs 36081252652 e 36217159352); com --skip-editable junto do --strict falhava pq o
+      #   --strict transforma dependencia pulada em falha, entao o par se contradizia (run 36758854040).
+      #   O conserto em b60be7d RODOU, como run 36366259538, e falhou, e foi registrado aqui como feito sem
+      #   ninguem abrir o run. Esse e o defeito que deixou tres consertos de flag passarem: nao foi passo
+      #   nao executado, foi resultado nao lido.
+      #   Nao registre conserto aqui sem o run id do run que mostra funcionando.
+      - run: pip uninstall -y tarja tarja-presidio
+      # [AUDIT-UNINSTALL-ASSERT] EN: pip uninstall exits 0 and only warns when a name is not installed
+      #   ("Skipping X as it is not installed"), and its uninstall command has a single return, SUCCESS, so
+      #   it cannot be made to assert. A rename, a typo or a packaging change would therefore leave an
+      #   editable dist behind in silence, and the job would fail again with the 28/09 message, to be
+      #   re-diagnosed from scratch. --strict depends on "nothing editable is left" being true, so assert
+      #   that here rather than trusting the step above. The invariant is stated in pip's own vocabulary,
+      #   not as a list of names, so an entity nobody predicted is caught too.
+      #   PT: o pip uninstall sai 0 e so avisa qdo o nome nao esta instalado, e nao ha como faze-lo afirmar.
+      #   Renomear ou errar o nome deixaria um editable para tras em silencio. O --strict depende de "nao
+      #   sobrou nada editable", entao afirme isso aqui, em vocabulario do pip e nao por lista de nomes.
+      - shell: bash
+        run: |
+          pip list --editable --format=json \
+            | python -c "import json,sys; n=[d['name'] for d in json.load(sys.stdin)]; print('editable left:', n); sys.exit(1 if n else 0)"
+      - run: pip-audit --strict --progress-spinner off
