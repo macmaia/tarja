@@ -15,15 +15,19 @@ from __future__ import annotations
 import hashlib
 import hmac
 import re
-import warnings
 from collections.abc import Iterable
 
 from tarja.detect import Match, find
 from tarja.vault import key_id
 
 STRATEGIES = ("redact", "pseudonym", "pseudonym_stable")
-# [MASK-ALIAS] old name, still accepted, warns once per call site
-STRATEGY_ALIASES = {"hash": "pseudonym_stable"}
+# [MASK-ALIAS-GONE] EN: strategy="hash" was renamed in 0.5 and the deprecation warning said it went away in
+#   0.6. It was still accepted in 0.8.0, three releases past the announced date, which is why the deprecation
+#   notice on --report-min-score would have had no credit. Removed in 0.9.0, and the removed names stay
+#   listed here so the error message can name the replacement instead of just listing the valid options.
+#   PT: o strategy="hash" foi renomeado na 0.5 e o aviso prometia remocao na 0.6. Seguia aceito na 0.8.0,
+#   tres versoes depois do prazo. Removido na 0.9.0, e o nome antigo fica listado so p/ o erro ser util.
+REMOVED_STRATEGIES = {"hash": "pseudonym_stable"}
 # [MASK-SALT] refused, not warned about: a weak key in production is the whole attack. Length alone is not
 #   enough ("aaaaaaaaaaaaaaaa" is 16 bytes and worthless), so the distinct-byte count goes with it.
 MIN_SALT_BYTES = 16
@@ -89,13 +93,11 @@ def mask(
     senao roda find(text, **find_kwargs) aqui. strategy="pseudonym_stable" precisa de salt (chave secreta).
     """
     # [MASK-CHECK]
-    if strategy in STRATEGY_ALIASES:
-        warnings.warn(
-            f"strategy={strategy!r} was renamed to {STRATEGY_ALIASES[strategy]!r}, the old name goes away in 0.6",
-            DeprecationWarning,
-            stacklevel=2,
+    if strategy in REMOVED_STRATEGIES:
+        raise ValueError(
+            f"strategy={strategy!r} was renamed to {REMOVED_STRATEGIES[strategy]!r} in 0.5 and removed in "
+            f"0.9.0 / strategy={strategy!r} virou {REMOVED_STRATEGIES[strategy]!r} na 0.5 e saiu na 0.9.0"
         )
-        strategy = STRATEGY_ALIASES[strategy]
     if strategy not in STRATEGIES:
         raise ValueError(f"strategy must be one of / strategy tem q ser uma de: {STRATEGIES}")
     if strategy == "pseudonym_stable" and not salt:

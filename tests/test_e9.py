@@ -114,10 +114,16 @@ class TestCartao(unittest.TestCase):
         self.assertEqual(tarja.find("numero 4111 1111 1111 1112"), [])
 
 
+# [E9-KEYS] Vault(key=...) goes through check_salt since 0.9.0, so a test key has to be a real key
+KEY_K = bytes.fromhex("6b1f2e3d4c5b6a79880f1e2d3c4b5a69") * 2
+KEY_A = bytes.fromhex("11223344556677889900aabbccddeeff") * 2
+KEY_B = bytes.fromhex("ffeeddccbbaa00998877665544332211") * 2
+
+
 class TestVault(unittest.TestCase):
     # [TEST-E9-VAULT]
     def test_round_trip(self):
-        v = Vault(key=b"k" * 32)
+        v = Vault(key=KEY_K)
         text = f"cpf {VALID_CPF} e cartao 4111 1111 1111 1111"
         prot = v.protect(text)
         self.assertNotIn(VALID_CPF, prot)
@@ -126,7 +132,7 @@ class TestVault(unittest.TestCase):
         self.assertEqual(len(v), 2)
 
     def test_deterministic_per_key(self):
-        a, b = Vault(key=b"a" * 32), Vault(key=b"b" * 32)
+        a, b = Vault(key=KEY_A), Vault(key=KEY_B)
         self.assertEqual(a.token("BR_CPF", VALID_CPF), a.token("BR_CPF", "52998224725"))
         self.assertNotEqual(a.token("BR_CPF", VALID_CPF), b.token("BR_CPF", VALID_CPF))
 
@@ -152,12 +158,12 @@ class TestVaultHardening(unittest.TestCase):
         #   rotating the key breaks a join between an old document and a new one with no visible sign.
         from tarja.vault import key_id
 
-        a, b = Vault(key=b"a" * 32), Vault(key=b"b" * 32)
-        self.assertEqual(a.key_id, key_id(b"a" * 32))
+        a, b = Vault(key=KEY_A), Vault(key=KEY_B)
+        self.assertEqual(a.key_id, key_id(KEY_A))
         self.assertNotEqual(a.key_id, b.key_id)
         self.assertTrue(a.token("BR_CPF", VALID_CPF).startswith(f"<BR_CPF:{a.key_id}:"))
         # same key, same id, across instances
-        self.assertEqual(Vault(key=b"a" * 32).key_id, a.key_id)
+        self.assertEqual(Vault(key=KEY_A).key_id, a.key_id)
 
     def test_key_id_is_short_deterministic_and_sensitive(self):
         from tarja.vault import KEY_ID_HEX, key_id
@@ -170,7 +176,7 @@ class TestVaultHardening(unittest.TestCase):
     def test_alphanumeric_cnpj_is_stable_across_spellings(self):
         # [TEST-VAULT-CNPJ-ALNUM] the letters carry meaning here, and _canonical upper-cases. If that ever
         #   stops holding, the deterministic join silently splits one company into two.
-        v = Vault(key=b"k" * 32)
+        v = Vault(key=KEY_K)
         spellings = ["12.ABC.345/01DE-35", "12abc34501de35", "12 ABC 345 01DE 35", "12.abc.345/01DE-35"]
         tokens = {v.token("BR_CNPJ", x) for x in spellings}
         self.assertEqual(len(tokens), 1, tokens)

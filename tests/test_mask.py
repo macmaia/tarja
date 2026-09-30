@@ -33,11 +33,14 @@ class TestMask(unittest.TestCase):
             warnings.simplefilter("error")
             tarja.mask(T, strategy="pseudonym_stable", salt="7f3b9a1c5d2e8046")
 
-    def test_old_hash_name_still_works_and_warns(self):
-        # [TEST-MASK-ALIAS] "hash" is the pre-0.5 name, kept until 0.6
-        with self.assertWarns(DeprecationWarning):
-            out = tarja.mask(T, strategy="hash", salt="7f3b9a1c5d2e8046")
-        self.assertEqual(out, tarja.mask(T, strategy="pseudonym_stable", salt="7f3b9a1c5d2e8046"))
+    def test_old_hash_name_is_gone_and_the_error_names_the_replacement(self):
+        # [TEST-MASK-ALIAS] "hash" is the pre-0.5 name. The warning promised removal in 0.6 and it was still
+        #   accepted in 0.8.0, so it goes in 0.9.0. A bare "must be one of" would make the caller guess, so
+        #   the error names the replacement.
+        with self.assertRaises(ValueError) as cm:
+            tarja.mask(T, strategy="hash", salt="7f3b9a1c5d2e8046")
+        self.assertIn("pseudonym_stable", str(cm.exception))
+        self.assertIn("0.9.0", str(cm.exception))
 
     def test_pseudonym_stable_needs_salt_and_is_stable(self):
         # [TEST-MASK] no salt -> error, same key -> same output, other key -> different

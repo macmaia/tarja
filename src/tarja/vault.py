@@ -151,7 +151,19 @@ class Vault:
 
     def __init__(self, key: bytes | str | None = None, ttl: float | None = DEFAULT_TTL):
         # [VAULT-INIT]
-        self._key = key.encode() if isinstance(key, str) else (key or os.urandom(32))
+        # [VAULT-KEY-CHECK] EN: a supplied key goes through the same guard as mask(salt=...). The reversible
+        #   path is the one with the higher consequence, so it cannot be the one without the check. key=None
+        #   still means "generate a random one", which is not user-supplied and has nothing to validate.
+        #   key=b"" used to be falsy and silently became os.urandom(32), so a caller who lost their key got
+        #   working tokens that joined with nothing. The import is local because tarja.mask imports key_id
+        #   from here, so a module-level import would be circular.
+        #   PT: chave fornecida passa pela mesma guarda do mask(salt=...). key=None segue gerando aleatoria.
+        if key is None:
+            self._key = os.urandom(32)
+        else:
+            from tarja.mask import check_salt
+
+            self._key = check_salt(key)
         self._key_id = key_id(self._key)
         self._ttl = ttl
         self._map: dict[str, str] = {}
@@ -320,13 +332,19 @@ class Vault:
         return len(self._map)
 
 
-def residual(text: str, min_score: float = 0.0) -> list[Match]:
+def residual(text: str, min_score: float = 0.0, report_invalid: bool = False) -> list[Match]:
     """EN: Second-pass check: identifiers still present AFTER masking (should be empty). Tokens are ignored.
-    PT: Checagem de 2a passada: identificadores q sobraram DEPOIS de mascarar (devia ser vazio). Tokens ignorados.
+    report_invalid=True also returns ID-shaped values with a wrong check digit, which mask() leaves in place
+    unless told otherwise. Without it, a file whose only leftover is a mistyped CPF looks clean.
+    PT: Checagem de 2a passada: identificadores q sobraram DEPOIS de mascarar (devia ser vazio). Tokens
+    ignorados. report_invalid=True devolve tb valor c/ cara de ID e DV errado, q o mask() deixa passar: sem
+    isso, arquivo cujo unico resto e um CPF digitado errado parece limpo.
     """
     # [VAULT-RESIDUAL] blank tokens out (same length) so offsets still point at the original text. Lenient,
     #   because a token a model reflowed is still a token and must not be reported as leftover personal data.
     blanked = TOKEN_RE_LENIENT.sub(lambda m: " " * len(m.group(0)), text)
-    found = find(blanked, min_score=min_score)
-    return [Match(m.entity, m.start, m.end, text[m.start : m.end], m.score, m.tier, m.pattern, m.has_context)
-            for m in found]  # fmt: skip
+    # [VAULT-RESIDUAL-DV] EN: carry valid_dv through. It was dropped here, so any suspect that reached this
+    #   function came back labelled valid. PT: o valid_dv era descartado, e suspeito voltava como valido.
+    found = find(blanked, min_score=min_score, report_invalid=report_invalid)
+    return [Match(m.entity, m.start, m.end, text[m.start : m.end], m.score, m.tier, m.pattern, m.has_context,
+                  m.valid_dv) for m in found]  # fmt: skip

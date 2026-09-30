@@ -24,6 +24,15 @@ dependencies = ["tarja>=0.7", "presidio-analyzer>=2.2"]
 [project.optional-dependencies]
 dev = ["pytest>=8"]
 
+# [PKG-PYTEST] EN: this section exists so pytest stops walking up to the repo root and inheriting its
+#   addopts, which are "--cov=tarja --cov-fail-under=90". Measuring tarja's coverage from the plugin's
+#   21 tests reports 46% and fails, which says nothing about the plugin and hides its real result.
+#   PT: esta secao existe p/ o pytest parar de subir ate a raiz e herdar o addopts de cobertura do tarja.
+#   Medir a cobertura do tarja com os 21 testes do plugin da 46% e reprova, o q nao diz nada sobre o plugin.
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = "-q"
+
 [project.urls]
 Source = "https://github.com/macmaia/tarja"
 

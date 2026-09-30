@@ -30,17 +30,17 @@ EN: the notebook runs in the browser, nothing to install. PT: o caderno roda no 
 
 ## what it detects / o que ele detecta
 
-EN: 16 entity types, in four tiers. N1 has a check digit that can be verified, so a wrong digit is not
+EN: 17 entity types, in four tiers. N1 has a check digit that can be verified, so a wrong digit is not
 reported as a finding. N2 has a fixed format only. N3 needs a context word nearby. N4 would need named entity
 recognition and is deliberately not implemented.
-PT: 16 tipos, em 4 níveis. N1 tem DV conferível. N2 só tem formato. N3 exige palavra de contexto perto. N4
+PT: 17 tipos, em 4 níveis. N1 tem DV conferível. N2 só tem formato. N3 exige palavra de contexto perto. N4
 precisaria de NER e não está implementado de propósito.
 
 | EN: tier / PT: nível | EN: examples / PT: exemplos |
 |---|---|
-| N1 | CPF, CNPJ (incl. alphanumeric / alfanumérico), CNS, CNJ, NIS/PIS, RENAVAM, título de eleitor, CNH, cartão |
-| N2 | CEP, placa, telefone |
-| N3 | PIX, CIB, IPTU, matrícula de imóvel |
+| N1 | CPF, CNPJ (incl. alphanumeric / alfanumérico), CNS, CNJ, CNM, NIS/PIS, RENAVAM, título de eleitor, CNH, cartão, CIB |
+| N2 | PIX (EVP), placa, telefone |
+| N3 | CEP, IPTU, matrícula de imóvel |
 | N4 | EN: name, address, free-text clinical data. Not implemented / PT: nome, endereço, dado clínico. Não implementado |
 
 ## how well it works / o quanto funciona
@@ -67,10 +67,12 @@ false-positive rate on real Portuguese legal prose, measured rather than asserte
 PT: nos 5.902 parágrafos de lei federal usados como fundo do semi-real, q não têm dado pessoal, o tarja
 produziu **um** achado espúrio (um BR_MATRICULA_IMOVEL, entidade sem dígito verificador).
 
-EN: by difficulty, D0 1.000, D1 0.957, D2 0.963, D3 0.997, D4 0.266, D5 0.895. D4 is optical-character-
+EN: by difficulty, **partial-match** F1: D0 1.000, D1 0.957, D2 0.963, D3 0.997, D4 0.266, D5 0.895. Exact
+match is stricter and D4 sits at 0.210 there, so always say which mode a figure comes from. D4 is optical-character-
 recognition noise (O for 0, l for 1) and is the weak spot. It is published rather than hidden because a
 benchmark that only shows wins measures nothing.
-PT: por dificuldade, D4 é ruído de OCR e é o ponto fraco. Está publicado em vez de escondido, porque
+PT: por dificuldade, os números acima são de **casamento parcial**. No casamento exato, mais estrito, o D4
+fica em 0,210, então diga sempre de que modo vem a figura. O D4 é ruído de OCR e é o ponto fraco. Está publicado em vez de escondido, porque
 benchmark q só mostra vitória não mede nada.
 
 ## what it does not do / o que ele não faz

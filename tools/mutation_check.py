@@ -175,6 +175,29 @@ M = [
     ("short salt accepted", "src/tarja/mask.py", "if len(key) < MIN_SALT_BYTES:", "if False:"),
     ("low-entropy salt accepted", "src/tarja/mask.py", "if len(set(key)) < MIN_SALT_DISTINCT:", "if False:"),
     ("placeholder salt accepted", "src/tarja/mask.py", "for w in WEAK_SALTS)", "for w in ())"),
+    # [MUT-B4] board 4, 29/09/2026: the three mutants above cover mask(salt=), and the Vault was the path
+    #   without the guard, so it needs its own mutant or the fix can be reverted silently.
+    ("vault key not checked", "src/tarja/vault.py", "self._key = check_salt(key)", "self._key = key"),
+    ("gate follows the report filter", "src/tarja/cli.py", "return 1 if found else 0", "return 1 if report else 0"),
+    # [MUT-B4-MASK] the old mutant targeted a guard that no longer exists: the threshold flags moved to the
+    #   scan subparser, so mask cannot receive one. The mutant that matters now is handing them back to mask.
+    (
+        "threshold flags offered on mask",
+        "src/tarja/cli.py",
+        'mk = sub.add_parser("mask", parents=[common]',
+        'mk = sub.add_parser("mask", parents=[common, threshold]',
+    ),
+    ("score flag accepts nan", "src/tarja/cli.py", "if value != value or not (0.0 <= value <= 1.0):", "if False:"),
+    ("max-mb accepts inf", "src/tarja/cli.py", "if value != value or not (0.0 < value <= 1024.0):", "if False:"),
+    ("scan suspect warning removed", "src/tarja/cli.py", "if not args.suspect and n_suspect:", "if False:"),
+    ("residual drops valid_dv", "src/tarja/vault.py", "m.valid_dv) for m in found]", "True) for m in found]"),
+    (
+        "residual ignores report_invalid",
+        "src/tarja/vault.py",
+        "find(blanked, min_score=min_score, report_invalid=report_invalid)",
+        "find(blanked, min_score=min_score)",
+    ),
+    ("mask suspect warning removed", "src/tarja/cli.py", "if not args.suspect and n_suspect:", "if False:"),
     (
         # [MUTATION-SALT-PT] the guard used to be English only, in a library for Portuguese text
         "weak salt list forgets Portuguese",
@@ -238,8 +261,11 @@ def main() -> int:
     for name, rel, original, mutated in M:
         with tempfile.TemporaryDirectory() as tmp:
             # copy only what the tests need
-            for d in ("src", "tests", "spec", "bench"):
+            # [MUT-COPY] examples/ goes too: tests/test_board4.py reads it, and without it three tests
+            #   skipped silently on every mutation run, which is a test that reports success by not running.
+            for d in ("src", "tests", "spec", "bench", "examples"):
                 shutil.copytree(os.path.join(R, d), os.path.join(tmp, d), ignore=shutil.ignore_patterns("*.jsonl"))
+            shutil.copy(os.path.join(R, "README.md"), os.path.join(tmp, "README.md"))
             path = os.path.join(tmp, rel)
             with open(path, encoding="utf-8") as fh:
                 code = fh.read()

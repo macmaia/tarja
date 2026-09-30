@@ -4,13 +4,13 @@
 
 Built for anyone shipping software in Brazil, incl. foreign companies adapting to the LGPD (Brazil's GDPR). Plenty of CPF/CNPJ validators exist already (brutils, validate-docbr). What's missing is finding the ID *inside* text, scoring it with Portuguese context, and covering what paid DLPs skip: alphanumeric CNPJ (Jul/2026), CNS (health card), CNJ case numbers.
 
-Status: alpha (`0.8.0`). The API can still change before 1.0.
+Status: alpha (`0.9.0`). The API can still change before 1.0.
 
 **PT** · Detecta, valida e mascara identificadores pessoais brasileiros em texto livre, c/ contexto em português e dígito verificador. Cobre o dado antes de mandar p/ LLM, log, BI, onde for.
 
 Serve p/ qq um q desenvolve p/ o Brasil, inclusive empresa gringa se adaptando à LGPD. Validador de CPF/CNPJ já tem de monte (brutils, validate-docbr). O q falta é achar o doc *dentro* do texto, dar score c/ contexto em pt-BR e cobrir o q os DLPs pagos ignoram: CNPJ alfanumérico (jul/2026), CNS, nº de processo CNJ.
 
-Status: alfa (`0.8.0`). A API ainda pode mudar antes da 1.0.
+Status: alfa (`0.9.0`). A API ainda pode mudar antes da 1.0.
 
 ## limits / limites
 
@@ -217,12 +217,31 @@ tarja scan contrato.txt --format table
 tarja scan contrato.txt --show-values    # EN: raw values, careful / PT: valor cru, cuidado
 tarja scan contrato.txt --suspect        # EN: also wrong check digits / PT: tb DV errado
 tarja mask contrato.txt > limpo.txt
+tarja mask contrato.txt --suspect     # EN: mask wrong check digits too / PT: mascara tb DV errado
 tarja mask contrato.txt --strategy pseudonym_stable --salt "$TARJA_SALT"
-cat log.txt | tarja scan - --entities BR_CPF,BR_CNPJ --min-score 0.9
+cat log.txt | tarja scan - --entities BR_CPF,BR_CNPJ   # EN: gate / PT: portão
+tarja scan contrato.txt --report-min-score 0.9         # EN: report filter only, NOT a gate
+                                                       # PT: só filtra o relatório, NÃO é portão
 ```
 
 EN: exit code 1 when something is found, 0 when clean, 2 on error. Handy in CI. Input is capped at 50 MB (`--max-mb`).
 PT: exit code 1 qdo acha algo, 0 qdo limpo, 2 em erro. Útil em CI. Entrada limitada a 50 MB (`--max-mb`).
+
+EN: the exit code is decided over every VALID candidate found, BEFORE `--report-min-score` is applied.
+Raising the threshold hides rows from the report and never turns exit 1 into exit 0, so
+`tarja scan f.txt && send.sh` stays fail-closed. Two things do narrow the gate, and both say so out loud.
+Narrowing `--entities` narrows it, because an entity nobody searches for cannot be found. And a value with
+the right shape and a WRONG check digit (a suspect, usually a typo or OCR noise on a real identifier) is not
+counted unless you pass `--suspect`, because an invoice or protocol number in CPF shape is a suspect too and
+would block every pipeline. Without `--suspect`, `scan` and `mask` both write a counted warning to stderr
+saying how many they ignored. `mask` has no threshold flag at all, because it has no report to filter.
+PT: o exit code é decidido sobre todo candidato VÁLIDO achado, ANTES do `--report-min-score`. Subir o limiar
+esconde linhas do relatório e nunca vira exit 0, então `tarja scan f.txt && send.sh` continua falhando
+fechado. Duas coisas reduzem o portão, e as duas avisam. Reduzir o `--entities` reduz, pq entidade não
+procurada não é achada. E valor c/ a forma certa e DV ERRADO (suspeito, normalmente erro de digitação ou
+ruído de OCR num identificador real) não conta sem `--suspect`, pq nota fiscal e protocolo em forma de CPF
+também são suspeitos e travariam todo pipeline. Sem `--suspect`, o `scan` e o `mask` escrevem no stderr
+quantos ignoraram. O `mask` não tem flag de limiar, pq não tem relatório para filtrar.
 
 ## entities / entidades
 
@@ -274,17 +293,25 @@ PT: fonte oficial de cada regra, e se foi conferida: `docs/SOURCES.md`. Plugin d
 ## stability / estabilidade
 
 EN: **0.x means the API can change.** Until 1.0, a public name may be renamed or removed in a minor release.
-Two have already moved: `mask(strategy="hash")` became `pseudonym_stable` in 0.6, and the Presidio plugin was
+Two have already moved: `mask(strategy="hash")` became `pseudonym_stable` in 0.5 and was removed in 0.9.0,
+and the Presidio plugin was
 published as `tarja-presidio`. What you can rely on before 1.0:
 
-- a rename ships with the old name still working and a `DeprecationWarning` for at least one minor release;
-- a change to what is detected is announced in `docs/decisions.md` with the benchmark numbers before and after;
-- pin an exact version (`tarja==0.8.0`) if you need none of this to reach you.
+- a rename ships with the old name still working for at least one minor release. In the library the old
+  name raises a `DeprecationWarning`. On the command line it writes to stderr instead, because Python hides
+  `DeprecationWarning` by default and a warning nobody receives is not a warning.
+- a removal date announced in a warning is kept. `strategy="hash"` was announced for 0.6 and only went in
+  0.9.0, which is why `--min-score` now carries a date this project intends to honour.
+- a change to what is detected is announced in `docs/decisions.md` with the benchmark numbers before and
+  after, and every release has an entry in `CHANGELOG.md`.
+- pin an exact version if you need none of this to reach you, but read `CHANGELOG.md` first: 0.9.0 closes
+  five defects where a threshold or a wrong check digit let data through in silence.
 
 EN: after 1.0 the usual rule applies: no breaking change outside a major release.
 
 PT: **0.x quer dizer q a API pode mudar.** Até a 1.0, nome público pode ser renomeado ou sumir numa versão
-menor. Dois já se moveram: `mask(strategy="hash")` virou `pseudonym_stable` na 0.6, e o plugin do Presidio saiu
+menor. Dois já se moveram: `mask(strategy="hash")` virou `pseudonym_stable` na 0.5 e saiu de vez na 0.9.0, e
+o plugin do Presidio saiu
 como `tarja-presidio`. O q dá p/ contar antes da 1.0:
 
 - renomeação sai c/ o nome antigo ainda funcionando e `DeprecationWarning` por pelo menos 1 versão menor;
