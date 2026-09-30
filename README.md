@@ -314,9 +314,15 @@ menor. Dois já se moveram: `mask(strategy="hash")` virou `pseudonym_stable` na 
 o plugin do Presidio saiu
 como `tarja-presidio`. O q dá p/ contar antes da 1.0:
 
-- renomeação sai c/ o nome antigo ainda funcionando e `DeprecationWarning` por pelo menos 1 versão menor;
-- mudança no q é detectado é anunciada no `docs/decisions.md` c/ o número do benchmark antes e depois;
-- fixe a versão exata (`tarja==0.8.0`) se você não quiser nada disso chegando até você.
+- renomeação sai c/ o nome antigo ainda funcionando por pelo menos 1 versão menor. Na biblioteca o nome
+  antigo levanta `DeprecationWarning`. Na linha de comando o aviso vai p/ o stderr, pq o Python esconde
+  `DeprecationWarning` por omissão e aviso q ninguém recebe não é aviso.
+- data de remoção anunciada num aviso é cumprida. O `strategy="hash"` foi anunciado p/ a 0.6 e só saiu na
+  0.9.0, e é por isso q o `--min-score` agora carrega uma data q este projeto pretende honrar.
+- mudança no q é detectado é anunciada no `docs/decisions.md` c/ o número do benchmark antes e depois, e
+  toda versão tem entrada no `CHANGELOG.md`.
+- fixe a versão exata se você não quiser nada disso chegando até você, mas leia o `CHANGELOG.md` antes: a
+  0.9.0 fecha cinco defeitos em q um limiar ou um DV errado deixavam dado passar em silêncio.
 
 PT: dps da 1.0 vale a regra de sempre: nada q quebra fora de versão maior.
 
