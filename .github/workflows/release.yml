@@ -2,9 +2,9 @@
 # [RELEASE] EN: publish to PyPI when a tag like v0.1.0 is pushed (E1.6). Uses PyPI Trusted Publishing, no token stored.
 # [RELEASE] PT: publica no PyPI qdo sobe uma tag tipo v0.1.0 (E1.6). Usa Trusted Publishing do PyPI, sem token guardado.
 #
-# EN: one-off setup (manual, see PENDING.md): register this workflow as a trusted publisher on PyPI
+# EN: one-off setup, done manually once: register this workflow as a trusted publisher on PyPI
 #     (project "tarja", owner macmaia, repo tarja, workflow release.yml, environment pypi)
-# PT: setup 1x (manual, ver PENDING.md): cadastrar este workflow como trusted publisher no PyPI
+# PT: setup 1x, feito a mao uma vez: cadastrar este workflow como trusted publisher no PyPI
 #     (projeto "tarja", owner macmaia, repo tarja, workflow release.yml, environment pypi)
 #
 # EN: to release: bump __version__ in src/tarja/__init__.py, commit, then: git tag v0.1.0 && git push origin v0.1.0
@@ -75,18 +75,40 @@ jobs:
           echo "package=$PKG tag=$TAG"
           test "$PKG" = "$TAG"
       - run: python -m build
-      # [RELEASE-SBOM] EN: a bill of materials for the release, in CycloneDX. The core has no runtime
-      #   dependency, so this file is short and slightly funny to look at, and that is the point: a vendor
-      #   review asks for an SBOM and the honest answer here is a very small one. It is uploaded as its own
-      #   artifact rather than into dist/, because anything in dist/ goes to PyPI.
-      #   PT: lista de materiais do release, em CycloneDX. O nucleo nao tem dependencia de execucao, entao o
-      #   arquivo e curto, e e justamente esse o argumento. Vai como artefato separado, pq dist/ sobe p/ o PyPI.
+      # [RELEASE-SBOM] EN: a bill of materials for the RELEASED WHEEL, in CycloneDX. The core has no runtime
+      #   dependency, so this file is short, and that is the point: a vendor review asks for an SBOM and the
+      #   honest answer here is a very small one. Uploaded as its own artifact rather than into dist/,
+      #   because anything in dist/ goes to PyPI.
+      #   PT: lista de materiais da RODA PUBLICADA, em CycloneDX. O nucleo nao tem dependencia de execucao,
+      #   entao o arquivo e curto, e e justamente esse o argumento.
+      #
+      # [RELEASE-SBOM-ENV] EN: it has to be a throwaway venv, not this job's environment. `cyclonedx-py
+      #   environment` describes whatever python it is pointed at, and the runner's python by then holds
+      #   build, cyclonedx-bom and their trees. Pointed at the CI python it produced a 51-component SBOM
+      #   listing pytest, ruff, mypy, hypothesis, lxml and coverage, none of which a user installs, published
+      #   under a comment claiming the file was nearly empty. Install the built wheel with --no-deps into an
+      #   empty venv and describe THAT.
+      #   PT: tem de ser um venv descartavel, nao o ambiente deste job. Apontado p/ o python do CI, o comando
+      #   descrevia pytest, ruff, mypy e companhia, 51 componentes, sob um comentario dizendo que o arquivo
+      #   era quase vazio.
       - run: pip install cyclonedx-bom
-      # [RELEASE-SBOM-STDOUT] EN: cyclonedx-py writes to stdout by default and the name of the
-      #   output flag has changed across major versions, so we redirect instead of naming a flag.
-      #   PT: o cyclonedx-py escreve na saida padrao por omissao e o nome da opcao de arquivo
-      #   mudou entre versoes, entao redirecionamos em vez de nomear uma opcao.
-      - run: cyclonedx-py environment --output-format JSON > sbom.cdx.json
+      - name: sbom of the published wheel / sbom da roda publicada
+        run: |
+          python -m venv --without-pip /tmp/sbomenv
+          pip install --python /tmp/sbomenv/bin/python --no-deps dist/*.whl
+          cyclonedx-py environment /tmp/sbomenv/bin/python --output-format JSON > sbom.cdx.json
+      # [RELEASE-SBOM-ASSERT] EN: the guard that would have caught the 51 components. The core ships itself
+      #   and nothing else, so anything above 2 means the SBOM is describing the wrong environment again.
+      #   PT: a guarda q teria pegado os 51 componentes.
+      - name: sbom is not inflated / sbom nao esta inflado
+        run: |
+          python - <<'PYSBOM'
+          import json
+          components = json.load(open("sbom.cdx.json")).get("components", [])
+          names = sorted(c.get("name", "?") for c in components)
+          print(len(components), "component(s):", names)
+          assert len(components) <= 2, f"SBOM describes {len(components)} components, see [RELEASE-SBOM-ENV]"
+          PYSBOM
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         with:
           name: sbom

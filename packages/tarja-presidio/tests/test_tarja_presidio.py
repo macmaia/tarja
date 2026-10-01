@@ -102,3 +102,53 @@ class _NoNlp:
     def process_batch(self, texts, language, batch_size=1, n_process=1, **kwargs):
         for t in texts:
             yield t, self.process_text(t, language)
+
+
+# [T-TIER] EN: regression tests for the confidence mapping. Before 0.1.1, validate_result returned True for
+#   any entity whose validator passed and that needed no context, so BR_PLACA and BR_TELEFONE reached
+#   Presidio at 1.0, the confidence reserved for a verified check digit. The first test below fails against
+#   0.1.0. PT: antes da 0.1.1, placa e telefone chegavam ao Presidio com 1.0, que e a confianca de DV
+#   conferido. O 1o teste abaixo reprova na 0.1.0.
+
+CHECK_DIGIT_TIER = "N1"
+
+# [T-TIER-SAMPLES] values matching each format-only pattern. Generated, never real.
+FORMAT_ONLY_SAMPLES = {
+    "BR_PLACA": ["ABC1D23", "ABC-1234"],
+    "BR_TELEFONE": ["(11) 98765-4321", "11987654321"],
+    "BR_PIX_EVP": ["a1b2c3d4-e5f6-4a7b-8c9d-0e1f2a3b4c5d"],
+    "BR_CEP": ["01310-100"],
+    "BR_IPTU": ["123.456.7890-1"],
+    "BR_MATRICULA_IMOVEL": ["123.456"],
+}
+
+
+@pytest.mark.parametrize("entity_id", sorted(FORMAT_ONLY_SAMPLES))
+def test_format_only_entity_never_reaches_full_confidence(entity_id):
+    # [T-TIER-FORMAT] a format match is not a verification, whatever the regex says
+    assert ENTITIES[entity_id].tier != CHECK_DIGIT_TIER, f"{entity_id} changed tier, revisit this test"
+    rec = tarja_presidio.TarjaRecognizer(entity_id)
+    for sample in FORMAT_ONLY_SAMPLES[entity_id]:
+        assert rec.validate_result(sample) is not True, (
+            f"{entity_id} is tier {ENTITIES[entity_id].tier}, its validator checks a format, so {sample!r} "
+            f"must not reach Presidio at confidence 1.0"
+        )
+
+
+def test_check_digit_entity_still_reaches_full_confidence():
+    # [T-TIER-N1] the other half: the fix must not mute the entities that earned 1.0
+    rec = tarja_presidio.TarjaRecognizer("BR_CPF")
+    assert rec.validate_result("529.982.247-25") is True
+    assert rec.validate_result("529.982.247-24") is False
+
+
+def test_the_two_entities_that_changed_are_named():
+    # [T-TIER-NAMED] pinned so the next reader sees exactly what moved in 0.1.1
+    moved = sorted(e for e, s in ENTITIES.items() if s.tier != CHECK_DIGIT_TIER and not s.context_required)
+    assert moved == ["BR_PLACA", "BR_TELEFONE"]
+
+
+def test_every_format_only_entity_has_a_sample_here():
+    # [T-TIER-COVER] adding an N2/N3 entity without a sample would make the sweep above silently narrower
+    expected = sorted(e for e, s in ENTITIES.items() if s.tier != CHECK_DIGIT_TIER)
+    assert sorted(FORMAT_ONLY_SAMPLES) == expected

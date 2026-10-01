@@ -15,8 +15,8 @@ R = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 # [MUTATION-LIST] (name, file, original snippet, mutated snippet)
 M = [
-    # [MUTATION-BOARD3] the four defects the third board confirmed on 24/09/2026
-    # [MUTATION-BOARD3-B] decisions B3 and B4, implemented the same day
+    # [MUTATION-R3] the four defects the 3rd code review confirmed on 24/09/2026
+    # [MUTATION-R3-B] the two decisions from that review, implemented the same day
     (
         "reveal goes back to strict matching",
         "src/tarja/vault.py",
@@ -163,7 +163,7 @@ M = [
     ("cli shows values", "src/tarja/cli.py", "include_value=args.show_values", "include_value=True"),
     ("cli exit code", "src/tarja/cli.py", "return 1 if found else 0", "return 0"),
     ("registry drift", "src/tarja/entities.py", "score_without_context=0.85,", "score_without_context=0.84,"),
-    # [MUTATION-E9] code added after E2 (board round 2, 19/09/2026)
+    # [MUTATION-E9] code added after E2 (2nd code review, 19/09/2026)
     ("vault collision check off", "src/tarja/vault.py", "if self._canon.get(tok, canon) != canon:", "if False:"),
     ("vault tokenises suspects", "src/tarja/vault.py", "if not m.valid_dv or m.end > edge:", "if m.end > edge:"),
     ("vault overlap guard off", "src/tarja/vault.py", "if not m.valid_dv or m.end > edge:", "if not m.valid_dv:"),
@@ -175,7 +175,7 @@ M = [
     ("short salt accepted", "src/tarja/mask.py", "if len(key) < MIN_SALT_BYTES:", "if False:"),
     ("low-entropy salt accepted", "src/tarja/mask.py", "if len(set(key)) < MIN_SALT_DISTINCT:", "if False:"),
     ("placeholder salt accepted", "src/tarja/mask.py", "for w in WEAK_SALTS)", "for w in ())"),
-    # [MUT-B4] board 4, 29/09/2026: the three mutants above cover mask(salt=), and the Vault was the path
+    # [MUT-R4] 4th code review, 29/09/2026: the three mutants above cover mask(salt=), and the Vault was the path
     #   without the guard, so it needs its own mutant or the fix can be reverted silently.
     ("vault key not checked", "src/tarja/vault.py", "self._key = check_salt(key)", "self._key = key"),
     ("gate follows the report filter", "src/tarja/cli.py", "return 1 if found else 0", "return 1 if report else 0"),
@@ -261,7 +261,7 @@ def main() -> int:
     for name, rel, original, mutated in M:
         with tempfile.TemporaryDirectory() as tmp:
             # copy only what the tests need
-            # [MUT-COPY] examples/ goes too: tests/test_board4.py reads it, and without it three tests
+            # [MUT-COPY] examples/ goes too: tests/test_revisao4.py reads it, and without it three tests
             #   skipped silently on every mutation run, which is a test that reports success by not running.
             for d in ("src", "tests", "spec", "bench", "examples"):
                 shutil.copytree(os.path.join(R, d), os.path.join(tmp, d), ignore=shutil.ignore_patterns("*.jsonl"))

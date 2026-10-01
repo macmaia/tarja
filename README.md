@@ -52,7 +52,7 @@ EN: the licence is Apache 2.0 and does not restrict fields of use, on purpose. A
 
 EN: these are design decisions, not gaps waiting to be filled. Pull requests adding them will be declined.
 
-- **No collector.** tarja reads text you already have. It does not crawl, does not call any official gazette, registry or open-data API, and ships no mass-collection script. The research pipeline used for our own gazette study lives outside this repository and is not published.
+- **No collector.** tarja reads text you already have. It does not crawl, does not call any official gazette, registry or open-data API, and ships no mass-collection script. One narrow exception, named so nobody has to find it: `bench/fetch_public_texts.py` downloads 14 compiled federal laws from planalto.gov.br, paced at two seconds apart, to build the benchmark's background text. That is the benchmark, not the library, and the library never calls it. The research pipeline used for our own gazette study lives outside this repository and is not published.
 - **No enrichment.** A detected identifier is never resolved into a name, an address or a record. tarja never queries the Receita Federal, any government service or any external database. It has zero runtime dependencies, so it cannot phone anywhere.
 - **No value output by default.** `tarja scan` prints entity type, offsets and score, and hides the values. Printing them takes an explicit `--show-values`, so nothing leaks into a terminal history, a log or a CI artefact by accident.
 - **No stored mapping.** `Vault` keeps its map in memory for one process and it dies with the object (see limits above).
@@ -67,7 +67,7 @@ PT: a licença é Apache 2.0 e não restringe campo de uso, de propósito. Cláu
 
 PT: são decisões de desenho, não lacunas esperando preenchimento. PR q adicionar isso será recusado.
 
-- **Sem coletor.** O tarja lê texto q vc já tem. Não rastreia, não chama API de diário oficial, cartório ou dados abertos, e não traz script de coleta em massa. O pipeline da nossa própria pesquisa c/ diários fica fora deste repositório e não é publicado.
+- **Sem coletor.** O tarja lê texto q vc já tem. Não rastreia, não chama API de diário oficial, cartório ou dados abertos, e não traz script de coleta em massa. Uma exceção estreita, dita p/ ninguém ter q descobrir: o `bench/fetch_public_texts.py` baixa 14 leis federais compiladas do planalto.gov.br, c/ 2 s de pausa, p/ montar o texto de fundo do benchmark. Isso é o benchmark, não a biblioteca, e a biblioteca nunca chama ele. O pipeline da nossa própria pesquisa c/ diários fica fora deste repositório e não é publicado.
 - **Sem enriquecimento.** Identificador detectado nunca vira nome, endereço ou cadastro. O tarja não consulta a Receita, nenhum serviço público e nenhuma base externa. Ele tem zero dependência em tempo de execução, então não tem p/ onde ligar.
 - **Sem mostrar valor por padrão.** O `tarja scan` imprime tipo, posição e score, e esconde os valores. P/ imprimir, exige `--show-values`, então nada vaza p/ histórico de terminal, log ou artefato de CI por descuido.
 - **Sem mapa guardado.** O `Vault` mantém o mapa em memória num processo só e ele morre c/ o objeto (ver limites acima).
@@ -213,8 +213,8 @@ pela troca de memória do sistema, então quem diz q apaga em Python puro está 
 honesto é encurtar a vida da chave, não fingir q apagou), e não tem chave por tenant nem auditoria de quem
 reidentificou, q dependem de identidade e gravação durável e são o Tarja Gateway pago.
 
-EN: `pseudonym_stable` is pseudonymisation, not anonymisation under the LGPD. The `salt` is not a salt in the classic sense, it is **a secret key**: there are only 10⁹ valid CPFs, so whoever holds it hashes all of them in minutes and reverses every label. It was called `hash` until 0.5, and the name was wrong: nothing here is one way. tarja **refuses** a key under 16 bytes, one with fewer than 8 distinct bytes, and known placeholders like `changeme`. Generate one with `python -c "import secrets; print(secrets.token_hex(32))"`, keep it in a secrets manager, never in code, env files committed to git, or logs, and rotate it if it leaks. If you need something that cannot be reversed, use `redact`. If you need reversal under your control, use `Vault`.
-PT: `pseudonym_stable` é pseudonimização, não anonimização na LGPD. O `salt` não é salt no sentido clássico, é **chave secreta**: só existem 10⁹ CPFs válidos, então quem tem a chave calcula todos em minutos e reverte qq rótulo. Até a 0.5 a estratégia se chamava `hash`, e o nome estava errado: nada aqui é de mão única. O tarja **recusa** chave c/ menos de 16 bytes, c/ menos de 8 bytes distintos e placeholder conhecido tipo `changeme`. Gere c/ `secrets.token_hex(32)`, guarde num cofre de segredos, nunca em código, `.env` commitado ou log, e troque se vazar. Se precisa do q não volta, use `redact`. Se precisa reverter sob seu controle, use o `Vault`.
+EN: `pseudonym_stable` is pseudonymisation, not anonymisation under the LGPD. The `salt` is not a salt in the classic sense, it is **a secret key**: there are only 10⁹ valid CPFs, so whoever holds it hashes all of them in minutes and reverses every label. It was called `hash` until 0.5, and the name was wrong: nothing here is one way. tarja **refuses** a key under 16 bytes, one with fewer than 8 distinct bytes, and one that begins with a known placeholder word in English or Portuguese. The placeholder test is a prefix test, which is why `changeme_please_123` is refused even though it is long enough, and also why a strong key that happens to start with one of those words is refused too. Generate the key and the question does not come up. Generate one with `python -c "import secrets; print(secrets.token_hex(32))"`, keep it in a secrets manager, never in code, env files committed to git, or logs, and rotate it if it leaks. If you need something that cannot be reversed, use `redact`. If you need reversal under your control, use `Vault`.
+PT: `pseudonym_stable` é pseudonimização, não anonimização na LGPD. O `salt` não é salt no sentido clássico, é **chave secreta**: só existem 10⁹ CPFs válidos, então quem tem a chave calcula todos em minutos e reverte qq rótulo. Até a 0.5 a estratégia se chamava `hash`, e o nome estava errado: nada aqui é de mão única. O tarja **recusa** chave c/ menos de 16 bytes, c/ menos de 8 bytes distintos e chave q **começa** c/ palavra de placeholder conhecida, em inglês ou português. O teste é de prefixo, e é por isso q `changeme_please_123` é recusado mesmo sendo longo, e tb por isso q chave forte q por acaso comece c/ uma dessas palavras é recusada. Gere a chave e a questão não aparece. Gere c/ `secrets.token_hex(32)`, guarde num cofre de segredos, nunca em código, `.env` commitado ou log, e troque se vazar. Se precisa do q não volta, use `redact`. Se precisa reverter sob seu controle, use o `Vault`.
 
 ### command line / linha de comando
 
@@ -315,8 +315,9 @@ published as `tarja-presidio`. What you can rely on before 1.0:
   raises `ValueError` naming its replacement.
 - a removal announced in a warning is kept. `strategy="hash"` was announced for 0.6 and only went in
   0.9.0, which is why `--min-score` now carries the version (1.0.0) this project intends to honour.
-- a change to what is detected is announced in `CHANGELOG.md` with the benchmark numbers before and after,
-  and every release has an entry there.
+- a change to what `find()` detects is announced in `CHANGELOG.md` with the benchmark numbers before and
+  after. A release that only changes the command line's report or exit code says so and gives the figures
+  it re-measured, which is what 0.9.0 does.
 - pin an exact version if you need none of this to reach you, but read `CHANGELOG.md` first: 0.9.0 closes
   five defects where a threshold or a wrong check digit let data through in silence.
 
@@ -334,8 +335,9 @@ como `tarja-presidio`. O q dá p/ contar antes da 1.0:
   levanta `ValueError` dizendo o substituto.
 - remoção anunciada num aviso é cumprida. O `strategy="hash"` foi anunciado p/ a 0.6 e só saiu na 0.9.0, e
   é por isso q o `--min-score` agora carrega a versão (1.0.0) q este projeto pretende honrar.
-- mudança no q é detectado é anunciada no `CHANGELOG.md` c/ o número do benchmark antes e depois, e toda
-  versão tem entrada lá.
+- mudança no q o `find()` detecta é anunciada no `CHANGELOG.md` c/ o número do benchmark antes e depois.
+  Versão q só muda relatório ou exit code da linha de comando diz isso e dá o número q remediu, q é o q a
+  0.9.0 faz.
 - fixe a versão exata se você não quiser nada disso chegando até você, mas leia o `CHANGELOG.md` antes: a
   0.9.0 fecha cinco defeitos em q um limiar ou um DV errado deixavam dado passar em silêncio.
 

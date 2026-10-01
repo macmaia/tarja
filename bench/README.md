@@ -10,7 +10,7 @@
 |---|---|---|---|
 | `synthetic_controlled` | 5,000 | D0, D1 | `bench/generate.py`, seed 42 |
 | `synthetic_adversarial` | 3,000 | D2 to D5 | `bench/generate.py`, seed 42 |
-| `semireal` | EN: you choose / PT: vc escolhe | D0 | `bench/semireal.py` + EN: public texts / PT: textos públicos |
+| `semireal` | 2,000 (600 dev / 1,400 test) | D0 | `bench/semireal.py` + EN: public texts / PT: textos públicos |
 | `real` (restricted / restrito) | 1,000 | - | EN: annotated by hand, never published / PT: anotado à mão, nunca publicado |
 
 Split: 30% dev / 70% test.
@@ -51,7 +51,7 @@ python -m bench.evaluate --gold bench/data/v0.3/synthetic_adversarial.test.jsonl
 | `google-sdp` | `pip install google-cloud-dlp`, `GOOGLE_CLOUD_PROJECT`, `gcloud auth application-default login` |
 | `macie` | EN: upload each doc as `s3://bucket/bench/<id>.txt`, run a Macie classification job, export findings JSON, `MACIE_FINDINGS_JSON=...` / PT: sobe cada doc como `<id>.txt`, roda job de classificação, exporta os findings, `MACIE_FINDINGS_JSON=...` |
 | `purview` | EN: run the docs through a DLP policy test, export CSV `doc_id,sit_name,start,end`, `PURVIEW_EXPORT_CSV=...` / PT: idem |
-| `spacy` | `pip install spacy && python -m spacy download pt_core_news_lg` |
+| `spacy` | `pip install spacy && python -m spacy download pt_core_news_lg` (EN: `_lg` here on purpose, the baseline should be spaCy at its best. The docs and examples use `_md`, which is smaller and enough to show the mechanism / PT: `_lg` aqui de propósito, a linha de base usa o spaCy no melhor dele. A doc e os exemplos usam `_md`, menor e suficiente p/ mostrar o mecanismo) |
 | `llm` | `--provider anthropic|openai --model <id>`, `ANTHROPIC_API_KEY` / `OPENAI_API_KEY` |
 
 EN: LLM protocol: prompt versioned in `bench/prompts/llm_v1.txt`, temperature 0, every answer cached in `bench/cache/` (re-runs are free and identical). Cloud runs: the date is stored in the result; write down the cost.
@@ -63,6 +63,12 @@ EN: span-level P/R/F1, three modes (`exact`, `partial`, `untyped`), per entity a
 PT: P/R/F1 por span, 3 modos (`exact`, `partial`, `untyped`), por entidade e por dificuldade, IC 95% por bootstrap de documentos (1.000 reamostras).
 
 ## first numbers (tarja 0.5.0.dev0, test split) / primeiros números
+
+EN: **historical, kept for the record.** The current figures are further down, in the run table and the
+semi-real paragraph: controlled 0.978, adversarial 0.825, semi-real 0.9768, on bench data v0.3. Read those
+if you want today's numbers.
+PT: **histórico, mantido p/ registro.** Os números de hoje estão mais abaixo: controlado 0.978, adversarial
+0.825, semi-real 0.9768, na v0.3.
 
 | subset | exact F1 | partial F1 | EN: weakest level / PT: nível mais fraco |
 |---|---|---|---|
@@ -84,7 +90,7 @@ PT: toda vez q o tarja rodou no TESTE, e por quê. Ajuste só no dev. Reportar e
 | 2026-09-19 | 0.5.0.dev0 | v0.1 + reference validators | gold regenerated (look-alikes stricter) / gold regerado | 0.950 | 0.797 |
 | 2026-09-19 | 0.5.0.dev0 | same / igual | after fixes tuned on dev (spaced separators, matricula adjacency) / dps das correções ajustadas no dev | 0.980 | 0.822 |
 | 2026-09-21 | 0.6.0.dev0 | **v0.2** | BR_CARTAO now needs a registered issuer prefix, not Luhn alone, which changed the D3 look-alikes. Generation also moved to one random stream per document, so a future validator change moves only the documents that use that entity / BR_CARTAO passou a exigir prefixo de emissor, e a geração passou a ter um fluxo aleatório por documento | 0.978 | 0.825 |
-| 2026-09-28 | 0.8.0 | **v0.3** | semi-real insertion now draws from three to five wordings per entity instead of one canonical phrase, so the subset stops measuring detection under a single formulation. The four synthetic files are byte-identical to v0.2 (same seed), and their numbers are unchanged. Semi-real files now carry a sha256 in the manifest, which v0.2 omitted / a inserção semi-real passou a sortear entre 3 e 5 redações por entidade em vez de 1 frase canônica. Os 4 arquivos sintéticos são idênticos byte a byte aos da v0.2 e seus números não mudaram. Os arquivos semi-reais passaram a ter sha256 no manifest, q a v0.2 omitia | 0.978 | 0.825 |
+| 2026-09-28 | 0.8.0 | **v0.3** | semi-real insertion now draws from three to four wordings per entity instead of one canonical phrase, so the subset stops measuring detection under a single formulation. The four synthetic files are byte-identical to v0.2 (same seed), and their numbers are unchanged. Semi-real files now carry a sha256 in the manifest, which v0.2 omitted / a inserção semi-real passou a sortear entre 3 e 4 redações por entidade em vez de 1 frase canônica. Os 4 arquivos sintéticos são idênticos byte a byte aos da v0.2 e seus números não mudaram. Os arquivos semi-reais passaram a ter sha256 no manifest, q a v0.2 omitia | 0.978 | 0.825 |
 
 EN: the bench data changed twice before any release, so `BENCH_VERSION` stayed 0.1.0 up to 20/09. The card
 validator change on 21/09 altered the generated corpus, so the version moved to **0.2.0**. Nothing had been
@@ -95,11 +101,18 @@ validador de cartão em 21/09 alterou o corpus gerado, entao a versão foi p/ **
 Zenodo ainda, e por isso saiu barato. A partir do congelamento no Zenodo, qq mudança sobe a versão e ganha uma
 linha aqui antes de o número ser citado em qq lugar.
 
-EN: **semi-real, v0.3, measured 30/09/2026.** Exact F1 **0.9768** (precision 0.9869, recall 0.9669, tp 2715,
+EN: **semi-real, v0.3.** Exact F1 **0.9768** (precision 0.9869, recall 0.9669, tp 2715,
 fp 36, fn 93, CI95 0.9722 to 0.9816) over 1,400 test documents. This replaces the 0.990 quoted below, which
-is the v0.2 number: v0.3 rewrote semi-real insertion to draw from three to five wordings per entity, so the
+is the v0.2 number: v0.3 rewrote semi-real insertion to draw from three to four wordings per entity, so the
 subset got harder on purpose and the drop is the intended effect, not a regression. The weakest entity here
 is `BR_CNH` at recall 0.6035 (102 tp, 67 fn), which is an open finding and not a rounding artefact.
+
+EN: provenance of that figure, because a number with no run behind it is a rumour. It comes from the v0.3
+run of 28/09/2026 on tarja 0.8.0, which is what `bench/results/tarja__semireal.test.scores.json` records. It
+was re-measured on 0.9.0 on 01/10/2026 and every digit was identical, which is expected: 0.9.0 changed the
+command line's report and exit code, not what `find()` returns at no threshold.
+PT: procedência do número: rodada v0.3 de 28/09/2026 na 0.8.0, remedida na 0.9.0 em 01/10/2026 c/ resultado
+idêntico.
 
 EN: the v0.1 to v0.2 move is within resampling noise, which is the reassuring answer: controlled 0.980 to
 0.978, adversarial 0.822 to 0.825, semi-real 0.990 unchanged (v0.2 figures). Per difficulty, partial F1 went D0 1.000,

@@ -42,7 +42,7 @@ TOKEN_RE = re.compile(r"<([A-Z][A-Z0-9_]+):(?:([0-9a-f]{" + str(KEY_ID_HEX) + r"
 #   Whitespace and letter case carry no information here, so accepting them costs no entropy: the twelve or
 #   twenty-four hex digits still have to match exactly, and an attacker is no closer to forging one than
 #   before. Anything beyond this (a missing digit, a transposition, an edit distance) WOULD lower the bar,
-#   so reveal() does not do it. Decision B3 of the third board, 24/09/2026, recorded in PENDING.md.
+#   so reveal() does not do it. Decided in the 3rd code review, 24/09/2026.
 _HEX = r"[0-9a-fA-F]"
 TOKEN_RE_LENIENT = re.compile(
     r"<\s*([A-Z][A-Z0-9_]+)\s*:\s*"
@@ -138,7 +138,8 @@ class Vault:
     ONE PROCESS ONLY. The map from token to value lives in this object's memory and goes nowhere else. Two
     replicas behind a load balancer do not reveal each other's tokens, so protect() and reveal() for one
     document have to land on the same process. This is deliberate, not an oversight: durable storage for that
-    map needs identity and an audit trail to be safe, which is the paid Tarja Gateway. See AD-02 in PENDING.md.
+    map needs identity and an audit trail to be safe, which is the paid Tarja Gateway. The limits table in
+    README.md says what else this deliberately does not do.
 
     PT: key=None gera chave aleatoria (token muda a cada execucao, de proposito). ttl é o tempo de vida padrao de
     cada escopo do protect(), em segundos, None p/ nao expirar.
@@ -146,7 +147,8 @@ class Vault:
     UM PROCESSO SO. O mapa de token p/ valor vive na memoria deste objeto e nao vai p/ lugar nenhum. Duas
     replicas atras de um balanceador nao revelam o token uma da outra, entao protect() e reveal() do mesmo
     documento tem q cair no mesmo processo. E de proposito: guardar esse mapa de forma duravel exige identidade
-    e trilha de auditoria p/ ser seguro, o q e o Gateway pago. Ver AD-02 no PENDING.md.
+    e trilha de auditoria p/ ser seguro, o q e o Gateway pago. A tabela de limites do README.md diz o q mais
+    isto nao faz de proposito.
     """
 
     def __init__(self, key: bytes | str | None = None, ttl: float | None = DEFAULT_TTL):

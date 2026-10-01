@@ -52,6 +52,27 @@ PT:
 - no PR, conta como vc testou a acurácia
 - nomes no código em inglês UK (`normalise`, não `normalize`)
 
+## release / publicação
+
+EN: releasing is not `git tag` on its own.
+
+1. bump `__version__` in `src/tarja/__init__.py` (and in `packages/tarja-presidio/src/tarja_presidio/__init__.py` for the plugin)
+2. write the `CHANGELOG.md` entry. A release that changes what `find()` detects carries the benchmark numbers before and after. One that only changes the command line says so and gives the figures it re-measured
+3. `python -m pytest -q && python -m ruff check . && python -m ruff format --check . && python -m mypy src`
+4. `python tools/mutation_check.py`. A surviving mutant blocks the release
+5. commit, push, and **open the resulting CI and audit runs**. Both have to be green on the commit you are about to tag
+6. `git tag v0.9.0 && git push origin v0.9.0`. The release workflow re-checks the audit run itself and refuses to build if it is not green on `main`
+7. `gh release create <tag>` with the changelog entry as the notes
+
+EN: **step 5 is the one that gets skipped, and it is the one that matters.** The audit job ran red for five
+days across eight consecutive runs, with three stacked flag fixes, and nothing was wrong with the fixes: the
+runs were never opened. A fix recorded without the run id that proves it is not a fix, it is a hypothesis.
+When you write down a root cause, write the run id next to it.
+
+PT: publicar não é só `git tag`. O passo 5 é o que se esquece e é o que importa: o job de audit ficou
+vermelho cinco dias em oito rodadas seguidas, com três correções empilhadas, e o problema não era nenhuma
+delas. Ninguém abriu as rodadas. Correção registrada sem o id da rodada que prova não é correção, é hipótese.
+
 ## conduct / conduta
 
 EN: see `CODE_OF_CONDUCT.md`. PT: ver `CODE_OF_CONDUCT.md`.

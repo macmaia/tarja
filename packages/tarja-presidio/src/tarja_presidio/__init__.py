@@ -2,12 +2,22 @@
 # [PRESIDIO-BR] builds one Presidio PatternRecognizer per tarja entity, straight from tarja's registry,
 #   so regex, context words and check digits never drift from the core library.
 #
-# How scores map to Presidio's model (validate_result):
-#   - check digit wrong             -> False  (Presidio drops the result)
-#   - check digit ok                -> True   (Presidio sets score to 1.0, like its own credit-card recognizer)
-#   - entity needs context in tarja -> None   (keeps the LOW base score; Presidio's context enhancer raises it
-#                                              when a context word is near. Filter with score_threshold.)
-#   - entity with no check digit    -> None   (base score = tarja's "without context" score)
+# How scores map to Presidio's model (validate_result). Presidio has three answers and no way to express
+# "0.85", so the mapping has to decide what counts as verified:
+#   - validator says no                 -> False  (Presidio drops the result)
+#   - tier N1 and no context needed     -> True   (score 1.0, like Presidio's own credit-card recognizer)
+#   - tier N1 but context needed        -> None   (LOW base score; Presidio's context enhancer raises it when
+#                                                  a context word is near. Filter with score_threshold.)
+#   - tier N2 or N3                     -> None   (base score = tarja's "without context" score)
+#   - no validator at all               -> None   (only reachable for a third-party register_entity() entity)
+#
+# [PRESIDIO-BR-TIER] EN: the tier is what decides True, not merely "the validator passed". Only N1 validates
+#   a check digit. For N2 and N3 the validator checks a FORMAT or a RANGE, so returning True there told
+#   Presidio "I verified this" about a seven-character plate. Until 0.1.1 that is what happened, and BR_PLACA
+#   and BR_TELEFONE arrived at confidence 1.0, equal to a CPF whose check digit was actually verified, which
+#   put them out of reach of the score_threshold this README tells people to filter with.
+#   PT: o tier e quem decide o True, nao o "validator passou". So N1 confere digito verificador. Em N2 e N3 o
+#   validator confere FORMATO, entao devolver True dizia ao Presidio "eu verifiquei" sobre uma placa.
 # author/autoria: https://github.com/macmaia
 
 from __future__ import annotations
@@ -19,10 +29,14 @@ from presidio_analyzer import Pattern, PatternRecognizer
 from tarja.entities import ENTITIES, EntitySpec
 
 __all__ = ["TarjaRecognizer", "get_recognizers", "register"]
-__version__ = "0.1.0"
+__version__ = "0.1.1"
 
 # [PRESIDIO-BR-SCORE] base score for entities that require context in tarja
 REQUIRED_CONTEXT_BASE_SCORE = 0.1
+
+# [PRESIDIO-BR-TIER-CONST] the one tarja tier whose validator checks a check digit. Everything else checks a
+#   format or a range, which is not verification and must not reach Presidio as confidence 1.0.
+CHECK_DIGIT_TIER = "N1"
 
 
 def _class_name(entity_id: str) -> str:
@@ -53,12 +67,16 @@ class TarjaRecognizer(PatternRecognizer):
 
     def validate_result(self, pattern_text: str) -> bool | None:
         """EN: See the module header for the True/False/None mapping. PT: Ver o cabecalho p/ o mapa True/False/None."""
-        # [PRESIDIO-BR-VALIDATE]
+        # [PRESIDIO-BR-VALIDATE] see [PRESIDIO-BR-TIER] in the header for why the tier gates the True
         spec = self._spec
         if spec.validator is None:
+            # a built-in always has one; an entity added through tarja's register_entity() may not
             return None
         if not spec.validator(pattern_text):
             return False
+        if spec.tier != CHECK_DIGIT_TIER:
+            # format or range checked, not a check digit: keep the base score and let the threshold work
+            return None
         return None if spec.context_required else True
 
 

@@ -5,8 +5,8 @@ PT: p/ conferência do semi-real e o subconjunto real restrito (1.000 trechos de
 
 ## what to mark / o q marcar
 
-EN: every occurrence of the 16 entity types in `docs/SOURCES.md`, using the codes (`BR_CPF`...). Mark the identifier only, not the label ("CPF") nor surrounding punctuation.
-PT: toda ocorrência dos 16 tipos em `docs/SOURCES.md`, c/ os códigos (`BR_CPF`...). Marque só o identificador, não o rótulo ("CPF") nem pontuação em volta.
+EN: every occurrence of the 17 entity types in `docs/SOURCES.md`, using the codes (`BR_CPF`...). Mark the identifier only, not the label ("CPF") nor surrounding punctuation.
+PT: toda ocorrência dos 17 tipos de identificador em `docs/SOURCES.md`, c/ os códigos (`BR_CPF`...). Marque só o identificador, não o rótulo ("CPF") nem pontuação em volta.
 
 | case / caso | rule / regra |
 |---|---|

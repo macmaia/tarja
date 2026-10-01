@@ -80,6 +80,25 @@ jobs:
           echo "package=$PKG tag=$TAG"
           test "$PKG" = "$TAG"
       - run: python -m build packages/tarja-presidio --outdir dist/
+      # [RELEASE-SBOM] EN: the plugin DOES have a runtime chain (tarja plus presidio-analyzer plus whatever
+      #   Presidio pulls), so unlike the core this SBOM is long, and a long one is the correct result. No size
+      #   assertion here for that reason: the core asserts <= 2 because the core ships alone.
+      #   Installed WITH its dependencies, into a throwaway venv, so the file describes what a user receives
+      #   and not what this job happens to have installed. See [RELEASE-SBOM-ENV] in release.yml.
+      #   PT: o plugin TEM cadeia de execucao, entao aqui o SBOM e longo e isso e o certo. Sem asserção de
+      #   tamanho, de proposito. Instalado COM as dependencias num venv descartavel.
+      - run: pip install cyclonedx-bom
+      - name: sbom of the published wheel / sbom da roda publicada
+        run: |
+          python -m venv /tmp/sbomenv
+          /tmp/sbomenv/bin/python -m pip install --quiet --upgrade pip
+          /tmp/sbomenv/bin/python -m pip install --quiet dist/*.whl
+          cyclonedx-py environment /tmp/sbomenv/bin/python --output-format JSON > sbom.cdx.json
+          python -c "import json;c=json.load(open('sbom.cdx.json')).get('components',[]);print(len(c),'componentes')"
+      - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
+        with:
+          name: sbom
+          path: sbom.cdx.json
       - uses: actions/upload-artifact@043fb46d1a93c77aae656e7c1c64a875d1fc6a0a  # v7.0.1
         with:
           name: dist-tarja-presidio

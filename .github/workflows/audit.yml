@@ -9,6 +9,12 @@
 #
 # EN: the core has no runtime dependency, so this looks at the dev and adapter chain, which is where the risk
 #   is. Advisories are published without any commit of ours, hence the weekly run and not only on push.
+#
+# [AUDIT-SCOPE] EN: the `bench` extra is NOT audited here. It pulls spacy and five cloud and LLM clients, it
+#   is installed by nobody who only uses the library, and auditing it would make this job the slowest and
+#   flakiest thing in the repo for no gain in what a user receives. If you install `.[bench]`, audit it
+#   yourself. Saying so beats a scope the header quietly overstates.
+#   PT: o extra `bench` NAO e auditado aqui. Quem so usa a biblioteca nao instala ele.
 
 name: audit
 

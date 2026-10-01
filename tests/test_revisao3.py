@@ -1,5 +1,5 @@
-# tests/test_board3.py
-# [TEST-BOARD3] the four defects the third review board confirmed on 24/09/2026, one test class each.
+# tests/test_revisao3.py
+# [TEST-R3] the four defects the 3rd code review confirmed on 24/09/2026, one test class each.
 #   Each test fails against the code as it was before the fix, which is the only reason to write it.
 
 from __future__ import annotations

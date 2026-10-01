@@ -59,15 +59,16 @@ PT: medido no tarja-bench v0.3, gerado por regra e publicado junto. F1 de casame
 | EN: semi-real / PT: semi-real | 0.977 |
 
 EN: the semi-real subset fell from 0.990 in v0.2 to 0.977 in v0.3. Nothing in the library changed: v0.2 inserted
-each identifier with one canonical phrase per type, and v0.3 draws from three to five wordings per type,
+each identifier with one canonical phrase per type, and v0.3 draws from three or four wordings per type,
 including abbreviated, lower-case and colon-free forms. The lower number is the comparable one.
 PT: o semi-real caiu de 0,990 na v0.2 p/ 0,977 na v0.3. Nada mudou na biblioteca: a v0.2 inseria c/ uma frase
-canônica por tipo e a v0.3 sorteia entre 3 e 5 redações, incluindo abreviada, em caixa baixa e sem dois pontos.
+canônica por tipo e a v0.3 sorteia entre 3 e 4 redações, incluindo abreviada, em caixa baixa e sem dois pontos.
 O número menor é o comparável.
 
 EN: on the 5,902 paragraphs of Brazilian federal law used as the semi-real background, which carry no personal
-data, tarja produced **one** spurious finding (a BR_MATRICULA_IMOVEL, an entity with no check digit). That is a
-false-positive rate on real Portuguese legal prose, measured rather than asserted.
+data, tarja produced **one** spurious finding (a BR_MATRICULA_IMOVEL, an entity with no check digit). One event is
+not a rate: it is a cost measurement on legal prose, and it says nothing about administrative text, where N1
+and N2 entities are common. Of those paragraphs, 2,000 were drawn as background.
 PT: nos 5.902 parágrafos de lei federal usados como fundo do semi-real, q não têm dado pessoal, o tarja
 produziu **um** achado espúrio (um BR_MATRICULA_IMOVEL, entidade sem dígito verificador).
 
@@ -78,6 +79,35 @@ benchmark that only shows wins measures nothing.
 PT: por dificuldade, os números acima são de **casamento parcial**. No casamento exato, mais estrito, o D4
 fica em 0,210, então diga sempre de que modo vem a figura. O D4 é ruído de OCR e é o ponto fraco. Está publicado em vez de escondido, porque
 benchmark q só mostra vitória não mede nada.
+
+## the command line, and why the exit code matters / a linha de comando, e por que o exit code importa
+
+EN: `tarja scan` returns **1** when it finds something, **0** when the file is clean and **2** on error, so
+the fail-closed idiom is a plain `&&`:
+
+```bash
+tarja scan report.txt && ./send.sh
+```
+
+EN: the exit code is decided over every valid candidate found, **before** any threshold is applied. Raising
+`--report-min-score` hides rows from what you read and never turns exit 1 into exit 0. Until 0.8.0 that was
+not true: the same filtered list fed the report and the exit code, so a display option could decide whether
+data left the machine. That is one of five defects 0.9.0 closed, and it is the reason to upgrade.
+
+EN: a wrong check digit is a separate question. By default `scan` drops those values and `mask` leaves them
+in cleartext, both now counting them on stderr so the silence is gone. `--suspect` includes them in the
+report and masks them. A wrong check digit means "not a valid identifier", not "not personal data": it is as
+often a typo in a real one. On a last gate before text leaves a perimeter, pass `--suspect`, or
+`report_invalid=True` in the library, and decide yourself.
+
+PT: o `tarja scan` devolve **1** quando acha, **0** quando o arquivo está limpo e **2** em erro, então o
+idioma que falha fechado é um `&&` simples. O exit code é decidido sobre todo candidato válido achado,
+**antes** de qualquer limiar: subir o `--report-min-score` esconde linha do relatório e nunca transforma
+exit 1 em exit 0. Até a 0.8.0 isso não era verdade, e opção de exibição decidia se o dado saía da máquina.
+
+PT: DV errado é outra questão. Por omissão o `scan` descarta esses valores e o `mask` deixa eles em claro,
+os dois agora contando no stderr. O `--suspect` inclui e mascara. DV errado quer dizer "não é identificador
+válido", não "não é dado pessoal": é, com a mesma frequência, erro de digitação num real.
 
 ## what it does not do / o que ele não faz
 

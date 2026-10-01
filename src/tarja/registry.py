@@ -40,7 +40,7 @@ class UnsafeRegexError(ValueError):
 #   lenient token regex in vault.py, (?:[0-9a-fA-F]\s*){24}, is safe because hex and whitespace cannot match
 #   the same character, so there is nothing to backtrack over. This check cannot see that, and deciding it in
 #   general is the same undecidable problem. That is what unsafe_regex=True is for.
-#   Decision B4 of the third board, 24/09/2026, recorded in PENDING.md.
+#   Decided in the 3rd code review, 24/09/2026.
 _OPEN_QUANT = ("*", "+")
 
 

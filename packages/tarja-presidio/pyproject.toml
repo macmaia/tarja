@@ -53,7 +53,7 @@ addopts = "-q"
 Homepage = "https://macmaia.github.io/tarja/"
 Source = "https://github.com/macmaia/tarja"
 Issues = "https://github.com/macmaia/tarja/issues"
-Changelog = "https://github.com/macmaia/tarja/blob/main/CHANGELOG.md"
+Changelog = "https://github.com/macmaia/tarja/blob/main/packages/tarja-presidio/CHANGELOG.md"
 
 [tool.hatch.version]
 path = "src/tarja_presidio/__init__.py"

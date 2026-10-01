@@ -1,6 +1,6 @@
-# tests/test_board4.py
-# [B4] fourth review board, 29/09/2026. A key-provider proposal and a canary proposal were both rejected,
-#   and the board found these defects while reviewing them. Every test here is a regression test for one.
+# tests/test_revisao4.py
+# [R4] 4th code review, 29/09/2026. A key-provider proposal and a canary proposal were both rejected, and
+#   these defects turned up while reviewing them. Every test here is a regression test for one.
 
 import io
 import pathlib
@@ -245,7 +245,7 @@ class TestThresholdOnlyRemoves(unittest.TestCase):
     the threshold can never REVEAL a match. It holds while the lowest N1 score (0.80) stays above the highest
     N2 score (0.70), so a tier winner never scores below an overlapping loser. Scope: the 17 built-in
     entities. An entity registered through register_entity() with an N1 score below an overlapping N2 score
-    breaks the property and this test does NOT catch it, which is open as B4-g in PENDING.md.
+    breaks the property and this test does NOT catch it. The real fix is a check inside register_entity().
     """
 
     TEXT = (

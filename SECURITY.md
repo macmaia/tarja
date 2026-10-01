@@ -72,9 +72,21 @@ PT: não abre issue pública. Manda e-mail p/ tarja@micah6ai.com, usa o "Report 
 EN:
 - acknowledgement within 3 working days
 - first assessment within 10 working days
-- real data exposed: removed immediately, history rewritten if needed, data subject notified where applicable (LGPD art. 48)
+- real data exposed: removed immediately, history rewritten if needed, data subject notified where
+  applicable (LGPD art. 48)
+- **one exception, stated rather than discovered later.** A benchmark release deposited on Zenodo has a DOI
+  and cannot be altered or withdrawn there. If a published benchmark file is found to contain a real
+  identifier, the repository copy is removed, a new benchmark version is cut, and the Zenodo record gets a
+  public erratum pointing at it. The old record stays reachable, because that is what a DOI means. The
+  benchmark's identifiers are generated, so this is a stated limit and not a known incident.
 
 PT:
 - confirmo recebimento em até 3 dias úteis
 - 1ª avaliação em até 10 dias úteis
-- dado real exposto: remove na hora, reescreve histórico se precisar e avisa o titular qdo for o caso (LGPD art. 48)
+- dado real exposto: remove na hora, reescreve histórico se precisar e avisa o titular qdo for o caso
+  (LGPD art. 48)
+- **uma exceção, dita agora e não descoberta depois.** Versão do benchmark depositada no Zenodo tem DOI e
+  não pode ser alterada nem retirada de lá. Se um arquivo publicado do benchmark contiver identificador
+  real, a cópia do repositório sai, uma versão nova do benchmark é cortada e o registro do Zenodo recebe
+  errata pública apontando p/ ela. O registro antigo continua acessível, pq é isso q um DOI significa. Os
+  identificadores do benchmark são gerados, então isto é limite declarado e não incidente conhecido.

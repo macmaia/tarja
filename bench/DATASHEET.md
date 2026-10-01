@@ -37,7 +37,7 @@ PT: estrutura segue Gebru et al., "Datasheets for Datasets" (CACM 64(12), 2021, 
 ### 3. Collection process
 
 - Synthetic subsets: `python -m bench.generate --seed 42`. Output is byte-identical across runs, and `manifest.json` stores the sha256 of each file, checked by the test suite.
-- Semi-real subset: `bench/fetch_public_texts.py` downloads compiled federal laws from planalto.gov.br. `bench/semireal.py` keeps paragraphs where tarja finds nothing, then inserts 1 to 3 generated identifiers at randomly drawn sentence boundaries. From v0.3 each entity type has three to five wordings (54 in all), differing in the context word, in case, in punctuation, and in whether the identifier sits in a short sentence of its own or inside a longer clause. Source URL and retrieval date are stored per document.
+- Semi-real subset: `bench/fetch_public_texts.py` downloads compiled federal laws from planalto.gov.br. `bench/semireal.py` keeps paragraphs where tarja finds nothing, then inserts 1 to 3 generated identifiers at randomly drawn sentence boundaries. From v0.3 each entity type has three or four wordings (54 in all), differing in the context word, in case, in punctuation, and in whether the identifier sits in a short sentence of its own or inside a longer clause. Source URL and retrieval date are stored per document.
 - No crowdworkers. No human subjects. No ethics review needed (no personal data, no participants).
 
 ### 4. Preprocessing and labelling
@@ -63,7 +63,8 @@ PT: estrutura segue Gebru et al., "Datasheets for Datasets" (CACM 64(12), 2021, 
 
 - Maintainer: tarja@micah6ai.com. Issues on GitHub.
 - Versioning: semantic. Any change to templates, generators or seeds bumps the version and the manifest. Old versions stay on Zenodo.
-- Errata are listed in `bench/README.md`.
+- Corrections and dataset changes are logged in the run table in `bench/README.md`, one row each, before
+  the number is quoted anywhere.
 
 ---
 
@@ -92,7 +93,7 @@ PT: estrutura segue Gebru et al., "Datasheets for Datasets" (CACM 64(12), 2021, 
 ### 3. Coleta
 
 - Sintéticos: `python -m bench.generate --seed 42`. Saída idêntica byte a byte, e o `manifest.json` guarda o sha256 de cada arquivo, conferido pelos testes.
-- Semi-real: `bench/fetch_public_texts.py` baixa leis federais compiladas do planalto.gov.br. `bench/semireal.py` fica só c/ parágrafos onde o tarja não acha nada e insere 1 a 3 identificadores gerados em fronteira de frase sorteada. Da v0.3 em diante cada tipo tem de 3 a 5 redações (54 no total), q variam na palavra de contexto, na caixa, na pontuação e em estar em oração curta própria ou dentro de outra. URL e data de coleta ficam em cada documento.
+- Semi-real: `bench/fetch_public_texts.py` baixa leis federais compiladas do planalto.gov.br. `bench/semireal.py` fica só c/ parágrafos onde o tarja não acha nada e insere 1 a 3 identificadores gerados em fronteira de frase sorteada. Da v0.3 em diante cada tipo tem 3 ou 4 redações (54 no total), q variam na palavra de contexto, na caixa, na pontuação e em estar em oração curta própria ou dentro de outra. URL e data de coleta ficam em cada documento.
 - Sem crowdworkers, sem participantes humanos, sem necessidade de comitê de ética.
 
 ### 4. Pré-processamento e rotulagem
@@ -118,4 +119,5 @@ PT: estrutura segue Gebru et al., "Datasheets for Datasets" (CACM 64(12), 2021, 
 
 - Contato: tarja@micah6ai.com. Issues no GitHub.
 - Versão semântica. Qualquer mudança em template, gerador ou seed sobe a versão e o manifest. Versões antigas ficam no Zenodo.
-- Erratas em `bench/README.md`.
+- Correção e mudança de dado ficam na tabela de rodadas do `bench/README.md`, 1 linha cada, antes de o
+  número ser citado em qualquer lugar.

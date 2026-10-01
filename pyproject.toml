@@ -17,13 +17,22 @@ license-files = ["LICENSE", "NOTICE"]
 authors = [{ name = "Maria Alice Maia", email = "tarja@micah6ai.com" }]  # https://github.com/macmaia
 keywords = ["pii", "lgpd", "gdpr", "brazil", "cpf", "cnpj", "anonymisation", "presidio", "dlp"]
 classifiers = [
-  "Development Status :: 3 - Alpha",
+  "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
   "Natural Language :: English",
   "Natural Language :: Portuguese (Brazilian)",
+  "Operating System :: OS Independent",
   "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
   "Topic :: Security",
   "Topic :: Text Processing",
+  "Topic :: Text Processing :: Linguistic",
+  # py.typed ships in the wheel, so say so where installers look
+  "Typing :: Typed",
 ]
 # EN: core has zero dependencies, on purpose / PT: core sem dependencia, de proposito
 dependencies = []
@@ -38,8 +47,10 @@ bench = ["presidio-analyzer>=2.2", "azure-ai-textanalytics>=5.3", "google-cloud-
 tarja = "tarja.cli:main"
 
 [project.urls]
+Homepage = "https://macmaia.github.io/tarja/"
 Source = "https://github.com/macmaia/tarja"
 Issues = "https://github.com/macmaia/tarja/issues"
+Changelog = "https://github.com/macmaia/tarja/blob/main/CHANGELOG.md"
 
 [tool.hatch.version]
 path = "src/tarja/__init__.py"
