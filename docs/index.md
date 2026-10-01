@@ -30,6 +30,7 @@ EN: the notebook runs in the browser, nothing to install. PT: o caderno roda no 
 
 - [Presidio em português: por que o padrão não pega CPF](presidio-em-portugues.html)
 - [tarja + Presidio, reference / referência](presidio.html)
+- [pseudonymisation and the key / pseudonimização e a chave](pseudonimizacao.html)
 - [sources for every rule / fontes de cada regra](SOURCES.html)
 
 ## what it detects / o que ele detecta

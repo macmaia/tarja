@@ -92,6 +92,7 @@ class TestContagemDeEntidades(unittest.TestCase):
     """EN: no file may state an entity count that disagrees with the registry."""
 
     def test_every_stated_entity_count_matches_the_registry(self):
+        # guarantee: G-DOC-COUNT
         # [COER-CONTAGEM] EN: this is the test that docs/presidio.md needed. The 16 -> 17 fix was applied by
         #   hand to one line of that file and missed another line in the same file, twice. A sweep cannot
         #   miss a line.
@@ -124,6 +125,7 @@ class TestSemVazamentoInterno(unittest.TestCase):
     """EN: nothing that ships may send the reader to an internal file."""
 
     def test_no_shipped_file_points_at_internal_notes(self):
+        # guarantee: G-DOC-INTERNAL
         # [COER-INTERNO] EN: help(tarja.Vault) used to tell every PyPI user to read PENDING.md, which is not
         #   in the repo, not in the wheel, and not meant for them.
         leaks = []
@@ -141,6 +143,7 @@ class TestInvarianteDeTier(unittest.TestCase):
     plugin's own tests need Presidio installed and this property belongs to the registry anyway."""
 
     def test_only_n1_entities_carry_a_check_digit(self):
+        # guarantee: G-PRESIDIO-TIER
         # [COER-TIER] EN: tarja-presidio turns "validator passed" into Presidio confidence 1.0. That is only
         #   honest for an entity whose validator checks a check digit, which is exactly tier N1. For N2 and
         #   N3 the validator checks a format or a range, so a plate matching ABC1D23 must NOT reach Presidio

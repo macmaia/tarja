@@ -1,0 +1,163 @@
+# spec/guarantees.yaml
+# EN: what each feature must BLOCK, written before and independently of the code that blocks it.
+#   This file exists because the suite reached 97.97% line coverage and 68/68 killed mutants while five
+#   fail-open defects shipped. Coverage asks "did this line run". Mutation asks "would a test notice if this
+#   line changed". Neither asks "should this line exist at all", so a requirement nobody implemented has no
+#   line to cover and no mutant to kill, and both metrics stay green over the hole.
+#   PT: o q cada recurso precisa BARRAR, escrito antes e independentemente do codigo q barra.
+#
+# Each entry:
+#   id        stable anchor. A test claims a guarantee by naming this id in a comment or docstring.
+#   blocks    one sentence, in the imperative: what must not be allowed to happen.
+#   violated  the concrete thing that would prove the guarantee broken.
+#   status    enforced = at least one test names this id, and the linkage test requires it.
+#             open     = acknowledged gap. The linkage test pins the open list, so adding one is deliberate.
+#
+# [GUAR] file anchor. Enforced by tests/test_guarantees.py.
+
+guarantees:
+
+  # ---------------- command line ----------------
+  - id: G-EXIT-THRESHOLD
+    blocks: A score threshold must never turn exit 1 into exit 0.
+    violated: scan on a file with one finding returns 0 under any --report-min-score value.
+    status: enforced
+
+  - id: G-EXIT-DISPLAY
+    blocks: A display option must never change whether data is allowed to leave the machine.
+    violated: the same file gives a different exit code with and without --show-values or --entities casing.
+    status: enforced
+
+  - id: G-EXIT-ERROR
+    blocks: An unreadable, oversized or malformed input must never be reported as clean.
+    violated: a missing file, a directory, an oversized file or an unknown entity name returns 0 or 1.
+    status: enforced
+
+  - id: G-VALUES-HIDDEN
+    blocks: Identifier values must not reach stdout without --show-values.
+    violated: the value appears in the default report.
+    status: enforced
+
+  - id: G-SIZE-CAP
+    blocks: An unbounded file or an endless pipe must not exhaust memory, and must not be silently truncated.
+    violated: input above the cap is truncated and scanned, rather than refused with exit 2.
+    status: enforced
+
+  - id: G-SCORE-ARG
+    blocks: A score flag value that disables comparison must be refused, not accepted.
+    violated: --min-score nan, inf or a value outside [0.0, 1.0] is accepted.
+    status: enforced
+
+  - id: G-MASK-NO-THRESHOLD
+    blocks: mask must refuse a score threshold, because a threshold on mask leaves data in cleartext.
+    violated: mask accepts a threshold flag and writes an unmasked finding to the output.
+    status: enforced
+
+  # ---------------- suspects ----------------
+  - id: G-SUSPECT-VISIBLE
+    blocks: An ID-shaped value whose check digit fails must never pass without a signal.
+    violated: scan or mask on a file whose only finding is a wrong check digit produces no signal at all.
+    status: enforced
+
+  - id: G-SUSPECT-EXIT
+    blocks: The documented `tarja scan f.txt && send.sh` idiom must not send a file that still contains an
+      ID-shaped value with a failing check digit.
+    violated: that file gives exit 0, so the && proceeds. A warning on stderr does not stop &&.
+    status: open   # found 01/10/2026 by the blind attack board. Measured: exit 0 today. See PENDING.
+
+  - id: G-RESIDUAL-SEES-SUSPECT
+    blocks: residual must not report a file clean when ID-shaped values with a failing check digit remain.
+    violated: residual(text, report_invalid=True) returns [] while such a value is in the text.
+    status: enforced
+
+  # ---------------- values in logs ----------------
+  - id: G-REPR-HIDES
+    blocks: The value must not appear when a Match is printed or formatted.
+    violated: repr, str or an f-string of a Match contains the value.
+    status: enforced
+
+  - id: G-SERIALISE-HIDES
+    blocks: The value must not appear when a Match is serialised by the means a logging or monitoring
+      library actually uses.
+    violated: dataclasses.asdict(match) or vars(match) contains the value.
+    status: open   # found 01/10/2026. Measured: both leak it today. to_dict() is safe, asdict() is not.
+
+  # ---------------- normalisation ----------------
+  - id: G-NORMALISE-LOOKALIKE
+    blocks: A Unicode look-alike, an accent or a full-width digit must not hide an identifier.
+    violated: the full-width or accented spelling of a valid identifier is not detected.
+    status: enforced
+
+  - id: G-NORMALISE-INVISIBLE
+    blocks: A zero-width or invisible character inserted into an identifier must not hide it, because the
+      reader and the language model both still see the identifier.
+    violated: one U+200B inside a valid CPF produces zero findings and not even a suspect.
+    status: open   # found 01/10/2026. Measured: U+200B, U+200C, U+2060, U+00AD and U+00A0 each give 0.
+
+  - id: G-OFFSETS-STABLE
+    blocks: Normalisation must not shift the offsets a Match reports against the original text.
+    violated: mask cuts at the wrong position, leaving part of the identifier visible in the output.
+    status: enforced
+
+  # ---------------- masking and keys ----------------
+  - id: G-SALT-WEAK
+    blocks: A short, low-entropy or placeholder key must be refused for pseudonym_stable and for Vault.
+    violated: any of those is accepted and produces working labels.
+    status: enforced
+
+  - id: G-LABEL-CANONICAL
+    blocks: The same identifier written in different punctuation must not produce different stable labels.
+    violated: 529.982.247-25 and 52998224725 give different labels under the same key.
+    status: enforced
+
+  - id: G-STRATEGY-REMOVED
+    blocks: A strategy name removed in a release must not be silently accepted again.
+    violated: strategy="hash" is accepted instead of raising and naming its replacement.
+    status: enforced
+
+  # ---------------- registry ----------------
+  - id: G-REGISTER-N1-VALIDATOR
+    blocks: A third-party entity registered at tier N1 must not be accepted without a check-digit validator.
+    violated: register_entity succeeds at N1 with validator=None.
+    status: enforced
+
+  - id: G-REGISTER-BUILTIN
+    blocks: A third-party registration must not disable or replace a built-in entity.
+    violated: registering BR_CPF with a never-matching pattern silences CPF detection process-wide.
+    status: enforced
+
+  - id: G-REGEX-SAFE
+    blocks: A pattern with catastrophic backtracking must not be registered without an explicit override.
+    violated: a registered pattern makes find take superlinear time on an adversarial string.
+    status: enforced
+
+  # ---------------- detection ----------------
+  - id: G-OVERLAP-ONE
+    blocks: Two overlapping candidates must not both be reported, and resolving the overlap must not discard
+      the surviving finding.
+    violated: a value satisfying two formats produces two Matches, or none.
+    status: enforced
+
+  - id: G-CONTEXT-REQUIRED
+    blocks: A tier N3 entity must not fire without a context word nearby.
+    violated: a bare CEP-shaped number with no context word is reported.
+    status: enforced
+
+  # ---------------- plugin ----------------
+  - id: G-PRESIDIO-TIER
+    blocks: A format-only match must not reach Presidio at confidence 1.0, which is reserved for a verified
+      check digit and sits out of reach of score_threshold.
+    violated: BR_PLACA or BR_TELEFONE validate_result returns True.
+    status: enforced
+
+  # ---------------- published text ----------------
+  - id: G-DOC-COUNT
+    blocks: A published file must not state an entity count that disagrees with the registry.
+    violated: any shipped file says a number of entities other than len(ENTITIES).
+    status: enforced
+
+  - id: G-DOC-INTERNAL
+    blocks: A file that ships must not send the reader to internal working notes or use internal process
+      vocabulary.
+    violated: a shipped file mentions the internal notes file or an internal review label.
+    status: enforced

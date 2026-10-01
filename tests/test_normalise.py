@@ -13,11 +13,13 @@ class TestNormalise(unittest.TestCase):
         self.assertIs(normalise_text(t), t)
 
     def test_lookalikes(self):
+        # guarantee: G-NORMALISE-LOOKALIKE
         # [TEST-NORMALISE] fullwidth digits, en dash, NBSP, fullwidth letters and slash
         t = "５２９.982.247–25 ＡＢ／"
         self.assertEqual(normalise_text(t), "529.982.247-25 AB/")
 
     def test_length_always_kept(self):
+        # guarantee: G-OFFSETS-STABLE
         # [TEST-NORMALISE] output length == input length, char by char
         t = "a—b−c　d١٢eéİ"
         self.assertEqual(len(normalise_text(t)), len(t))

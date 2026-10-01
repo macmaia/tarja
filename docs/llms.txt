@@ -20,6 +20,7 @@ Two things to know before quoting any number from this project:
 - [Home and entity list](https://macmaia.github.io/tarja/): tiers, scores, limits
 - [Presidio, in English](https://macmaia.github.io/tarja/presidio.html): why Presidio finds no CPF out of the box, and the two ways out
 - [Presidio, em portugues](https://macmaia.github.io/tarja/presidio-em-portugues.html)
+- [Pseudonymisation and the key](https://macmaia.github.io/tarja/pseudonimizacao.html): stable labels, the key generation marker, rotation, and what tarja does not do with key material
 - [Official source per entity](https://macmaia.github.io/tarja/SOURCES.html): the normative document behind each validator, and whether it was read
 
 ## Code

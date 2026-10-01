@@ -12,34 +12,6 @@ Serve p/ qq um q desenvolve p/ o Brasil, inclusive empresa gringa se adaptando �
 
 Status: alfa (`0.9.0`). A API ainda pode mudar antes da 1.0.
 
-## limits / limites
-
-EN: tarja is a detection aid, **not a guarantee of LGPD compliance**, and not an anonymiser in the sense of art. 12. What it does not do, on purpose:
-
-| limit | why / what to do instead |
-|---|---|
-| **No names, addresses, e-mails, dates of birth or health data.** Only structured identifiers (tiers N1 to N3). | Those are tier N4 and need NER, which is not implemented here. Combine tarja with a NER model, or register your own entity with `register_entity()`. Sector NER for health and legal is a paid product. |
-| **False negatives exist.** An identifier tarja misses stays in the text. | Run `tarja.residual()` as a second pass and keep a human in the loop for high-risk data. A miss is a quality bug, not a vulnerability (see `SECURITY.md`). |
-| **`Vault` keeps its map in memory, in one process.** The map dies with the object, so an ingestion job cannot hand tokens to a serving process. | The map IS the personal data. Persisting it drags in key custody, access control, retention, deletion on request, backups and audit, which are decisions about your risk, not a library default. Persistence with a KMS key, authenticated sessions and an audit trail is the paid Tarja Gateway. |
-| **`pseudonym_stable` is reversible by whoever holds the key.** | It is pseudonymisation, not anonymisation. Use `redact` when nothing may come back, or `Vault` when reversal must stay under your control. |
-| **Text in, text out. No OCR, no scanned PDF.** | Extract the text first with a tool of your choice. |
-| **A suspect is not debug output.** `find(report_invalid=True)` and `scan --suspect` return numbers shaped like a document with a failing check digit, which is nearly always a REAL identifier with a typo or an OCR error. | Treat it like the identifier itself. Printing a `Match` is safe: `repr()` hides the value, so logs, tracebacks and monitoring events never carry it by accident. Reading `.value` or `to_dict()` still gives it to you, on purpose. The CLI hides values without `--show-values`. |
-
-EN: none of this removes your own obligations: legal basis, records, security measures and answering data subjects stay with you.
-
-PT: o tarja ajuda a detectar, **não garante conformidade c/ a LGPD** e não anonimiza no sentido do art. 12. O q ele não faz, de propósito:
-
-| limite | por quê / o q fazer no lugar |
-|---|---|
-| **Não pega nome, endereço, e-mail, data de nascimento nem dado de saúde.** Só identificador estruturado (níveis N1 a N3). | Isso é nível N4 e depende de NER, q não está implementado aqui. Combine o tarja c/ um modelo de NER, ou registre sua entidade c/ `register_entity()`. NER setorial p/ saúde e jurídico é produto pago. |
-| **Falso negativo existe.** Identificador q o tarja não pega fica no texto. | Use o `tarja.residual()` como 2ª passada e mantenha revisão humana p/ dado de alto risco. Falha de detecção é bug de qualidade, não vulnerabilidade (ver `SECURITY.md`). |
-| **O `Vault` guarda o mapa em memória, num processo só.** O mapa morre c/ o objeto, então um job de ingestão não consegue passar token p/ o processo q serve. | O mapa É o dado pessoal. Persistir puxa junto guarda de chave, controle de acesso, retenção, exclusão a pedido, backup e auditoria, q são decisões sobre o seu risco, não padrão de biblioteca. Persistência c/ chave em KMS, sessão autenticada e trilha de auditoria é o Tarja Gateway pago. |
-| **O `pseudonym_stable` é reversível por quem tem a chave.** | É pseudonimização, não anonimização. Use `redact` qdo nada pode voltar, ou o `Vault` qdo a reversão tem q ficar sob seu controle. |
-| **Entra texto, sai texto. Sem OCR, sem PDF escaneado.** | Extraia o texto antes, c/ a ferramenta q preferir. |
-| **Suspeito não é saída de depuração.** O `find(report_invalid=True)` e o `scan --suspect` devolvem número c/ cara de documento e DV errado, q quase sempre é identificador REAL c/ erro de digitação ou de OCR. | Trate como o próprio identificador. Imprimir um `Match` é seguro: o `repr()` esconde o valor, então log, traceback e evento de monitoramento não levam o dado por descuido. Ler `.value` ou `to_dict()` continua devolvendo, de propósito. O CLI esconde valor sem `--show-values`. |
-
-PT: nada disso tira as suas obrigações: base legal, registros, medidas de segurança e resposta ao titular continuam suas.
-
 ## intended use / uso pretendido
 
 EN: tarja exists so that whoever holds personal data can find it and cover it before the data leaves for an LLM, a log, a BI tool or a third party. That is the use it is built, tested and documented for.
@@ -144,15 +116,12 @@ able to do afterwards.
 | `pseudonym` | `<BR_CPF_1>` | **within one call only** | no | counting people in one document, reading it without the numbers |
 | `pseudonym_stable` | `<BR_CPF:24da:3f9a…>` | **across every document, under one key** | yes, by whoever holds the key | joining records about the same person across files and over time |
 
-EN: the distinction that matters is the middle column. `pseudonym` numbers what it sees in **that call** and
-starts again at 1 on the next one, so the same CPF is `_1` in one document and `_3` in another: you cannot
-join them, and that is the point. `pseudonym_stable` derives the label from the value and a secret key, so it
-is the same everywhere the key is the same, which is what lets you build a dataset about a person without the
-person's number in it.
-
-EN: that power is the risk. A stable label is **pseudonymisation, not anonymisation**: under the LGPD it is
-still personal data, because whoever has the key can reverse it, and even without the key a stable label lets
-you follow one person across your whole corpus. If nothing may ever come back, use `redact`.
+EN: the column that decides is the middle one. `pseudonym` numbers what it sees in **that call** and starts
+again at 1 on the next, so you cannot join two documents, and that is the point. `pseudonym_stable` derives
+the label from the value and a secret key, so it is the same everywhere that key is, which is what lets you
+build a dataset about a person without the person's number in it. That power is the risk: a stable label is
+pseudonymisation, not anonymisation, and under the LGPD it is still personal data. If nothing may ever come
+back, use `redact`.
 
 PT: as três não são graus da mesma coisa, respondem perguntas diferentes. Escolha pelo que você precisa
 conseguir fazer depois.
@@ -163,58 +132,15 @@ conseguir fazer depois.
 | `pseudonym` | `<BR_CPF_1>` | **só dentro de uma chamada** | não | contar pessoas num documento, ler sem os números |
 | `pseudonym_stable` | `<BR_CPF:24da:3f9a…>` | **em todo documento, sob uma chave** | sim, por quem tem a chave | juntar registros da mesma pessoa entre arquivos e ao longo do tempo |
 
-PT: o que importa é a coluna do meio. O `pseudonym` numera o que vê **naquela chamada** e recomeça do 1 na
-próxima, então o mesmo CPF é `_1` num documento e `_3` noutro: você não consegue juntar, e é essa a intenção.
-O `pseudonym_stable` deriva o rótulo do valor e de uma chave secreta, então é o mesmo em todo lugar onde a
-chave é a mesma.
+PT: a coluna que decide é a do meio. O `pseudonym` numera o que vê **naquela chamada** e recomeça do 1 na
+próxima, então você não junta dois documentos, e é essa a intenção. O `pseudonym_stable` deriva o rótulo do
+valor e de uma chave secreta, e esse poder é o risco: rótulo estável é pseudonimização, não anonimização, e
+na LGPD continua sendo dado pessoal. Se nada pode voltar, use `redact`.
 
-PT: esse poder é o risco. Rótulo estável é **pseudonimização, não anonimização**: na LGPD continua sendo dado
-pessoal, porque quem tem a chave reverte, e mesmo sem a chave o rótulo estável deixa seguir uma pessoa pelo
-corpus inteiro. Se nada pode voltar, use `redact`.
-
-### the key, and what happens when it changes / a chave, e o que acontece quando ela muda
-
-EN: both `Vault` and `pseudonym_stable` produce a **stable** label: the same value always yields the same
-label. That stability holds under one key and only one. Rotate the key and the same CPF gets a different
-label, so a document masked last month stops joining with one masked today.
-
-EN: tarja makes that visible instead of silent. Every label carries a 4-hex **key generation marker** derived
-from the key itself (`<BR_CPF:24da:3f9a1c0b2e7d>`). Same key, same marker, on any machine and in any process.
-Different key, different marker. `Vault.key_id` exposes it, and `tarja.vault.key_id(key)` computes it for any
-key. It is not a secret and not an integrity check: it tells you which generation a label belongs to, so you
-can reindex incrementally and run two generations side by side during a migration.
-
-EN: what tarja does **not** do, and will not pretend to:
-
-- **No rotation.** There is no re-keying helper. Rotating means re-masking the source data under the new key,
-  which only you can schedule, because only you know where the documents are.
-- **No key storage.** The key lives in memory as `bytes`, for as long as your process holds it. CPython gives
-  no reliable way to wipe a `bytes` object: it may have been copied by the interpreter, the allocator or the
-  operating system's swap. Anything claiming to zeroise it in pure Python is theatre. The honest control is to
-  shorten the key's life, not to pretend it was erased: build the object late, drop the reference early, and
-  keep long-lived key material in a KMS or HSM where the process never sees it.
-- **No per-tenant keys, no audit of who revealed what.** That needs identity and durable storage, which is the
-  paid Tarja Gateway.
-
-PT: o `Vault` e o `pseudonym_stable` produzem rótulo **estável**: o mesmo valor sempre dá o mesmo rótulo. Essa
-estabilidade vale sob uma chave, e só uma. Trocou a chave, o mesmo CPF vira outro rótulo, e documento
-mascarado mês passado deixa de casar c/ um mascarado hoje.
-
-PT: o tarja torna isso visível em vez de silencioso. Todo rótulo leva um **marcador de geração da chave** de 4
-hex, derivado da própria chave (`<BR_CPF:24da:3f9a1c0b2e7d>`). Mesma chave, mesmo marcador, em qq máquina.
-O `Vault.key_id` expõe, e o `tarja.vault.key_id(chave)` calcula p/ qq chave. Não é segredo nem verificação de
-integridade: diz a qual geração o rótulo pertence, o q permite reindexar aos poucos e manter duas gerações
-durante uma migração.
-
-PT: o q o tarja **não** faz, e não vai fingir q faz: não tem rotação (rotacionar é remascarar a origem sob a
-chave nova, e só vc sabe onde os documentos estão), não guarda chave (ela fica em memória como `bytes`, e o
-CPython não dá jeito confiável de apagar, porque pode ter sido copiada pelo interpretador, pelo alocador ou
-pela troca de memória do sistema, então quem diz q apaga em Python puro está fazendo teatro, e o controle
-honesto é encurtar a vida da chave, não fingir q apagou), e não tem chave por tenant nem auditoria de quem
-reidentificou, q dependem de identidade e gravação durável e são o Tarja Gateway pago.
-
-EN: `pseudonym_stable` is pseudonymisation, not anonymisation under the LGPD. The `salt` is not a salt in the classic sense, it is **a secret key**: there are only 10⁹ valid CPFs, so whoever holds it hashes all of them in minutes and reverses every label. It was called `hash` until 0.5, and the name was wrong: nothing here is one way. tarja **refuses** a key under 16 bytes, one with fewer than 8 distinct bytes, and one that begins with a known placeholder word in English or Portuguese. The placeholder test is a prefix test, which is why `changeme_please_123` is refused even though it is long enough, and also why a strong key that happens to start with one of those words is refused too. Generate the key and the question does not come up. Generate one with `python -c "import secrets; print(secrets.token_hex(32))"`, keep it in a secrets manager, never in code, env files committed to git, or logs, and rotate it if it leaks. If you need something that cannot be reversed, use `redact`. If you need reversal under your control, use `Vault`.
-PT: `pseudonym_stable` é pseudonimização, não anonimização na LGPD. O `salt` não é salt no sentido clássico, é **chave secreta**: só existem 10⁹ CPFs válidos, então quem tem a chave calcula todos em minutos e reverte qq rótulo. Até a 0.5 a estratégia se chamava `hash`, e o nome estava errado: nada aqui é de mão única. O tarja **recusa** chave c/ menos de 16 bytes, c/ menos de 8 bytes distintos e chave q **começa** c/ palavra de placeholder conhecida, em inglês ou português. O teste é de prefixo, e é por isso q `changeme_please_123` é recusado mesmo sendo longo, e tb por isso q chave forte q por acaso comece c/ uma dessas palavras é recusada. Gere a chave e a questão não aparece. Gere c/ `secrets.token_hex(32)`, guarde num cofre de segredos, nunca em código, `.env` commitado ou log, e troque se vazar. Se precisa do q não volta, use `redact`. Se precisa reverter sob seu controle, use o `Vault`.
+EN: key handling, the generation marker, what happens when you rotate, and why there is no re-keying helper:
+[pseudonymisation and the key](https://macmaia.github.io/tarja/pseudonimizacao.html).
+PT: guarda de chave, marcador de geração, o que acontece ao trocar a chave e por que não existe ajudante de
+rotação: [pseudonimização e a chave](https://macmaia.github.io/tarja/pseudonimizacao.html).
 
 ### command line / linha de comando
 
@@ -254,6 +180,43 @@ ruído de OCR num identificador real) não conta sem `--suspect`, pq nota fiscal
 também são suspeitos e travariam todo pipeline. Sem `--suspect`, o `scan` e o `mask` escrevem no stderr
 quantos ignoraram. O `mask` não tem flag de limiar, pq não tem relatório para filtrar.
 
+## limits / limites
+
+EN: tarja is a detection aid, **not a guarantee of LGPD compliance**, and not an anonymiser in the sense of
+art. 12. Six things it does not do, on purpose:
+
+| limit | why / what to do instead |
+|---|---|
+| **No names, addresses, e-mails, dates of birth or health data.** Only structured identifiers, tiers N1 to N3. | Those are tier N4 and need NER. Combine tarja with a NER model, or add your own with `register_entity()`. |
+| **False negatives exist.** An identifier tarja misses stays in the text. | Run `residual(report_invalid=True)` as a second pass and keep a human in the loop for high-risk data. A miss is a quality bug, not a vulnerability (`SECURITY.md`). |
+| **`Vault` keeps its map in memory, in one process.** | The map IS the personal data. Persisting it drags in key custody, access control, retention and audit, which are decisions about your risk, not a library default. |
+| **`pseudonym_stable` is reversible by whoever holds the key.** | Pseudonymisation, not anonymisation. Use `redact` when nothing may come back, or `Vault` when reversal must stay under your control. |
+| **Text in, text out.** No OCR, no scanned PDF. | Extract the text first, with a tool of your choice. |
+| **A suspect is not debug output.** A number shaped like a document with a failing check digit is nearly always a REAL identifier with a typo. | Treat it like the identifier itself. `repr()` on a `Match` hides the value, so logs and tracebacks never carry it by accident. |
+
+EN: none of this removes your own obligations: legal basis, records, security measures and answering data
+subjects stay with you.
+
+PT: o tarja ajuda a detectar, **não garante conformidade c/ a LGPD** e não anonimiza no sentido do art. 12.
+Seis coisas q ele não faz, de propósito:
+
+| limite | por quê / o q fazer no lugar |
+|---|---|
+| **Não pega nome, endereço, e-mail, data de nascimento nem dado de saúde.** Só identificador estruturado, N1 a N3. | Isso é N4 e depende de NER. Combine c/ um modelo de NER, ou registre a sua c/ `register_entity()`. |
+| **Falso negativo existe.** Identificador q o tarja não pega fica no texto. | Use `residual(report_invalid=True)` como 2ª passada e mantenha revisão humana p/ dado de alto risco. |
+| **O `Vault` guarda o mapa em memória, num processo só.** | O mapa É o dado pessoal. Persistir puxa guarda de chave, controle de acesso, retenção e auditoria, q são decisões sobre o seu risco. |
+| **O `pseudonym_stable` é reversível por quem tem a chave.** | Pseudonimização, não anonimização. Use `redact` qdo nada pode voltar, ou o `Vault` qdo a reversão fica c/ você. |
+| **Entra texto, sai texto.** Sem OCR, sem PDF escaneado. | Extraia o texto antes. |
+| **Suspeito não é saída de depuração.** Número c/ cara de documento e DV errado quase sempre é identificador REAL c/ erro de digitação. | Trate como o próprio identificador. O `repr()` de um `Match` esconde o valor. |
+
+PT: nada disso tira as suas obrigações: base legal, registros, medidas de segurança e resposta ao titular
+continuam suas.
+
+EN: persistence with a KMS key, authenticated sessions and an audit trail, plus per-tenant keys and sector
+NER for health and legal, are the paid Tarja Gateway.
+PT: persistência c/ chave em KMS, sessão autenticada e trilha de auditoria, mais chave por tenant e NER
+setorial, são o Tarja Gateway pago.
+
 ## entities / entidades
 
 | code | what it is / o q é | tier | status |
@@ -282,66 +245,40 @@ PT: **mudou na 0.6.** O `BR_CARTAO` passou a exigir tb prefixo de emissor regist
 EN: N1 = strong check digit, N2 = format only, N3 = needs context, N4 = NER. Scores: N1 0.95 with a context word nearby, 0.8 to 0.9 without. N2 0.7 / 0.5. N3 only with context, 0.5, except `BR_MATRICULA_IMOVEL` at 0.4. Wrong check digit = dropped (unless `report_invalid=True`). Speed: ~1 ms per 100 tokens, 17 entities.
 PT: N1 = DV forte, N2 = só formato, N3 = depende de contexto, N4 = NER. Score: N1 0.95 c/ palavra de contexto perto, 0.8 a 0.9 sem. N2 0.7 / 0.5. N3 só c/ contexto, 0.5, exceto `BR_MATRICULA_IMOVEL` c/ 0.4. DV errado = descartado (exceto c/ `report_invalid=True`). Velocidade: ~1 ms por 100 tokens, 17 entidades.
 
-## layout / organização
-
-EN:
-- `spec/entities/*.yaml`: one file per entity (regex, check digit, context, score, official source). Single source of truth, everything else is generated/tested from here.
-- `spec/schema.json`: schema for those yaml files.
-- `src/tarja/validators/`: check digits per document, stdlib only.
-- `tests/`: `python -m unittest discover -s tests` or `pytest`.
-- Tip: code comments carry tags like `[CPF-DV]`, `[CNPJ-REGEX]`, `[TEST-SPEC]`, so ctrl+f finds anything. Comments are short and in English. Public docstrings are bilingual, EN then PT.
-
-PT:
-- `spec/entities/*.yaml`: 1 arquivo por entidade (regex, DV, contexto, score, fonte oficial). Fonte única, o resto é gerado/testado daqui.
-- `spec/schema.json`: schema desses yaml.
-- `src/tarja/validators/`: DV de cada doc, só stdlib.
-- `tests/`: `python -m unittest discover -s tests` ou `pytest`.
-- Dica: os comentários têm tags tipo `[CPF-DV]`, `[CNPJ-REGEX]`, `[TEST-SPEC]`, dá p/ achar tudo c/ ctrl+f. Comentário é curto e em inglês. Docstring pública é bilíngue, EN e dps PT.
-
-EN: official source for each rule, and whether it was checked: `docs/SOURCES.md`. Presidio plugin and upstream PR: `docs/presidio.md`. Benchmark: `bench/README.md`.
-PT: fonte oficial de cada regra, e se foi conferida: `docs/SOURCES.md`. Plugin do Presidio e PR: `docs/presidio.md`. Benchmark: `bench/README.md`.
-
 ## stability / estabilidade
 
-EN: **0.x means the API can change.** Until 1.0, a public name may be renamed or removed in a minor release.
-Two have already moved: `mask(strategy="hash")` became `pseudonym_stable` in 0.5 and was removed in 0.9.0,
-and the Presidio plugin was
-published as `tarja-presidio`. What you can rely on before 1.0:
+EN: **0.x means the API can change.** Until 1.0 a public name may be renamed or removed in a minor release.
+Two already moved: `mask(strategy="hash")` became `pseudonym_stable` in 0.5 and went in 0.9.0, and the
+Presidio plugin shipped as `tarja-presidio`. Before 1.0 you can rely on four things:
 
-- a rename ships with the old name still working for at least one minor release. On the command line the
-  old name writes to stderr, not a `DeprecationWarning`, because Python hides that category by default and
-  a warning nobody receives is not a warning. A future library rename will raise `DeprecationWarning`. As
-  of 0.9.0 there is no library alias left to warn on: `strategy="hash"` warned from 0.5 to 0.8 and now
-  raises `ValueError` naming its replacement.
-- a removal announced in a warning is kept. `strategy="hash"` was announced for 0.6 and only went in
-  0.9.0, which is why `--min-score` now carries the version (1.0.0) this project intends to honour.
+- a rename ships with the old name working for at least one minor release, warning on stderr rather than as
+  a `DeprecationWarning`, which Python hides by default on a command line
+- a removal announced in a warning is kept. `strategy="hash"` was announced for 0.6 and only went in 0.9.0,
+  which is why `--min-score` now carries the version it goes away in, 1.0.0
 - a change to what `find()` detects is announced in `CHANGELOG.md` with the benchmark numbers before and
-  after. A release that only changes the command line's report or exit code says so and gives the figures
-  it re-measured, which is what 0.9.0 does.
-- pin an exact version if you need none of this to reach you, but read `CHANGELOG.md` first: 0.9.0 closes
-  five defects where a threshold or a wrong check digit let data through in silence.
+  after, and a release that only changes the command line says so and gives the figures it re-measured
+- after 1.0, the usual rule: no breaking change outside a major release
 
-EN: after 1.0 the usual rule applies: no breaking change outside a major release.
+EN: pin an exact version if you want none of this reaching you, but read `CHANGELOG.md` first. Versions
+0.6.0, 0.7.0 and 0.8.0 are yanked on PyPI: in those, a score threshold could turn `tarja scan` exit 1 into
+exit 0, so a `&&` pipeline passed with personal data in the file.
 
 PT: **0.x quer dizer q a API pode mudar.** Até a 1.0, nome público pode ser renomeado ou sumir numa versão
-menor. Dois já se moveram: `mask(strategy="hash")` virou `pseudonym_stable` na 0.5 e saiu de vez na 0.9.0, e
-o plugin do Presidio saiu
-como `tarja-presidio`. O q dá p/ contar antes da 1.0:
+menor. Dois já se moveram. Antes da 1.0 dá p/ contar com quatro coisas:
 
-- renomeação sai c/ o nome antigo ainda funcionando por pelo menos 1 versão menor. Na linha de comando o
-  nome antigo escreve no stderr, e não `DeprecationWarning`, pq o Python esconde essa categoria por omissão
-  e aviso q ninguém recebe não é aviso. Renomeação futura de biblioteca vai levantar `DeprecationWarning`.
-  Na 0.9.0 não sobrou apelido de biblioteca p/ avisar: `strategy="hash"` avisou da 0.5 à 0.8 e agora
-  levanta `ValueError` dizendo o substituto.
-- remoção anunciada num aviso é cumprida. O `strategy="hash"` foi anunciado p/ a 0.6 e só saiu na 0.9.0, e
-  é por isso q o `--min-score` agora carrega a versão (1.0.0) q este projeto pretende honrar.
-- mudança no q o `find()` detecta é anunciada no `CHANGELOG.md` c/ o número do benchmark antes e depois.
-  Versão q só muda relatório ou exit code da linha de comando diz isso e dá o número q remediu, q é o q a
-  0.9.0 faz.
-- fixe a versão exata se você não quiser nada disso chegando até você, mas leia o `CHANGELOG.md` antes: a
-  0.9.0 fecha cinco defeitos em q um limiar ou um DV errado deixavam dado passar em silêncio.
+- renomeação sai c/ o nome antigo funcionando por pelo menos 1 versão menor, avisando no stderr e não c/
+  `DeprecationWarning`, q o Python esconde por omissão na linha de comando
+- remoção anunciada num aviso é cumprida
+- mudança no q o `find()` detecta é anunciada no `CHANGELOG.md` c/ o número do benchmark antes e depois
+- dps da 1.0, a regra de sempre: nada q quebra fora de versão maior
 
-PT: dps da 1.0 vale a regra de sempre: nada q quebra fora de versão maior.
+PT: fixe a versão exata se não quiser nada disso, mas leia o `CHANGELOG.md` antes. As versões 0.6.0, 0.7.0 e
+0.8.0 estão yankadas no PyPI: nelas um limiar podia virar o exit 1 do `tarja scan` em exit 0.
+
+## more / mais
+
+EN: official source for each rule and whether it was checked, [SOURCES](https://macmaia.github.io/tarja/SOURCES.html). Presidio plugin and upstream PR, [presidio](https://macmaia.github.io/tarja/presidio.html). Key handling, [pseudonymisation](https://macmaia.github.io/tarja/pseudonimizacao.html). Benchmark, `bench/README.md`. Repository layout and how to add an entity, `CONTRIBUTING.md`.
+PT: fonte oficial de cada regra e se foi conferida, [SOURCES](https://macmaia.github.io/tarja/SOURCES.html). Plugin do Presidio e PR, [presidio](https://macmaia.github.io/tarja/presidio.html). Guarda de chave, [pseudonimização](https://macmaia.github.io/tarja/pseudonimizacao.html). Benchmark, `bench/README.md`. Organização do repositório e como adicionar entidade, `CONTRIBUTING.md`.
 
 ## licence / licença
 

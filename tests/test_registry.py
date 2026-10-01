@@ -38,11 +38,13 @@ class TestRegistry(unittest.TestCase):
         self.assertTrue(tarja.validate("X_IE_SP", "110.042.490.113"))
 
     def test_n3_needs_context_by_default(self):
+        # guarantee: G-CONTEXT-REQUIRED
         register_entity("ACME_ID", [("acme", r"\bAC-\d{6}\b", 0.3)], context_words=["matricula acme"])
         self.assertEqual(tarja.find("codigo AC-123456"), [])
         self.assertEqual([m.entity for m in tarja.find("matrícula ACME AC-123456")], ["ACME_ID"])
 
     def test_guards(self):
+        # guarantee: G-REGISTER-N1-VALIDATOR G-REGISTER-BUILTIN G-REGEX-SAFE
         with self.assertRaises(ValueError):
             register_entity("BR_CPF", [("x", r"\d", 0.1)])  # built-in, no replace
         with self.assertRaises(ValueError):

@@ -28,6 +28,7 @@ class TestFind(unittest.TestCase):
         self.assertTrue(all(m.score == 0.95 and m.has_context for m in tarja.find(t)))
 
     def test_offsets_point_to_original(self):
+        # guarantee: G-OFFSETS-STABLE
         # [TEST-DETECT] offsets slice the ORIGINAL text, even with Unicode look-alikes
         t = "cpf: ５２９.982.247–25 fim"
         [m] = tarja.find(t)

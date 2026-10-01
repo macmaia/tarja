@@ -33,6 +33,7 @@ class TestCLI(unittest.TestCase):
         os.remove(self.path)
 
     def test_scan_jsonl_hides_values(self):
+        # guarantee: G-VALUES-HIDDEN
         # [TEST-CLI] default output has no raw value, exit 1 when found
         code, out, _ = run(["scan", self.path])
         rows = [json.loads(line) for line in out.splitlines()]
@@ -41,6 +42,7 @@ class TestCLI(unittest.TestCase):
         self.assertTrue(all("value" not in r for r in rows))
 
     def test_scan_show_values_and_table(self):
+        # guarantee: G-EXIT-DISPLAY
         # [TEST-CLI] --show-values and --format table
         _, out, _ = run(["scan", self.path, "--show-values"])
         self.assertIn("529.982.247-25", out)
@@ -65,6 +67,7 @@ class TestCLI(unittest.TestCase):
         self.assertIn("<BR_CPF:", out)
 
     def test_errors(self):
+        # guarantee: G-EXIT-ERROR
         # [TEST-CLI] missing file, no key, weak key, unknown entity -> exit 2 + message
         with mock.patch.dict(os.environ, {}, clear=False):
             os.environ.pop("TARJA_SALT", None)
