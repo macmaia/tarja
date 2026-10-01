@@ -4,10 +4,16 @@
 
 **PT** · Identificadores brasileiros p/ o Presidio, via tarja. 1 `PatternRecognizer` por entidade do tarja, c/ validação de DV e palavras de contexto em pt-BR.
 
-EN: until tarja is on PyPI, install both from the repo root / PT: ate o tarja estar no PyPI, instale os 2 da raiz do repo:
+EN: install / PT: instalar:
 
 ```bash
-pip install -e . -e packages/tarja-presidio
+pip install tarja-presidio
+```
+
+EN: from a clone, for development / PT: a partir de um clone, p/ desenvolver:
+
+```bash
+pip install -e . -e "packages/tarja-presidio[dev]"
 ```
 
 ```python

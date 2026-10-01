@@ -1,3 +1,8 @@
+---
+title: "tarja"
+description: "Brazilian personal identifiers in free Portuguese text, with check-digit validation. 17 entity types, three tiers, Apache 2.0, no runtime dependency."
+---
+
 # tarja
 
 EN: a Python library that finds Brazilian personal identifiers in free Portuguese text and validates their
@@ -26,7 +31,6 @@ EN: the notebook runs in the browser, nothing to install. PT: o caderno roda no 
 - [Presidio em português: por que o padrão não pega CPF](presidio-em-portugues.html)
 - [tarja + Presidio, reference / referência](presidio.html)
 - [sources for every rule / fontes de cada regra](SOURCES.html)
-- [design decisions / decisões de desenho](decisions.html)
 
 ## what it detects / o que ele detecta
 

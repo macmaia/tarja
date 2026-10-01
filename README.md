@@ -75,7 +75,14 @@ PT: são decisões de desenho, não lacunas esperando preenchimento. PR q adicio
 ## install / instalar
 
 ```bash
-pip install -e ".[dev]"
+pip install tarja                 # EN: core, no runtime dependency / PT: nucleo, sem dependencia de runtime
+pip install tarja-presidio        # EN: Presidio plugin / PT: plugin do Presidio
+```
+
+EN: from a clone, for development / PT: a partir de um clone, p/ desenvolver:
+
+```bash
+pip install -e ".[dev]" -e "packages/tarja-presidio[dev]"
 ```
 
 ## usage / uso
@@ -224,8 +231,12 @@ tarja scan contrato.txt --report-min-score 0.9         # EN: report filter only,
                                                        # PT: só filtra o relatório, NÃO é portão
 ```
 
-EN: exit code 1 when something is found, 0 when clean, 2 on error. Handy in CI. Input is capped at 50 MB (`--max-mb`).
-PT: exit code 1 qdo acha algo, 0 qdo limpo, 2 em erro. Útil em CI. Entrada limitada a 50 MB (`--max-mb`).
+EN: exit code 1 when something is found, 0 when clean, 2 on error. Handy in CI. Input is capped at 50 units of 1,048,576 characters (`--max-mb`), so about 52.4 M characters. The guard
+exists against memory exhaustion, which scales with characters, not with bytes on disk: an accented
+UTF-8 file can be larger than 50 MB on disk and still pass.
+PT: exit code 1 qdo acha algo, 0 qdo limpo, 2 em erro. Útil em CI. Entrada limitada a 50 unidades de 1.048.576 caracteres (`--max-mb`), ~52,4 M de caracteres. A trava
+existe contra estouro de memoria, q escala c/ caractere e nao c/ byte em disco: arquivo UTF-8 acentuado
+pode ter mais de 50 MB em disco e ainda passar.
 
 EN: the exit code is decided over every VALID candidate found, BEFORE `--report-min-score` is applied.
 Raising the threshold hides rows from the report and never turns exit 1 into exit 0, so
@@ -268,8 +279,8 @@ quantos ignoraram. O `mask` não tem flag de limiar, pq não tem relatório para
 EN: **changed in 0.6.** `BR_CARTAO` now also requires a registered issuer prefix and the length that issuer uses, not the Luhn digit alone. Luhn on its own accepts about one in ten long numeric sequences, and administrative text is full of protocol and account numbers that long. `tarja.validators.cartao.is_valid(value, require_brand=False)` keeps the old behaviour when you really want it, and `cartao.brand(value)` returns the network.
 PT: **mudou na 0.6.** O `BR_CARTAO` passou a exigir tb prefixo de emissor registrado e o comprimento daquela bandeira, não só o DV Luhn. Luhn sozinho aceita ~1 em 10 sequências numéricas longas. O `is_valid(valor, require_brand=False)` mantém o comportamento antigo, e o `cartao.brand(valor)` devolve a bandeira.
 
-EN: N1 = strong check digit, N2 = format only, N3 = needs context, N4 = NER. Scores: N1 0.95 with a context word nearby, 0.8 to 0.9 without. N2 0.7 / 0.5. N3 only with context, 0.5. Wrong check digit = dropped (unless `report_invalid=True`). Speed: ~1 ms per 100 tokens, 17 entities.
-PT: N1 = DV forte, N2 = só formato, N3 = depende de contexto, N4 = NER. Score: N1 0.95 c/ palavra de contexto perto, 0.8 a 0.9 sem. N2 0.7 / 0.5. N3 só c/ contexto, 0.5. DV errado = descartado (exceto c/ `report_invalid=True`). Velocidade: ~1 ms por 100 tokens, 17 entidades.
+EN: N1 = strong check digit, N2 = format only, N3 = needs context, N4 = NER. Scores: N1 0.95 with a context word nearby, 0.8 to 0.9 without. N2 0.7 / 0.5. N3 only with context, 0.5, except `BR_MATRICULA_IMOVEL` at 0.4. Wrong check digit = dropped (unless `report_invalid=True`). Speed: ~1 ms per 100 tokens, 17 entities.
+PT: N1 = DV forte, N2 = só formato, N3 = depende de contexto, N4 = NER. Score: N1 0.95 c/ palavra de contexto perto, 0.8 a 0.9 sem. N2 0.7 / 0.5. N3 só c/ contexto, 0.5, exceto `BR_MATRICULA_IMOVEL` c/ 0.4. DV errado = descartado (exceto c/ `report_invalid=True`). Velocidade: ~1 ms por 100 tokens, 17 entidades.
 
 ## layout / organização
 
@@ -297,13 +308,15 @@ Two have already moved: `mask(strategy="hash")` became `pseudonym_stable` in 0.5
 and the Presidio plugin was
 published as `tarja-presidio`. What you can rely on before 1.0:
 
-- a rename ships with the old name still working for at least one minor release. In the library the old
-  name raises a `DeprecationWarning`. On the command line it writes to stderr instead, because Python hides
-  `DeprecationWarning` by default and a warning nobody receives is not a warning.
-- a removal date announced in a warning is kept. `strategy="hash"` was announced for 0.6 and only went in
-  0.9.0, which is why `--min-score` now carries a date this project intends to honour.
-- a change to what is detected is announced in `docs/decisions.md` with the benchmark numbers before and
-  after, and every release has an entry in `CHANGELOG.md`.
+- a rename ships with the old name still working for at least one minor release. On the command line the
+  old name writes to stderr, not a `DeprecationWarning`, because Python hides that category by default and
+  a warning nobody receives is not a warning. A future library rename will raise `DeprecationWarning`. As
+  of 0.9.0 there is no library alias left to warn on: `strategy="hash"` warned from 0.5 to 0.8 and now
+  raises `ValueError` naming its replacement.
+- a removal announced in a warning is kept. `strategy="hash"` was announced for 0.6 and only went in
+  0.9.0, which is why `--min-score` now carries the version (1.0.0) this project intends to honour.
+- a change to what is detected is announced in `CHANGELOG.md` with the benchmark numbers before and after,
+  and every release has an entry there.
 - pin an exact version if you need none of this to reach you, but read `CHANGELOG.md` first: 0.9.0 closes
   five defects where a threshold or a wrong check digit let data through in silence.
 
@@ -314,13 +327,15 @@ menor. Dois já se moveram: `mask(strategy="hash")` virou `pseudonym_stable` na 
 o plugin do Presidio saiu
 como `tarja-presidio`. O q dá p/ contar antes da 1.0:
 
-- renomeação sai c/ o nome antigo ainda funcionando por pelo menos 1 versão menor. Na biblioteca o nome
-  antigo levanta `DeprecationWarning`. Na linha de comando o aviso vai p/ o stderr, pq o Python esconde
-  `DeprecationWarning` por omissão e aviso q ninguém recebe não é aviso.
-- data de remoção anunciada num aviso é cumprida. O `strategy="hash"` foi anunciado p/ a 0.6 e só saiu na
-  0.9.0, e é por isso q o `--min-score` agora carrega uma data q este projeto pretende honrar.
-- mudança no q é detectado é anunciada no `docs/decisions.md` c/ o número do benchmark antes e depois, e
-  toda versão tem entrada no `CHANGELOG.md`.
+- renomeação sai c/ o nome antigo ainda funcionando por pelo menos 1 versão menor. Na linha de comando o
+  nome antigo escreve no stderr, e não `DeprecationWarning`, pq o Python esconde essa categoria por omissão
+  e aviso q ninguém recebe não é aviso. Renomeação futura de biblioteca vai levantar `DeprecationWarning`.
+  Na 0.9.0 não sobrou apelido de biblioteca p/ avisar: `strategy="hash"` avisou da 0.5 à 0.8 e agora
+  levanta `ValueError` dizendo o substituto.
+- remoção anunciada num aviso é cumprida. O `strategy="hash"` foi anunciado p/ a 0.6 e só saiu na 0.9.0, e
+  é por isso q o `--min-score` agora carrega a versão (1.0.0) q este projeto pretende honrar.
+- mudança no q é detectado é anunciada no `CHANGELOG.md` c/ o número do benchmark antes e depois, e toda
+  versão tem entrada lá.
 - fixe a versão exata se você não quiser nada disso chegando até você, mas leia o `CHANGELOG.md` antes: a
   0.9.0 fecha cinco defeitos em q um limiar ou um DV errado deixavam dado passar em silêncio.
 

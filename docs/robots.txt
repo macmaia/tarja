@@ -1,0 +1,6 @@
+# EN: nothing here is private, the sitemap is the only thing worth pointing at.
+# PT: nada aqui e privado, o sitemap e a unica coisa que vale apontar.
+User-agent: *
+Allow: /
+
+Sitemap: https://macmaia.github.io/tarja/sitemap.xml

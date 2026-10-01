@@ -14,12 +14,28 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = "Apache-2.0"
 authors = [{ name = "Maria Alice Maia", email = "tarja@micah6ai.com" }]  # https://github.com/macmaia
-keywords = ["presidio", "pii", "lgpd", "brazil", "cpf", "cnpj"]
+keywords = ["presidio", "pii", "pii-detection", "dlp", "anonymisation", "redaction", "lgpd", "brazil", "portuguese", "cpf", "cnpj"]
+classifiers = [
+  "Development Status :: 4 - Beta",
+  "Intended Audience :: Developers",
+  "License :: OSI Approved :: Apache Software License",
+  "Natural Language :: Portuguese (Brazilian)",
+  "Operating System :: OS Independent",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Topic :: Security",
+  "Topic :: Text Processing :: Linguistic",
+  "Typing :: Typed",
+]
 # EN: tarja does the validation, Presidio does the orchestration / PT: tarja valida, Presidio orquestra
-# [PKG-DEPS] tarja>=0.7 is a floor, not decoration: the plugin reads tarja.entities.EntitySpec and the
-#   key generation marker landed in 0.7. Without the floor an older tarja installs and the plugin
-#   breaks at import, silently, on somebody else's machine.
-dependencies = ["tarja>=0.7", "presidio-analyzer>=2.2"]
+# [PKG-DEPS] the floor is not decoration: the plugin reads tarja.entities.EntitySpec, and 0.9.0 closed five
+#   fail-open defects plus removed strategy="hash". Raised to >=0.9 on 30/09/2026 so an older tarja cannot
+#   install underneath the plugin and reintroduce a defect the plugin's own tests do not cover.
+#   PT: o piso subiu p/ >=0.9 pq a 0.9.0 fechou cinco defeitos de falha-aberta.
+dependencies = ["tarja>=0.9", "presidio-analyzer>=2.2"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
@@ -34,7 +50,10 @@ testpaths = ["tests"]
 addopts = "-q"
 
 [project.urls]
+Homepage = "https://macmaia.github.io/tarja/"
 Source = "https://github.com/macmaia/tarja"
+Issues = "https://github.com/macmaia/tarja/issues"
+Changelog = "https://github.com/macmaia/tarja/blob/main/CHANGELOG.md"
 
 [tool.hatch.version]
 path = "src/tarja_presidio/__init__.py"

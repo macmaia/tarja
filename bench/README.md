@@ -1,8 +1,8 @@
 # tarja-bench
 
-**EN** · Benchmark for detecting Brazilian personal identifiers in Portuguese text. Built for the resource paper (ARR, see the planning doc) and to compare tarja, Presidio, cloud DLPs, NER models and LLMs on equal terms.
+**EN** · Benchmark for detecting Brazilian personal identifiers in Portuguese text. Built for the resource paper and to compare tarja, Presidio, cloud DLPs, NER models and LLMs on equal terms.
 
-**PT** · Benchmark de detecção de identificadores brasileiros em texto em português. Feito p/ o artigo de recurso (ARR) e p/ comparar tarja, Presidio, DLPs de nuvem, NER e LLMs nas mesmas condições.
+**PT** · Benchmark de detecção de identificadores brasileiros em texto em português. Feito p/ o artigo de recurso e p/ comparar tarja, Presidio, DLPs de nuvem, NER e LLMs nas mesmas condições.
 
 ## subsets / subconjuntos
 
@@ -26,11 +26,11 @@ Split: 30% dev / 70% test.
 
 ## data / dados
 
-EN: the JSONL files are NOT committed (they'd trip the 500 KB pre-commit limit and they're 100% reproducible). `bench/data/v0.2/manifest.json` is committed with each file's sha256, and a test regenerates everything and checks the hashes. To get the files:
+EN: the JSONL files are NOT committed (they'd trip the 500 KB pre-commit limit and they're 100% reproducible). `bench/data/v0.3/manifest.json` is committed with each file's sha256, and a test regenerates everything and checks the hashes. To get the files:
 PT: os JSONL NÃO são commitados (passariam do limite de 500 KB do pre-commit e são 100% reprodutíveis). O `manifest.json` vai p/ o git c/ o sha256 de cada arquivo, e um teste regera tudo e confere. P/ ter os arquivos:
 
 ```bash
-python -m bench.generate --seed 42 --out bench/data/v0.2
+python -m bench.generate --seed 42 --out bench/data/v0.3
 ```
 
 EN: format, one JSON per line / PT: formato, 1 JSON por linha:
@@ -39,8 +39,8 @@ EN: format, one JSON per line / PT: formato, 1 JSON por linha:
 ## run a system / rodar um sistema
 
 ```bash
-python -m bench.run --system tarja --data bench/data/v0.2/synthetic_adversarial.test.jsonl
-python -m bench.evaluate --gold bench/data/v0.2/synthetic_adversarial.test.jsonl --pred bench/results/tarja__synthetic_adversarial.test.json
+python -m bench.run --system tarja --data bench/data/v0.3/synthetic_adversarial.test.jsonl
+python -m bench.evaluate --gold bench/data/v0.3/synthetic_adversarial.test.jsonl --pred bench/results/tarja__synthetic_adversarial.test.json
 ```
 
 | system | EN: needs / PT: precisa |
@@ -95,14 +95,20 @@ validador de cartão em 21/09 alterou o corpus gerado, entao a versão foi p/ **
 Zenodo ainda, e por isso saiu barato. A partir do congelamento no Zenodo, qq mudança sobe a versão e ganha uma
 linha aqui antes de o número ser citado em qq lugar.
 
+EN: **semi-real, v0.3, measured 30/09/2026.** Exact F1 **0.9768** (precision 0.9869, recall 0.9669, tp 2715,
+fp 36, fn 93, CI95 0.9722 to 0.9816) over 1,400 test documents. This replaces the 0.990 quoted below, which
+is the v0.2 number: v0.3 rewrote semi-real insertion to draw from three to five wordings per entity, so the
+subset got harder on purpose and the drop is the intended effect, not a regression. The weakest entity here
+is `BR_CNH` at recall 0.6035 (102 tp, 67 fn), which is an open finding and not a rounding artefact.
+
 EN: the v0.1 to v0.2 move is within resampling noise, which is the reassuring answer: controlled 0.980 to
-0.978, adversarial 0.822 to 0.825, semi-real 0.990 unchanged. Per difficulty, partial F1 went D0 1.000,
+0.978, adversarial 0.822 to 0.825, semi-real 0.990 unchanged (v0.2 figures). Per difficulty, partial F1 went D0 1.000,
 D1 0.958 to 0.957, D2 0.972 to 0.963, D3 0.997 unchanged, D4 0.255 to 0.266, D5 0.884 to 0.895. Requiring an
 issuer prefix on BR_CARTAO cost nothing measurable here, because the benchmark's cards were always generated
 with a Visa prefix. What it buys is on real text, where Luhn alone fires on roughly one in ten long numeric
 strings.
 PT: a passagem da v0.1 p/ a v0.2 fica dentro do ruido de reamostragem, q e a resposta tranquilizadora:
-controlado 0.980 p/ 0.978, adversarial 0.822 p/ 0.825, semi-real 0.990 igual. Exigir prefixo de emissor no
+controlado 0.980 p/ 0.978, adversarial 0.822 p/ 0.825, semi-real 0.990 igual (números da v0.2, o da v0.3 está acima). Exigir prefixo de emissor no
 BR_CARTAO nao custou nada aqui, pq o cartao do benchmark sempre foi gerado c/ prefixo Visa. O ganho esta em
 texto real.
 

@@ -1,3 +1,8 @@
+---
+title: "Presidio em português"
+description: "Por que o Presidio padrão não pega CPF em texto em português, e como resolver: um PatternRecognizer com validação de DV, ou o tarja-presidio."
+---
+
 # Presidio em português: por que o padrão não pega CPF, e como resolver
 
 PT: esta página está em português primeiro, ao contrário do resto da documentação, porque o problema que ela
@@ -103,7 +108,7 @@ processo judicial usa ISO 7064 módulo 97-10. O CNPJ passou a aceitar letras. É
 
 ## Caminho 2: usar o tarja pelo Presidio
 
-O [tarja](https://github.com/macmaia/tarja) implementa as 16 entidades brasileiras com a validação de cada uma,
+O [tarja](https://github.com/macmaia/tarja) implementa as 17 entidades brasileiras com a validação de cada uma,
 e o `tarja-presidio` registra todas elas no Presidio de uma vez.
 
 ```bash
@@ -171,7 +176,7 @@ padrão resolve e nada nesta página se aplica.
 Há uma proposta aberta no repositório do Presidio adicionando reconhecedores de CPF e CNPJ ao projeto, com uma
 questão em aberto sobre declarar o idioma como `pt` ou `en`, já que a chave `pt` ainda não existe na
 configuração padrão deles. Se for aceita, os dois passam a vir nativos, e o `tarja-presidio` continua útil para as
-outras catorze entidades.
+outras quinze entidades.
 
 ## Limites
 
@@ -186,5 +191,5 @@ que ele é bem formado.
 per-language while almost all defaults declare `en`, so CPF is simply not looked for. Format-only regex is not
 enough either, because eleven digits is also a protocol or case number in Brazilian administrative text. Three
 ways out: write a `PatternRecognizer` whose `validate_result` checks the mod-11 digits (the code above is
-complete), register all sixteen Brazilian entities through `tarja-presidio`, which is powered by tarja, or skip
+complete), register all seventeen Brazilian entities through `tarja-presidio`, which is powered by tarja, or skip
 Presidio and use tarja directly when identifiers are all you need.

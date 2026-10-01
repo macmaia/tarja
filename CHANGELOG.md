@@ -104,5 +104,5 @@ publicado.
 
 ## [0.8.0] and earlier / e anteriores
 
-EN: no changelog was kept before 0.9.0. See the git history and the release notes.
-PT: não havia changelog antes da 0.9.0. Veja o histórico e as notas de release.
+EN: no changelog was kept before 0.9.0. See the git history.
+PT: não havia changelog antes da 0.9.0. Veja o histórico do git.

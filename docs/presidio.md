@@ -1,3 +1,8 @@
+---
+title: "tarja + Presidio"
+description: "Why a default Presidio install finds no CPF in Portuguese text, and the two ways out: a PatternRecognizer with check-digit validation, or tarja-presidio."
+---
+
 # tarja + Presidio
 
 EN: two ways to get Brazilian identifiers into Presidio.
@@ -27,7 +32,7 @@ nlp_engine = NlpEngineProvider(
 
 registry = RecognizerRegistry(supported_languages=["pt"])
 registry.load_predefined_recognizers(languages=["pt"], nlp_engine=nlp_engine)  # EN: e-mail, names... / PT: e-mail, nomes...
-tarja_presidio.register(registry)  # EN: 16 Brazilian entities / PT: 16 entidades brasileiras
+tarja_presidio.register(registry)  # EN: 17 Brazilian entities / PT: 17 entidades brasileiras
 
 analyzer = AnalyzerEngine(registry=registry, nlp_engine=nlp_engine, supported_languages=["pt"])
 

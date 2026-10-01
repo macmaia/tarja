@@ -21,9 +21,9 @@ PT: estrutura segue Gebru et al., "Datasheets for Datasets" (CACM 64(12), 2021, 
 
 | subset | dev | test | spans (test) | levels | source |
 |---|---|---|---|---|---|
-| synthetic_controlled | 1,500 | 3,500 | 13,752 | D0, D1 | templates + generator, seed 42 |
-| synthetic_adversarial | 900 | 2,100 | 8,145 | D2 to D5 | templates + generator, seed 42 |
-| semireal | 30% | 70% | varies | D0 | real public law text + inserted synthetic IDs, seed 7 |
+| synthetic_controlled | 1,500 | 3,500 | 13,966 | D0, D1 | templates + generator, seed 42 |
+| synthetic_adversarial | 900 | 2,100 | 8,232 | D2 to D5 | templates + generator, seed 42 |
+| semireal | 600 | 1,400 | 2,808 | D0 | real public law text + inserted synthetic IDs, seed 7 |
 
 - **Entities.** 17 types, listed in `spec/entities/`. Tier N1 (check digit), N2 (format), N3 (needs context).
 - **Difficulty levels.** D0 canonical layout. D1 no punctuation or spaces as separators. D2 line breaks, glued tokens, table cells. D3 invalid look-alikes as distractors (not annotated). D4 OCR noise, O for 0 and l for 1 (annotated). D5 misleading context (the word says CPF, the number is a NIS).

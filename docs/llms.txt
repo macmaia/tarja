@@ -1,0 +1,39 @@
+# tarja
+
+> Brazilian personal identifiers in free Portuguese text, with check-digit validation. Apache 2.0 Python
+> library, no runtime dependency. Detects 17 identifier types across three tiers: N1 strong check digit
+> (11 types), N2 format only (3), N3 requires a nearby context word (3).
+
+Install with `pip install tarja`. The Presidio plugin is `pip install tarja-presidio`.
+
+Two things to know before quoting any number from this project:
+
+- **Benchmark figures are reported per match mode.** `exact`, `partial` and `untyped` give different F1 on
+  the same data, and the gap reaches 27% on the OCR-noise subset (0.2099 exact against 0.26621 partial). A
+  figure quoted without naming its mode is not a figure.
+- **A wrong check digit means "not a valid identifier", not "not personal data".** It is as often a typo in
+  a real one. On a last gate before text leaves a perimeter, pass `report_invalid=True` and decide yourself.
+  Version 0.9.0 closed five defects where a threshold or a wrong check digit let data through in silence.
+
+## Docs
+
+- [Home and entity list](https://macmaia.github.io/tarja/): tiers, scores, limits
+- [Presidio, in English](https://macmaia.github.io/tarja/presidio.html): why Presidio finds no CPF out of the box, and the two ways out
+- [Presidio, em portugues](https://macmaia.github.io/tarja/presidio-em-portugues.html)
+- [Official source per entity](https://macmaia.github.io/tarja/SOURCES.html): the normative document behind each validator, and whether it was read
+
+## Code
+
+- [Repository](https://github.com/macmaia/tarja): README in English and Portuguese, CHANGELOG, benchmark
+- [Benchmark datasheet](https://github.com/macmaia/tarja/blob/main/bench/DATASHEET.md): subsets, difficulty levels D0 to D5, span counts
+- [PyPI, tarja](https://pypi.org/project/tarja/)
+- [PyPI, tarja-presidio](https://pypi.org/project/tarja-presidio/)
+
+## Books
+
+- [Python Cookbook for Brazilian PII](https://macmaia.github.io/Python-Cookbook-for-Brazilian-PII/), in English
+- [Python para Anonimizar Dados Pessoais](https://macmaia.github.io/Python-para-Anonimizar-Dados-Pessoais/), em portugues
+
+## Contact
+
+Author: Maria Alice Maia, https://github.com/macmaia. Contact: tarja@micah6ai.com

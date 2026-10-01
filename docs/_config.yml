@@ -1,7 +1,16 @@
 # docs/_config.yml
 # [PAGES] GitHub Pages config. Serve from the docs/ folder of main: Settings > Pages > Source: main, /docs.
 #   Nothing here is part of the package. Keep it boring: a theme, a title, no plugins to audit.
+# [PAGES-SITEMAP] the one plugin here. jekyll-sitemap is on GitHub Pages' own allow list, so it is not a
+#   dependency in any lockfile and there is nothing to audit. It earns its place because the alternative is
+#   a hand-written sitemap.xml that goes stale in silence, which is the failure mode this project keeps
+#   finding in its own documents. Needs `url` and `baseurl` to emit absolute locations.
+#   PT: unico plugin aqui, e da lista propria do GitHub Pages, entao nao entra em lockfile nenhum.
 title: tarja
 description: Brazilian personal identifiers in free Portuguese text, with check-digit validation
+url: https://macmaia.github.io
+baseurl: /tarja
 theme: jekyll-theme-cayman
 show_downloads: false
+plugins:
+  - jekyll-sitemap

@@ -1,3 +1,8 @@
+---
+title: "sources / fontes"
+description: "The normative document behind each tarja validator, and whether it was read. No official source means the entity is marked experimental."
+---
+
 # sources / fontes
 
 EN: official source for each entity's rule, and whether it was actually read and checked against the code.
