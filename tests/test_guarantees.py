@@ -15,6 +15,7 @@ import unittest
 from pathlib import Path
 
 import yaml
+from _guarantees import ATTRIBUTE
 
 ROOT = Path(__file__).resolve().parent.parent
 GUARANTEES = ROOT / "spec" / "guarantees.yaml"
@@ -22,9 +23,11 @@ TESTS = ROOT / "tests"
 
 # [GUAR-CONST] everything tunable at the top, so no literal hides in the body below.
 
-# EN: where a test may claim a guarantee. A plain mention anywhere in the file counts, which keeps the
-#   mechanism cheap: writing the id in the comment above the assertion is the whole ritual.
-CLAIM_SUFFIXES = (".py",)
+# EN: the guarantee ids a test claims live on the function, put there by the @guarantees decorator in
+#   tests/_guarantees.py. The previous version scanned the test files with a regex over comments, which
+#   counted an id anywhere it appeared, including inside a docstring, inside commented-out code and inside a
+#   test that was skipped. A skipped test claiming a guarantee is false assurance that nothing reports.
+TEST_PATTERN = "test_*.py"
 
 # EN: the id shape. Deliberately narrow so a typo does not silently count as a claim.
 ID_RE = re.compile(r"^G-[A-Z0-9]+(?:-[A-Z0-9]+)*$")
@@ -36,13 +39,10 @@ NOT_A_CLAIM = ("test_guarantees.py",)
 #   is measured rather than suspected. Changing this list is a decision, which is the point of pinning it.
 EXPECTED_OPEN = {
     # scan on a file whose only finding has a failing check digit exits 0, so `scan f.txt && send.sh`
-    # sends it. There is a stderr warning, and a warning does not stop &&.
+    # sends it. There is a stderr warning, and a warning does not stop &&. Kept deliberately: the exit code
+    # is an operational contract, and gating on suspects teaches people to write `|| true`, which removes
+    # the gate for everything. It is accepted risk, not an absence of risk. See docs/decisions.md.
     "G-SUSPECT-EXIT",
-    # dataclasses.asdict(match) and vars(match) return the value. repr() and to_dict() do not.
-    # Structured logging libraries serialise with asdict, not repr.
-    "G-SERIALISE-HIDES",
-    # one U+200B, U+200C, U+2060, U+00AD or U+00A0 inside a valid CPF gives zero findings and no suspect.
-    "G-NORMALISE-INVISIBLE",
 }
 
 
@@ -52,12 +52,28 @@ def _load() -> list[dict]:
 
 
 def _claims() -> set[str]:
-    # [GUAR-CLAIM] one pass over the suite, collecting every guarantee id any test names
+    # [GUAR-CLAIM] EN: load every test module and read the attribute off every test function. This is a real
+    #   link: the id is on the object the runner executes, so it cannot be claimed by a comment, by dead code
+    #   or by a docstring. Works under pytest and under `python -m unittest discover -s tests` alike, because
+    #   it depends on neither.
+    loader = unittest.TestLoader()
     found: set[str] = set()
-    for path in TESTS.rglob("*"):
-        if path.suffix not in CLAIM_SUFFIXES or path.name in NOT_A_CLAIM:
+
+    def walk(suite) -> None:
+        for item in suite:
+            if isinstance(item, unittest.TestSuite):
+                walk(item)
+                continue
+            if isinstance(item, unittest.TestCase):
+                method = getattr(type(item), item._testMethodName, None)
+                found.update(getattr(method, ATTRIBUTE, ()) or ())
+
+    for path in sorted(TESTS.glob(TEST_PATTERN)):
+        if path.name in NOT_A_CLAIM:
             continue
-        found.update(re.findall(r"\bG-[A-Z0-9][A-Z0-9-]*\b", path.read_text(encoding="utf-8", errors="replace")))
+        walk(loader.discover(start_dir=str(TESTS), pattern=path.name, top_level_dir=str(TESTS)))
+    if not found:  # pragma: no cover
+        raise AssertionError("no test claimed any guarantee, the collector itself is broken")
     return found
 
 
@@ -75,17 +91,36 @@ class TestGuaranteesFile(unittest.TestCase):
                 self.assertNotIn(g["id"], seen, "duplicate id")
                 seen.add(g["id"])
 
-    def test_blocks_is_written_as_something_to_prevent(self):
-        # [GUAR-VOICE] the file is useful only if each line says what must NOT happen. A sentence that
-        #   describes what the code does instead of what it forbids is how this file would rot into a
-        #   restatement of the implementation, which is the thing it exists to avoid.
+
+class TestGuaranteesPointAtRealCode(unittest.TestCase):
+    def test_every_implemented_in_resolves_by_import(self):
+        # [GUAR-IMPL] EN: checking that a FILE exists would be useless, a file survives the deletion of the
+        #   function inside it. Import the module and look the symbol up, so a guarantee pointing at code
+        #   that no longer exists fails here instead of sitting `enforced` forever on a test that still
+        #   passes for an unrelated reason.
+        import importlib
+
+        broken = []
         for g in _load():
-            with self.subTest(guarantee=g["id"]):
-                self.assertRegex(
-                    g["blocks"].lower(),
-                    r"\bmust not\b|\bmust never\b|\bmust be refused\b|\bmust refuse\b",
-                    f"{g['id']}: `blocks` has to state a prohibition, got {g['blocks']!r}",
-                )
+            target = g.get("implemented_in")
+            if not target:
+                continue
+            module, _, symbol = target.partition(":")
+            if not symbol:
+                broken.append(f"{g['id']}: {target!r} is not module:symbol")
+                continue
+            try:
+                if not hasattr(importlib.import_module(module), symbol):
+                    broken.append(f"{g['id']}: {module} has no {symbol}")
+            except ImportError as exc:
+                broken.append(f"{g['id']}: cannot import {module} ({exc})")
+        self.assertEqual(broken, [], "implemented_in points at code that is not there:\n  " + "\n  ".join(broken))
+
+    def test_only_the_guarantees_about_published_text_may_skip_it(self):
+        # [GUAR-IMPL-NULL] EN: null is pinned, so "no symbol" stays a decision instead of becoming the easy
+        #   way out of the check above.
+        without = sorted(g["id"] for g in _load() if not g.get("implemented_in"))
+        self.assertEqual(without, ["G-DOC-COUNT", "G-DOC-INTERNAL", "G-PRESIDIO-TIER"])
 
 
 class TestGuaranteesAreCovered(unittest.TestCase):

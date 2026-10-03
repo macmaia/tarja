@@ -38,3 +38,42 @@ def guarantees(*ids: str) -> Callable:
         return fn
 
     return wrap
+
+
+# [GUAR-SWEPT] EN: a sweep that examined nothing passes. Three tests in this project did exactly that: a
+#   regex that matched no count, an exemption that emptied the set, a filter placed before the assertion.
+#   Each one passed in the precise case it had been written to catch, and each looked like a working test.
+#
+#   The fix is not care, it is arithmetic: a sweep has to say how many items it looked at, and that number
+#   has to clear a floor. Wrap the iterable and the test cannot pass vacuously any more.
+#   PT: varredura q nao examinou nada passa. Tres testes aqui fizeram exatamente isso. O conserto nao e
+#   cuidado, e aritmetica: a varredura diz quantos itens olhou e esse numero tem de passar de um piso.
+
+
+class Swept:
+    """EN: Counts what a sweep actually looked at. PT: Conta o que a varredura de fato olhou."""
+
+    __slots__ = ("_items", "_label", "_minimum", "count")
+
+    def __init__(self, items, label: str, minimum: int = 1) -> None:
+        if minimum < 1:
+            raise ValueError("a sweep that may examine nothing is not a sweep / piso tem de ser >= 1")
+        self._items = items
+        self._label = label
+        self._minimum = minimum
+        self.count = 0
+
+    def __iter__(self):
+        for item in self._items:
+            self.count += 1
+            yield item
+
+    def check(self, test) -> None:
+        """EN: Call at the end of the test. PT: Chame no fim do teste."""
+        test.assertGreaterEqual(
+            self.count,
+            self._minimum,
+            f"the sweep over {self._label} examined {self.count} item(s), the floor is {self._minimum}. "
+            f"A test that examines nothing reports success without checking anything, which is how three "
+            f"guards in this repository passed in the exact case they existed to catch.",
+        )
