@@ -18,6 +18,8 @@ import re
 from collections.abc import Iterable
 
 from tarja.detect import Match, find
+from tarja.normalise import normalise_text
+from tarja.normalise import strip_invisible as _strip_invisible_pair
 from tarja.vault import key_id
 
 STRATEGIES = ("redact", "pseudonym", "pseudonym_stable")
@@ -77,7 +79,15 @@ _NON_ALNUM = re.compile(r"[^0-9A-Za-z]")
 
 
 def _canonical(value: str) -> str:
-    return _NON_ALNUM.sub("", value).upper()
+    # [MASK-CANON-NORM] EN: normalise BEFORE dropping punctuation, or the same identifier produces two
+    #   different stable labels. Two ways it broke: a circled digit answers True to isalnum(), so it
+    #   survived the filter and "CPF 529..." and "CPF ⑤②⑨..." hashed differently; and a value carrying an
+    #   invisible character (the evasion pass returns the original slice, invisibles included) canonicalised
+    #   to something else again. The whole point of pseudonym_stable is that the same person gets the same
+    #   label everywhere, so a value that two documents spell differently has to canonicalise to one thing.
+    #   PT: normalizar ANTES de tirar a pontuacao, senao o mesmo identificador gera dois rotulos estaveis
+    #   diferentes. Digito cercado passava pelo isalnum(), e valor com invisivel canonizava de outro jeito.
+    return _NON_ALNUM.sub("", normalise_text(_strip_invisible_pair(value)[0])).upper()
 
 
 def mask(
@@ -107,6 +117,25 @@ def mask(
     key = check_salt(salt) if salt is not None else b""
     kid = key_id(key) if key else ""
     found = list(matches) if matches is not None else find(text, **find_kwargs)
+
+    # [MASK-DISJOINT] EN: substitution below walks the matches from the end backwards, which is only correct
+    #   while the spans do not overlap. find() guarantees that through resolve_overlaps, so for the normal
+    #   path this check never fires. A hand-built list passed as matches= has no such guarantee, and an
+    #   overlapping pair silently produces a corrupted document: measured on 01/10/2026, two overlapping
+    #   spans turned "CPF 529.982.247-25 tail" into "CPF <BR_CPF>" (the tail eaten) and, with other offsets,
+    #   into "CPF <BR_CPF>P> tail" (half a label left behind). A masking function that quietly returns a
+    #   damaged document is worse than one that refuses, because the caller ships the damage.
+    #   PT: a substituicao abaixo anda de tras p/ frente, o q so esta certo enquanto os spans nao se
+    #   sobrepoem. O find() garante isso, uma lista montada a mao nao. Par sobreposto corrompia o documento
+    #   em silencio.
+    ordered = sorted(found, key=lambda m: (m.start, m.end))
+    for earlier, later in zip(ordered, ordered[1:], strict=False):
+        if later.start < earlier.end:
+            raise ValueError(
+                f"overlapping matches at {earlier.start}:{earlier.end} ({earlier.entity}) and "
+                f"{later.start}:{later.end} ({later.entity}). mask() needs disjoint spans, use find() or "
+                f"resolve them first / spans sobrepostos, o mask() precisa de spans disjuntos"
+            )
 
     # [MASK-LABELS] build one label per match
     labels: dict[tuple[str, str], str] = {}

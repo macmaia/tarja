@@ -41,13 +41,84 @@ _MAP = {
 }
 
 
+# [NORMALISE-INVISIBLE] EN: the single source of truth for "character a reader cannot see inside an
+#   identifier". detect.py reads this for both its trigger and its strip, so the two cannot drift apart.
+#
+#   Two mechanisms on purpose, because neither alone is enough. The CATEGORIES catch the whole families and
+#   keep catching characters Unicode adds later: Cf (format: zero-width, soft hyphen, bidi controls, tag
+#   characters) and Mn (nonspacing marks: combining accents, variation selectors). The EXTRAS list catches
+#   what sits outside those categories and was measured to evade anyway: the Hangul fillers are category Lo
+#   and even answer True to isalnum(), so no category rule finds them.
+#
+#   What is deliberately NOT here: U+00A0 and the other Zs spaces, because removing a space joins words and
+#   numbers that were never together, and the circled digits (No), which are real digits and belong in the
+#   digit mapping below instead. Both were measured on 01/10/2026 and each is a different problem.
+#   PT: fonte unica do q e "caractere q o leitor nao ve dentro de um identificador". Duas regras de
+#   proposito: categoria p/ as familias inteiras, lista explicita p/ o q escapa de categoria.
+_INVISIBLE_CATEGORIES = frozenset({"Cf", "Mn"})
+
+_INVISIBLE_EXTRAS = frozenset(
+    {
+        "\u3164",  # Hangul filler, category Lo, isalnum() is True
+        "\u115f",  # Hangul choseong filler
+        "\u1160",  # Hangul jungseong filler
+        "\uffa0",  # halfwidth Hangul filler
+    }
+)
+
+
+def is_invisible(ch: str) -> bool:
+    """EN: True for a character a reader cannot see but that breaks a pattern. PT: caractere invisivel."""
+    # [NORMALISE-INVISIBLE-TEST]
+    return ch in _INVISIBLE_EXTRAS or unicodedata.category(ch) in _INVISIBLE_CATEGORIES
+
+
+def strip_invisible(text: str) -> tuple[str, list[int]]:
+    """EN: Return (text without invisible characters, index map). index_map[i] is the position IN THE
+    ORIGINAL of character i of the stripped text, so an offset found in the stripped text translates back.
+    PT: Devolve (texto sem invisivel, mapa de indices). index_map[i] e a posicao no ORIGINAL.
+    """
+    # [NORMALISE-STRIP] the one place that removes them, so the trigger and the strip see the same set
+    out: list[str] = []
+    index_map: list[int] = []
+    for i, ch in enumerate(text):
+        if is_invisible(ch):
+            continue
+        out.append(ch)
+        index_map.append(i)
+    return "".join(out), index_map
+
+
+def has_invisible_near_digit(text: str, window: int = 2) -> bool:
+    """EN: True when an invisible character sits within `window` characters of a digit. This is the trigger
+    for the extra detection pass, and it is narrow on purpose: Portuguese text decomposed to NFD carries a
+    combining mark on nearly every accented word, so a bare "contains Mn" test would fire on ordinary
+    documents and double the cost of the common path for nothing.
+    PT: True qdo um invisivel esta a `window` caracteres de um digito. Gatilho estreito de proposito: texto
+    em NFD tem marca combinante em quase toda palavra acentuada.
+    """
+    # [NORMALISE-TRIGGER]
+    n = len(text)
+    for i, ch in enumerate(text):
+        if not is_invisible(ch):
+            continue
+        lo, hi = max(0, i - window), min(n, i + window + 1)
+        if any(text[j].isdigit() for j in range(lo, hi) if j != i):
+            return True
+    return False
+
+
 def _swap(ch: str) -> str:
     # [NORMALISE-CHAR] map one char, always returning exactly one char
     if ch in _MAP:
         return _MAP[ch]
-    # any Unicode decimal digit (fullwidth, Arabic-Indic...) -> ASCII
-    if not ch.isascii() and ch.isdecimal():
-        return str(unicodedata.decimal(ch))
+    # [NORMALISE-DIGIT] any Unicode digit -> ASCII. isdigit(), not isdecimal(): the circled digits
+    #   (U+2460 and friends) are category No, so isdecimal() is False for them and they slipped through,
+    #   which made "CPF ①②⑨..." invisible to every pattern. unicodedata.digit() resolves all of them to a
+    #   single ASCII character, so the 1-for-1 length rule still holds. Measured 01/10/2026.
+    #   PT: isdigit() e nao isdecimal(): o digito cercado e categoria No, entao escapava.
+    if not ch.isascii() and ch.isdigit():
+        return str(unicodedata.digit(ch))
     # fullwidth Latin letters (U+FF21..FF5A) -> ASCII, matters for alphanumeric CNPJ
     code = ord(ch)
     if 0xFF21 <= code <= 0xFF5A:

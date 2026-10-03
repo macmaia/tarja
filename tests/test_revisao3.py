@@ -9,6 +9,8 @@ import logging
 import time
 import unittest
 
+from _guarantees import guarantees
+
 import tarja
 from tarja.detect import MAX_CHARS, Match, resolve_overlaps
 
@@ -21,8 +23,8 @@ class TestMatchNeverPrintsTheValue(unittest.TestCase):
     def setUp(self) -> None:
         self.match = tarja.find(f"CPF {CPF}")[0]
 
+    @guarantees("G-REPR-HIDES")
     def test_repr_hides_the_value(self) -> None:
-        # guarantee: G-REPR-HIDES
         # [TEST-A1-REPR]
         self.assertNotIn(CPF, repr(self.match))
         self.assertNotIn("52998224725", repr(self.match))

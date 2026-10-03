@@ -11,39 +11,103 @@ from __future__ import annotations
 import bisect
 import re
 from collections.abc import Iterable
-from dataclasses import dataclass
 from functools import lru_cache
 
 from tarja.entities import ENTITIES, TIER_RANK, EntitySpec
-from tarja.normalise import fold, normalise_text
+from tarja.normalise import fold, has_invisible_near_digit, normalise_text, strip_invisible
 
 
-@dataclass(frozen=True, repr=False)
+# [DETECT-MATCH] EN: hand-written instead of a dataclass, and that is the whole point. As a dataclass it
+#   hid the value from repr() and from to_dict(), and leaked it through `dataclasses.asdict(match)` and
+#   `vars(match)`, which is exactly what a structured logging or monitoring library calls. A control the
+#   docs promise and two standard serialisers walk around is not a control. With __slots__ and no dataclass
+#   decorator, both of those raise TypeError instead of returning the identifier, and the message says where
+#   to go. Fail loudly beats leak quietly.
+#   PT: escrito a mao em vez de dataclass, e e esse o ponto. Como dataclass ele escondia o valor do repr() e
+#   do to_dict(), e vazava pelo asdict() e pelo vars(), q e o q biblioteca de log estruturado chama.
+#
+#   The cost, stated: Match is immutable and comparable, so __eq__ and __hash__ are written out below. If you
+#   add a field, add it to __slots__, to __init__ and to _key, or equality quietly stops seeing it.
 class Match:
     """EN: One detected identifier. start/end are offsets in the ORIGINAL text (text[start:end] == value).
     PT: 1 identificador achado. start/end sao offsets no texto ORIGINAL (text[start:end] == value).
+
+    EN: the value is reachable as `.value` and through `to_dict()`. It is deliberately NOT reachable through
+    `dataclasses.asdict()` or `vars()`, which both raise. Serialise with `to_dict(include_value=False)`.
+    PT: o valor esta em `.value` e no `to_dict()`. De proposito NAO esta no `asdict()` nem no `vars()`.
     """
 
+    # [DETECT-SLOTS] no __dict__, so vars(match) raises instead of handing over the identifier
+    __slots__ = ("entity", "start", "end", "_value", "score", "tier", "pattern", "has_context", "valid_dv")
+
+    # [DETECT-TYPES] EN: annotations without values. They create no class attribute, so they do not clash
+    #   with __slots__, and they are the only way a type checker learns what this object carries once the
+    #   dataclass decorator is gone. Dropping the decorator silently took these with it and mypy reported
+    #   104 errors, every one of them "Match has no attribute ...". The behaviour was correct and the
+    #   declaration was missing, which is the quiet half of hand-writing a class the tooling used to write.
+    #   PT: anotacao sem valor, q nao cria atributo de classe e nao conflita com __slots__. E o unico jeito
+    #   de o verificador de tipo saber o q este objeto carrega depois q o decorator saiu.
     entity: str
     start: int
     end: int
-    value: str
+    _value: str
     score: float
     tier: str
     pattern: str
     has_context: bool
-    # [DETECT-SUSPECT] False = right shape, WRONG check digit (only with find(report_invalid=True), score 0).
-    #   A suspect is NOT harmless: it is a sequence shaped like a document, which usually means a typo or
-    #   OCR noise on a REAL identifier. Treat it like the identifier itself. Do not log it, do not put it
-    #   in an error message and do not ship it to a monitoring service. Use to_dict(include_value=False).
-    valid_dv: bool = True
+    valid_dv: bool
+
+    def __init__(
+        self,
+        entity: str,
+        start: int,
+        end: int,
+        value: str,
+        score: float,
+        tier: str,
+        pattern: str,
+        has_context: bool,
+        # [DETECT-SUSPECT] False = right shape, WRONG check digit (only with find(report_invalid=True),
+        #   score 0). A suspect is NOT harmless: it is a sequence shaped like a document, which usually means
+        #   a typo or OCR noise on a REAL identifier. Treat it like the identifier itself. Do not log it, do
+        #   not put it in an error message and do not ship it to a monitoring service.
+        valid_dv: bool = True,
+    ) -> None:
+        # [DETECT-INIT] object.__setattr__ because __setattr__ below refuses, which is what frozen means
+        for name, val in (
+            ("entity", entity), ("start", start), ("end", end), ("_value", value), ("score", score),
+            ("tier", tier), ("pattern", pattern), ("has_context", has_context), ("valid_dv", valid_dv),
+        ):  # fmt: skip
+            object.__setattr__(self, name, val)
+
+    @property
+    def value(self) -> str:
+        """EN: The raw identifier. Asking for it is the point. PT: O identificador cru."""
+        return self._value
+
+    # [DETECT-FROZEN] immutable, as the dataclass version was
+    def __setattr__(self, name: str, value: object) -> None:
+        raise AttributeError(f"Match is immutable, cannot set {name!r} / Match e imutavel")
+
+    def __delattr__(self, name: str) -> None:
+        raise AttributeError(f"Match is immutable, cannot delete {name!r} / Match e imutavel")
+
+    def _key(self) -> tuple:
+        # [DETECT-KEY] one place that decides identity, used by both __eq__ and __hash__
+        return (self.entity, self.start, self.end, self._value, self.score, self.tier, self.pattern,
+                self.has_context, self.valid_dv)  # fmt: skip
+
+    def __eq__(self, other: object) -> bool:
+        return isinstance(other, Match) and self._key() == other._key()
+
+    def __hash__(self) -> int:
+        return hash(self._key())
 
     def __repr__(self) -> str:
         """EN: Never prints the identifier. PT: Nunca imprime o identificador."""
-        # [DETECT-REPR] the default dataclass repr would put the raw value into every log line, traceback and
-        #   monitoring event that touches a Match, which is exactly what find()'s own warning forbids. A
-        #   control the docs demand and the code does not enforce is not a control. The value is still there,
-        #   reachable as .value and through to_dict(), it just takes asking for it.
+        # [DETECT-REPR] the default repr would put the raw value into every log line, traceback and
+        #   monitoring event that touches a Match. The value is still there, reachable as .value and through
+        #   to_dict(), it just takes asking for it.
         keep = "" if self.valid_dv else ", SUSPECT"
         return (
             f"Match({self.entity} {self.start}:{self.end} score={self.score} "
@@ -151,6 +215,55 @@ def _candidates(norm: str, text: str, spec: EntitySpec, report_invalid: bool = F
             )
 
 
+def _evaded_candidates(text: str, ids: list[str], report_invalid: bool) -> list[Match]:
+    """EN: Candidates that only appear once invisible characters are taken out of the text.
+    PT: Candidatos q so aparecem depois de tirar os caracteres invisiveis do texto.
+    """
+    # [DETECT-EVADED] EN: one U+200B between two digits of a valid CPF made find() return nothing at all,
+    #   not even a suspect. The reader does not see the character, a language model reads the identifier
+    #   normally, and the gate reported the file clean. Measured on ten characters across five classes,
+    #   01/10/2026. It is not only an attack: soft hyphens and zero-width characters come out of ordinary
+    #   PDF and Word extraction on their own, so this was also a silent false negative in normal use.
+    #
+    #   Why a second pass instead of removing them in the normaliser: the normaliser is length-preserving,
+    #   and that is what lets a Match offset point into the ORIGINAL text. Removing a character shortens the
+    #   text and breaks every offset, so the removal happens here, against an index map that translates back.
+    #
+    #   The result is VALID, not suspect. An identifier that only resolves once the invisible characters are
+    #   removed is not a doubtful candidate, it is an identifier with evasion built in. Reporting it as a
+    #   suspect would file it in a channel that does not gate anything.
+    #   PT: um U+200B entre dois digitos de um CPF valido fazia o find() nao devolver nada, nem suspeito.
+    #   Passada separada pq o normalizador preserva o tamanho, q e o q faz o offset apontar p/ o original.
+    if not has_invisible_near_digit(text):
+        return []
+    stripped, index_map = strip_invisible(text)
+    if not stripped or len(stripped) == len(text):
+        return []
+    norm = normalise_text(stripped)
+    out: list[Match] = []
+    for eid in ids:
+        for m in _candidates(norm, stripped, ENTITIES[eid], report_invalid):
+            if m.end <= m.start or m.end > len(index_map):
+                continue  # pragma: no cover
+            start, end = index_map[m.start], index_map[m.end - 1] + 1
+            # [DETECT-EVADED-BAR] EN: joining across a removed character is a stronger claim than matching
+            #   plain text, so the evaded candidate has to clear a higher bar. A check digit does that by
+            #   itself (a wrong join closes the digit about one time in a hundred). A tier without a check
+            #   digit has nothing to fall back on, so it is only accepted with a context word nearby.
+            #   Without this, removing a soft hyphen at a line break joins two unrelated number groups and
+            #   invents a finding.
+            #   PT: juntar atraves de um caractere removido e afirmacao mais forte, entao o candidato tem de
+            #   passar numa barra mais alta. DV ja faz isso. Nivel sem DV so entra com contexto perto.
+            if ENTITIES[eid].tier != "N1" and not m.has_context:
+                continue
+            out.append(
+                Match(
+                    m.entity, start, end, text[start:end], m.score, m.tier, m.pattern, m.has_context, m.valid_dv
+                )  # fmt: skip
+            )
+    return out
+
+
 def resolve_overlaps(matches: Iterable[Match], order: list[str] | None = None) -> list[Match]:
     """EN: Keep the best match wherever spans overlap. Priority: stronger tier, then higher score,
     then longer span, then registry order. Result is sorted by position.
@@ -238,6 +351,13 @@ def find(
     found: list[Match] = []
     for eid in ids:
         found.extend(_candidates(norm, text, ENTITIES[eid], report_invalid))
+    # [FIND-EVADED] EN: the extra pass feeds the SAME list, before the split and before resolve_overlaps, so
+    #   the union is resolved once and the output keeps its one invariant: spans do not overlap. Merging the
+    #   two lists any later would hand mask() overlapping spans, and mask() substitutes from the end
+    #   backwards, which quietly corrupts the document. Measured 01/10/2026, and mask() now refuses them.
+    #   PT: a passada extra alimenta a MESMA lista, antes da divisao e do resolve, p/ a uniao ser resolvida
+    #   uma vez so. Juntar depois entregaria spans sobrepostos ao mask(), q corrompe o documento em silencio.
+    found.extend(_evaded_candidates(text, ids, report_invalid))
     # [FIND-SPLIT] suspects never compete with valid matches
     suspects = [m for m in found if not m.valid_dv]
     found = [m for m in found if m.valid_dv and m.score >= min_score]

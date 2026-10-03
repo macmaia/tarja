@@ -9,6 +9,8 @@ import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from unittest import mock
 
+from _guarantees import guarantees
+
 from tarja.cli import main
 
 T = "cpf 529.982.247-25 e cnpj 12.ABC.345/01DE-35\n"
@@ -32,8 +34,8 @@ class TestCLI(unittest.TestCase):
     def tearDown(self):
         os.remove(self.path)
 
+    @guarantees("G-VALUES-HIDDEN")
     def test_scan_jsonl_hides_values(self):
-        # guarantee: G-VALUES-HIDDEN
         # [TEST-CLI] default output has no raw value, exit 1 when found
         code, out, _ = run(["scan", self.path])
         rows = [json.loads(line) for line in out.splitlines()]
@@ -41,8 +43,8 @@ class TestCLI(unittest.TestCase):
         self.assertEqual([r["entity"] for r in rows], ["BR_CPF", "BR_CNPJ"])
         self.assertTrue(all("value" not in r for r in rows))
 
+    @guarantees("G-EXIT-DISPLAY")
     def test_scan_show_values_and_table(self):
-        # guarantee: G-EXIT-DISPLAY
         # [TEST-CLI] --show-values and --format table
         _, out, _ = run(["scan", self.path, "--show-values"])
         self.assertIn("529.982.247-25", out)
@@ -66,8 +68,8 @@ class TestCLI(unittest.TestCase):
         _, out, _ = run(["mask", self.path, "--strategy", "pseudonym_stable", "--salt", "7f3b9a1c5d2e8046"])
         self.assertIn("<BR_CPF:", out)
 
+    @guarantees("G-EXIT-ERROR")
     def test_errors(self):
-        # guarantee: G-EXIT-ERROR
         # [TEST-CLI] missing file, no key, weak key, unknown entity -> exit 2 + message
         with mock.patch.dict(os.environ, {}, clear=False):
             os.environ.pop("TARJA_SALT", None)

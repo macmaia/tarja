@@ -92,3 +92,28 @@ delas. Ninguém abriu as rodadas. Correção registrada sem o id da rodada que p
 ## conduct / conduta
 
 EN: see `CODE_OF_CONDUCT.md`. PT: ver `CODE_OF_CONDUCT.md`.
+
+## adversarial review / revisão adversarial
+
+EN: before each minor release, run one review that gets the functional description and the written promises
+and **nothing else**. No repository, no source, no PyPI, no search. The question it answers is "what does
+each feature have to BLOCK, and how would I make it not block", and its output is a list of concrete attacks.
+
+EN: this is tied to the release, not to a date. A calendar cadence in a one-maintainer project is a promise
+that breaks.
+
+EN: why it earns the time. On 01/10/2026 the suite had 97.9% line coverage, 68 of 68 mutants killed, ruff
+and mypy clean. A blind review of that same release, in minutes, found three real defects none of those
+metrics could see, plus two contradictions between the written promises themselves, before running anything.
+Coverage asks whether a line ran. Mutation asks whether a test would notice the line changing. Neither asks
+whether the line should exist, so a requirement nobody implemented has nothing to cover and nothing to
+mutate, and both metrics stay green over the hole.
+
+EN: whatever it finds becomes an entry in `spec/guarantees.yaml`, written as a prohibition, plus the test
+that claims it with `@guarantees("G-...")`. A defect without a guarantee is a defect that comes back.
+
+PT: antes de cada versão menor, rode uma revisão que recebe a descrição funcional e as promessas escritas e
+**nada mais**. Sem repositório, sem código, sem busca. A pergunta é "o que cada recurso precisa BARRAR, e
+como eu faria ele não barrar". Amarrada à release, não ao calendário: cadência de calendário em projeto de um
+mantenedor é promessa que quebra. Em 01/10/2026 ela achou três defeitos reais que 97,9% de cobertura e 68 de
+68 mutantes não viram. O que ela achar vira entrada no `spec/guarantees.yaml` mais o teste que a reivindica.

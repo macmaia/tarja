@@ -3,6 +3,8 @@
 
 import unittest
 
+from _guarantees import guarantees
+
 import tarja
 
 T = "cpf 529.982.247-25 e de novo cpf 52998224725, cnpj 12.ABC.345/01DE-35"
@@ -33,8 +35,8 @@ class TestMask(unittest.TestCase):
             warnings.simplefilter("error")
             tarja.mask(T, strategy="pseudonym_stable", salt="7f3b9a1c5d2e8046")
 
+    @guarantees("G-STRATEGY-REMOVED")
     def test_old_hash_name_is_gone_and_the_error_names_the_replacement(self):
-        # guarantee: G-STRATEGY-REMOVED
         # [TEST-MASK-ALIAS] "hash" is the pre-0.5 name. The warning promised removal in 0.6 and it was still
         #   accepted in 0.8.0, so it goes in 0.9.0. A bare "must be one of" would make the caller guess, so
         #   the error names the replacement.
@@ -43,8 +45,8 @@ class TestMask(unittest.TestCase):
         self.assertIn("pseudonym_stable", str(cm.exception))
         self.assertIn("0.9.0", str(cm.exception))
 
+    @guarantees("G-LABEL-CANONICAL")
     def test_pseudonym_stable_needs_salt_and_is_stable(self):
-        # guarantee: G-LABEL-CANONICAL
         # [TEST-MASK] no salt -> error, same key -> same output, other key -> different
         with self.assertRaises(ValueError):
             tarja.mask(T, strategy="pseudonym_stable")

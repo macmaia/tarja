@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import unittest
 
-from _guarantees import guarantees
+from _guarantees import Swept, guarantees
 
 from tarja import find, mask
 from tarja.normalise import has_invisible_near_digit, is_invisible, strip_invisible
@@ -78,20 +78,23 @@ class TestOneInvisibleCharacterCannotHideAnIdentifier(unittest.TestCase):
         # [EVA-PROPERTY] EN: this is the test that would have caught the defect. It fails on every version
         #   before 01/10/2026, for every entity, every character and every position.
         missed = []
-        for entity, value in VALID.items():
-            word = CONTEXT[entity]
-            for name, ch in INVISIBLES.items():
-                # every gap between two characters of the identifier, borders excluded: an invisible on the
-                # border sits outside the identifier and is a different question
-                for pos in range(1, len(value)):
-                    text = f"{word} {value[:pos]}{ch}{value[pos:]}"
-                    hits = [m for m in find(text) if m.entity == entity]
-                    if not hits:
-                        missed.append(f"{entity} {name} at offset {pos}")
-                    else:
-                        m = hits[0]
-                        if text[m.start : m.end] != m.value:
-                            missed.append(f"{entity} {name} at offset {pos}: offsets do not slice the value")
+        # [EVA-SWEPT] 3 entities x 9 characters x the interior positions of each identifier. If the product
+        #   ever collapses, every case below stops running and the test still reports success.
+        cases = Swept(
+            ((e, v, n, ch, pos) for e, v in VALID.items() for n, ch in INVISIBLES.items()
+             for pos in range(1, len(v))),
+            "entity x invisible x position", minimum=300,
+        )  # fmt: skip
+        for entity, value, name, ch, pos in cases:
+            # every gap between two characters of the identifier, borders excluded: an invisible on the
+            # border sits outside the identifier and is a different question
+            text = f"{CONTEXT[entity]} {value[:pos]}{ch}{value[pos:]}"
+            hits = [m for m in find(text) if m.entity == entity]
+            if not hits:
+                missed.append(f"{entity} {name} at offset {pos}")
+            elif text[hits[0].start : hits[0].end] != hits[0].value:
+                missed.append(f"{entity} {name} at offset {pos}: offsets do not slice the value")
+        cases.check(self)
         self.assertEqual(missed, [], f"{len(missed)} evaded detection:\n  " + "\n  ".join(missed[:20]))
 
     @guarantees("G-NORMALISE-INVISIBLE")

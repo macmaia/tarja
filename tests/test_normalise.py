@@ -3,6 +3,8 @@
 
 import unittest
 
+from _guarantees import guarantees
+
 from tarja.normalise import fold, normalise_text
 
 
@@ -12,14 +14,14 @@ class TestNormalise(unittest.TestCase):
         t = "CPF 529.982.247-25"
         self.assertIs(normalise_text(t), t)
 
+    @guarantees("G-NORMALISE-LOOKALIKE")
     def test_lookalikes(self):
-        # guarantee: G-NORMALISE-LOOKALIKE
         # [TEST-NORMALISE] fullwidth digits, en dash, NBSP, fullwidth letters and slash
         t = "５２９.982.247–25 ＡＢ／"
         self.assertEqual(normalise_text(t), "529.982.247-25 AB/")
 
+    @guarantees("G-OFFSETS-STABLE")
     def test_length_always_kept(self):
-        # guarantee: G-OFFSETS-STABLE
         # [TEST-NORMALISE] output length == input length, char by char
         t = "a—b−c　d١٢eéİ"
         self.assertEqual(len(normalise_text(t)), len(t))

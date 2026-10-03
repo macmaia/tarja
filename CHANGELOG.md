@@ -7,6 +7,57 @@ onde um minor pode mudar comportamento.
 
 ## [Unreleased]
 
+## [0.10.0] - 2026-10-01
+
+EN: a character you cannot see used to hide an identifier completely. Upgrade if you scan text that came
+from a PDF, from Word, or from anyone else.
+PT: um caractere q você não vê escondia um identificador por inteiro. Atualize se você lê texto vindo de PDF,
+de Word, ou de terceiro.
+
+### Security / Segurança
+
+- **One invisible character inside an identifier no longer hides it.** A zero-width space between two digits
+  of a valid CPF made `find()` return nothing at all, not even a suspect. The reader does not see the
+  character, a language model reads the identifier normally, and `tarja scan` reported the file clean.
+
+  Ten characters across five classes did it: zero-width space, zero-width non-joiner, word joiner, soft
+  hyphen, bidi controls, variation selectors, combining marks, tag characters, Hangul fillers, and circled
+  digits. They are not only an attack. Soft hyphens and zero-width characters come out of ordinary PDF and
+  Word extraction on their own, so this was a silent false negative in normal use too.
+
+  Circled digits are fixed in the normaliser. The rest get a second detection pass over the text with those
+  characters removed, mapped back to the original offsets. A match that only appears after the removal is
+  reported as **valid**, not as a suspect, because an identifier that resolves only once the invisible
+  characters are gone is not a doubtful candidate.
+  PT: um caractere invisível dentro de um identificador não o esconde mais. Dez caracteres em cinco classes
+  faziam o `find()` não devolver nada, nem suspeito. Não é só ataque: hífen opcional e espaço de largura zero
+  saem sozinhos de extração de PDF e de Word.
+
+- **`mask()` refuses overlapping spans instead of damaging the document.** It substitutes from the end
+  backwards, which is only correct while the spans are disjoint. `find()` guarantees that; a list built by
+  hand and passed as `matches=` did not, and an overlapping pair silently produced a corrupted document.
+
+### Changed / Mudou
+
+- **`Match.value` may now contain invisible characters.** `text[start:end] == value` still holds, which is
+  what the type has always promised, but the value of a match found through the new pass is the original
+  slice, invisibles included. If you revalidate `value` yourself, normalise it first.
+  PT: o `Match.value` pode conter caractere invisível agora. O `text[start:end] == value` continua valendo.
+
+- `dataclasses.asdict(match)` and `vars(match)` now raise instead of returning the identifier. `repr()` and
+  `to_dict()` already hid it, and those two walked around it, which is what a structured logging library
+  calls. Use `to_dict(include_value=False)`.
+
+### Benchmark
+
+EN: unchanged, and this one was proved rather than assumed. Over all 10,000 published benchmark documents,
+the new pass never triggers and `find()` returns identical results with it on and off. The published
+figures stand: synthetic_controlled exact F1 0.978, synthetic_adversarial 0.825, semireal 0.9768, bench data
+v0.3. Cost on clean text is about 7% more time.
+PT: inalterado, e desta vez provado e não suposto: nos 10.000 documentos publicados a passada nova nunca
+dispara e o resultado é idêntico com ela ligada e desligada.
+
+
 ## [0.9.0] - 2026-09-29
 
 EN: five fail-open defects, found in the 4th code review on 29/09/2026. Four of them were in something

@@ -3,6 +3,8 @@
 
 import unittest
 
+from _guarantees import guarantees
+
 import tarja
 from tarja.detect import Match, resolve_overlaps
 
@@ -27,8 +29,8 @@ class TestFind(unittest.TestCase):
         )
         self.assertTrue(all(m.score == 0.95 and m.has_context for m in tarja.find(t)))
 
+    @guarantees("G-OFFSETS-STABLE")
     def test_offsets_point_to_original(self):
-        # guarantee: G-OFFSETS-STABLE
         # [TEST-DETECT] offsets slice the ORIGINAL text, even with Unicode look-alikes
         t = "cpf: ５２９.982.247–25 fim"
         [m] = tarja.find(t)

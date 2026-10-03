@@ -9,6 +9,8 @@ import unittest
 from contextlib import redirect_stderr, redirect_stdout
 from unittest import mock
 
+from _guarantees import guarantees
+
 import tarja
 from tarja.cli import main
 from tarja.mask import check_salt
@@ -50,8 +52,8 @@ class TestVaultChecksItsKey(unittest.TestCase):
             Vault(key=b"\x00" * 32)
         self.assertIn("distinct bytes", str(cm.exception))
 
+    @guarantees("G-SALT-WEAK")
     def test_refuses_placeholder_key_in_portuguese(self):
-        # guarantee: G-SALT-WEAK
         for weak in (b"senha", "chave-secreta-de-teste", "minha-senha-do-cofre-123456"):
             with self.subTest(weak=weak), self.assertRaises(ValueError) as cm:
                 Vault(key=weak)
@@ -96,8 +98,8 @@ class TestGateIsNotOpenedByTheReportFilter(unittest.TestCase):
     scoring 0.50 AND turned exit 1 into exit 0, so `tarja scan f.txt && send.sh` sent the file.
     """
 
+    @guarantees("G-EXIT-THRESHOLD")
     def test_threshold_does_not_open_the_gate(self):
-        # guarantee: G-EXIT-THRESHOLD
         code, out, _ = run(["scan", "-"], stdin=CEP)
         self.assertEqual(code, 1)
         self.assertIn("BR_CEP", out)
@@ -138,8 +140,8 @@ class TestMaskTakesNoThreshold(unittest.TestCase):
     argparse refuses them before any masking happens.
     """
 
+    @guarantees("G-MASK-NO-THRESHOLD")
     def test_mask_has_no_threshold_flag_at_all(self):
-        # guarantee: G-MASK-NO-THRESHOLD
         for flag in ("--min-score", "--report-min-score"):
             for value in ("0", "0.9"):
                 with self.subTest(flag=flag, value=value):
@@ -169,8 +171,8 @@ class TestMaskDoesNotLeakSuspectsSilently(unittest.TestCase):
     cleartext, with exit 0, and residual() called the file clean: a green light over personal data.
     """
 
+    @guarantees("G-SUSPECT-VISIBLE")
     def test_mask_warns_about_unmasked_suspects(self):
-        # guarantee: G-SUSPECT-VISIBLE
         code, out, err = run(["mask", "-"], stdin=BAD_CPF_TEXT)
         self.assertEqual(code, 0)
         self.assertEqual(out, BAD_CPF_TEXT, "a suspect is not masked by default")
@@ -187,8 +189,8 @@ class TestMaskDoesNotLeakSuspectsSilently(unittest.TestCase):
         self.assertEqual(code, 0)
         self.assertEqual(err, "")
 
+    @guarantees("G-RESIDUAL-SEES-SUSPECT")
     def test_residual_can_see_suspects(self):
-        # guarantee: G-RESIDUAL-SEES-SUSPECT
         text = "CPF 111.222.333-44 do cliente."
         self.assertEqual(tarja.residual(text), [])
         found = tarja.residual(text, report_invalid=True)
@@ -206,8 +208,8 @@ class TestScoreFlagValidation(unittest.TestCase):
     silently dropped every finding and returned exit 0. A check a typo can disable is not a check.
     """
 
+    @guarantees("G-SCORE-ARG")
     def test_nan_inf_and_out_of_range_are_refused(self):
-        # guarantee: G-SCORE-ARG
         for flag in ("--min-score", "--report-min-score"):
             for value in ("nan", "NaN", "inf", "1.5", "5", "abc"):
                 with self.subTest(flag=flag, value=value):
@@ -225,8 +227,8 @@ class TestScoreFlagValidation(unittest.TestCase):
             with self.subTest(value=value):
                 self.assertEqual(run(["scan", "-", "--report-min-score", value], stdin=CEP)[0], 1)
 
+    @guarantees("G-SIZE-CAP")
     def test_max_mb_refuses_inf_nan_and_non_positive(self):
-        # guarantee: G-SIZE-CAP
         # [B4-MAXMB] the score flags were hardened and --max-mb was left with a bare type=float. "inf" made
         #   int(inf * 1024 * 1024) raise OverflowError, which is not in main's except clause, so the user
         #   got a traceback and exit 1, indistinguishable from "personal data found". "-1" produced the
@@ -261,8 +263,8 @@ class TestThresholdOnlyRemoves(unittest.TestCase):
         "CPF 529.982.247-25."
     )
 
+    @guarantees("G-OVERLAP-ONE")
     def test_raising_the_threshold_never_adds_a_match(self):
-        # guarantee: G-OVERLAP-ONE
         base = {(m.entity, m.start, m.end) for m in tarja.find(self.TEXT)}
         for threshold in (0.35, 0.45, 0.55, 0.60, 0.75, 0.90, 1.0):
             raised = {(m.entity, m.start, m.end) for m in tarja.find(self.TEXT, min_score=threshold)}
