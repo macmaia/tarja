@@ -1,0 +1,33 @@
+# spec/test_floor.yaml
+# EN: the floor below which the suite must not shrink. It exists because a suite can lose tests while every
+#   signal stays green: a deleted test does not fail, and coverage does not drop either, because the
+#   denominator leaves with the numerator.
+#
+#   The day this was written, `git add -u` on a renamed file staged the deletion of two test files and left
+#   their replacements untracked. That would have removed 74 tests from the repository with pytest reporting
+#   success and coverage reporting 97.8%, over a quarter fewer tests. It was stopped by a formatting hook, by
+#   accident, which is to say there was no guard at all.
+#
+#   Two numbers, because one of them does not see the failure above. `collected` counts what runs on disk and
+#   would have stayed high, since the replacement files were there, just untracked. `tracked_files` counts
+#   what git is actually carrying, and that is the one that would have dropped.
+#   PT: o piso abaixo do qual a suite nao pode encolher. Teste apagado nao falha, e a cobertura tb nao cai,
+#   pq o denominador sai junto. Dois numeros pq o primeiro nao enxerga o caso q motivou o arquivo.
+#
+# Raising either number is a deliberate edit, in the same commit that adds the tests. It shows up in the
+# diff, which is the point. Lowering one needs a reason written here.
+#
+# [FLOOR] file anchor, checked by tools/check_test_floor.py.
+
+# MEASURED ON A FULL DEV INSTALL (`pip install -e ".[dev]"`), with `python -m unittest discover -s tests`.
+# pytest reports the same 291 on the same tree, so the two runners agree and nothing is outside mutation
+# testing. An earlier version of this file claimed they disagreed by two. They did not: the environment
+# doing the measuring was missing `hypothesis`, so tests/test_fuzz.py ran two of its four tests. Two numbers
+# from two machines are not a discrepancy, they are two measurements.
+# PT: medido num ambiente com o dev completo. Os dois runners concordam em 291. Uma versao anterior deste
+# arquivo dizia q discordavam em 2, e nao era: faltava hypothesis na maquina q media.
+#
+# Run this where the dev extras are installed, or the collected count will be short for a reason that has
+# nothing to do with tests being deleted.
+collected: 291          # measured 01/10/2026
+tracked_files: 23       # test_*.py files git is tracking, measured 01/10/2026
