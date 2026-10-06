@@ -116,6 +116,18 @@ def mask(
     #   key, which the check above already guarantees.
     key = check_salt(salt) if salt is not None else b""
     kid = key_id(key) if key else ""
+    # [MASK-SUSPECT] EN: report_invalid defaults to True HERE and only here. find() keeps defaulting to
+    #   False, because there a suspect is a finding the caller may not want, and `scan` keeps its exit code
+    #   as decided in docs/decisions.md. But mask() promises the value is gone from the returned text, and
+    #   until 0.10.0 a value with a failing check digit stayed in it verbatim while the function reported
+    #   success. Measured 02/10/2026: mask("CPF 111.444.777-36 e CPF 111.444.777-35") returned the first
+    #   CPF untouched. That is a broken promise, not an accepted risk, so the default changed and the
+    #   caller who wants the old behaviour passes report_invalid=False explicitly.
+    #   PT: report_invalid vira True AQUI e so aqui. O find() segue False e o `scan` segue com o codigo de
+    #   saida decidido. Mas o mask() promete q o valor saiu do texto, e ate a 0.10.0 um valor c/ DV errado
+    #   ficava no texto enquanto a funcao dizia ter mascarado. Medido em 02/10/2026.
+    if matches is None:
+        find_kwargs.setdefault("report_invalid", True)
     found = list(matches) if matches is not None else find(text, **find_kwargs)
 
     # [MASK-DISJOINT] EN: substitution below walks the matches from the end backwards, which is only correct

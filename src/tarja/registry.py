@@ -1,7 +1,7 @@
 # tarja/registry.py
 # [REGISTRY] public API to add your own entities (a state IE, an internal employee ID...) without forking.
 #   Custom entities live in the same ENTITIES dict the engine reads, so find(), mask(), Vault and the CLI
-#   pick them up. Built-in entities are protected unless replace=True.
+#   pick them up. Built-in entities cannot be replaced nor removed, only filtered in find().
 #   Not thread-safe: register at start-up, before serving requests.
 
 from __future__ import annotations
@@ -267,6 +267,14 @@ def register_entity(
         raise ValueError(f"entity id must be UPPER_SNAKE_CASE, 2-64 chars: {entity_id!r}")
     if entity_id in ENTITIES and not replace:
         raise ValueError(f"{entity_id} already registered, pass replace=True to override")
+    # [REGISTRY-BUILTIN] replace=True used to reach the built-ins, so a caller could keep the BR_CPF id and
+    #   swap its check digit validator for `lambda v: True`. unregister_entity already refused that, and
+    #   this is the same door with another handle. Measured 02/10/2026 on the blind attack round.
+    if entity_id in BUILTIN_IDS:
+        raise ValueError(
+            f"{entity_id} is built in, it cannot be replaced: register your own id instead / "
+            f"{entity_id} e nativa, nao pode ser substituida: registre um id proprio"
+        )
     if tier not in TIER_RANK:
         raise ValueError(f"tier must be one of {sorted(TIER_RANK)}")
     if tier == "N1" and validator is None:

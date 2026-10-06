@@ -29,5 +29,11 @@
 #
 # Run this where the dev extras are installed, or the collected count will be short for a reason that has
 # nothing to do with tests being deleted.
-collected: 291          # measured 01/10/2026
-tracked_files: 23       # test_*.py files git is tracking, measured 01/10/2026
+# 03/10/2026: raised with the 5th review. 304 was counted on a machine WITHOUT hypothesis installed, so
+# tests/test_fuzz.py ran two of its four and the real number on a full dev install is higher. A floor is a
+# minimum, so the short count is the safe one to write down, and leaving it short is deliberate rather than
+# an oversight. Raise it to the pytest number once measured where the dev extras are installed.
+# PT: 304 foi contado numa maquina SEM hypothesis, entao o numero real num dev completo e maior. Piso e
+# minimo, logo a contagem curta e a segura. Suba p/ o numero do pytest quando medir no ambiente completo.
+collected: 304          # measured 03/10/2026, see the note above
+tracked_files: 24       # test_*.py files git is tracking, measured 03/10/2026 (test_revisao5.py is new)

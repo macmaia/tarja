@@ -85,7 +85,9 @@ guarantees:
       ID-shaped value with a failing check digit.
     violated: that file gives exit 0, so the && proceeds. A warning on stderr does not stop &&.
     implemented_in: tarja.cli:main
-    status: open   # found 01/10/2026 by the blind attack board. Measured: exit 0 today. See PENDING.
+    status: enforced   # closed 03/10/2026 by --fail-on-suspect. The default exit code is unchanged and
+      # stays the accepted risk recorded in docs/decisions.md: this guarantee is about the idiom being
+      # ACHIEVABLE, and without the flag there was no way to achieve it at all.
 
   - id: G-RESIDUAL-SEES-SUSPECT
     blocks: residual must not report a file clean when ID-shaped values with a failing check digit remain.
@@ -188,13 +190,6 @@ guarantees:
     status: enforced
 
   # ---------------- published text ----------------
-  - id: G-SWEEP-NONEMPTY
-    blocks: A test that sweeps a corpus must never pass having examined nothing.
-    violated: a sweep whose filter, regex or exemption empties the set reports success without checking
-      anything. Three guards in this repository did exactly that, each passing in the precise case it had
-      been written to catch.
-    implemented_in: _guarantees:Swept
-    status: enforced
 
   - id: G-DOC-COUNT
     blocks: A published file must not state an entity count that disagrees with the registry.
@@ -207,4 +202,32 @@ guarantees:
       vocabulary.
     violated: a shipped file mentions the internal notes file or an internal review label.
     implemented_in: null   # about published text files, there is no symbol
+    status: enforced
+
+  - id: G-MASK-NO-SUSPECT-LEFT
+    blocks: mask must not return text that still contains an ID-shaped value with a failing check digit.
+    violated: mask("CPF 111.444.777-36 e CPF 111.444.777-35") returned the first CPF verbatim while
+      reporting success, so a caller who trusted the return value shipped eleven legible digits. Measured
+      02/10/2026. A warning on stderr is not a fix, because stdout is what the pipeline keeps.
+    implemented_in: tarja.mask:mask
+    status: enforced
+
+  - id: G-BUILTIN-NOT-REPLACEABLE
+    blocks: A caller must not be able to keep a built-in entity id while swapping out its check digit
+      validator.
+    violated: register_entity("BR_CPF", ..., tier="N1", replace=True) with a validator that always returns true was
+      accepted, so BR_CPF kept its name and validated everything. unregister_entity already refused the
+      same thing, which made the promise look kept. Measured 02/10/2026.
+    implemented_in: tarja.registry:register_entity
+    status: enforced
+
+  - id: G-EMBEDDED-LABELLED-RUN
+    blocks: A valid identifier sitting inside a longer run of digits must not go unreported when a context
+      word names it.
+    violated: the input `cpf 0052998224725` returned nothing at all, not even a suspect, because every pattern is
+      anchored with a word boundary. In a database dump that is the common shape. Measured 02/10/2026.
+      The window is kept only with a passing check digit AND a context word. Without the context word the
+      false positive rate reaches 90% on runs of 24 digits, measured 03/10/2026, which is why the
+      unlabelled run stays a documented limit instead of a detection.
+    implemented_in: tarja.detect:_embedded_candidates
     status: enforced

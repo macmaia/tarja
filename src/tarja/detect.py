@@ -215,6 +215,167 @@ def _candidates(norm: str, text: str, spec: EntitySpec, report_invalid: bool = F
             )
 
 
+# [DETECT-EMBEDDED-LEN] EN: how many plain digits each N1 pattern accepts, probed once at import by
+#   fullmatching a run of zeros. There is no length field on EntitySpec, and hard-coding 11 for CPF here
+#   would be a second source of truth that drifts from the regex. 8 to 20 covers every built-in.
+#   PT: quantos digitos crus cada padrao N1 aceita, medido 1x no import. Nao ha campo de tamanho no
+#   EntitySpec, e escrever 11 na mao aqui seria uma segunda fonte de verdade q desgarra do regex.
+EMBEDDED_MIN_DIGITS = 8
+EMBEDDED_MAX_DIGITS = 20
+# [DETECT-EMBEDDED-CAP] a 400-digit run would otherwise cost 400 windows per length per entity. Runs longer
+#   than this are examined only in their first and last EMBEDDED_RUN_CAP digits.
+EMBEDDED_RUN_CAP = 64
+
+
+def _digit_lengths() -> dict[str, tuple[tuple[str, int], ...]]:
+    out: dict[str, tuple[tuple[str, int], ...]] = {}
+    for eid, spec in ENTITIES.items():
+        if spec.tier != "N1" or spec.validator is None:
+            continue
+        pairs = []
+        for pat in spec.patterns:
+            for n in range(EMBEDDED_MIN_DIGITS, EMBEDDED_MAX_DIGITS + 1):
+                # [DETECT-EMBEDDED-PROBE] every digit, not just "0": BR_CNS only starts with 1, 2, 7 or 8,
+                #   so a run of zeros never fullmatched it and the entity silently fell out of this pass.
+                if any(pat.regex.fullmatch(d * n) for d in "0123456789"):
+                    pairs.append((pat.name, n))
+                    break
+        if pairs:
+            out[eid] = tuple(pairs)
+    return out
+
+
+EMBEDDED_LENGTHS = _digit_lengths()
+_DIGIT_RUN = re.compile(r"\d+")
+
+
+def _embedded_candidates(norm: str, text: str, ids: list[str], taken: set[tuple[int, int]]) -> list[Match]:
+    """EN: Valid identifiers sitting inside a longer digit or alphanumeric token, which the word-boundary
+    anchors in the patterns cannot reach.
+    PT: Identificadores validos dentro de um token maior de digitos ou alfanumerico, onde o \b dos padroes
+    nao chega.
+    """
+    # [DETECT-EMBEDDED] EN: `0052998224725`, `5299822472500` and `x52998224725x` all carry a CPF whose check
+    #   digit closes, and find() returned nothing at all for the three, not even a suspect, because every
+    #   pattern is anchored with \b and the neighbouring character is a word character. In a database dump
+    #   or a concatenated log that is the common shape, not the exotic one, and `scan` called the file clean.
+    #   Measured 02/10/2026 on the blind attack round, and the project chose to accept the false positives
+    #   this pass brings rather than keep the silent miss.
+    #
+    #   The whole false-positive control is the check digit: a window is kept ONLY when the validator
+    #   accepts it. A random 11-digit window closes a CPF about 1 in 100 times, so a long digit run can
+    #   still produce one, and that is the accepted cost. N2 has no check digit and therefore no control at
+    #   all, so it stays out of this pass. Suspects are not emitted here either: without \b there is no
+    #   reason to believe an unvalidated window was ever meant to be an identifier.
+    #   PT: o controle de falso positivo e inteiro o DV. A janela so fica se o validador aceitar. Uma janela
+    #   aleatoria de 11 digitos fecha um CPF ~1 em 100, entao sequencia longa ainda produz um, e esse e o
+    #   custo aceito. N2 nao tem DV, logo nao tem controle, e fica fora. Suspeito tb nao sai daqui.
+    out: list[Match] = []
+    specs = [(eid, ENTITIES[eid]) for eid in ids if eid in EMBEDDED_LENGTHS]
+    if not specs:
+        return out
+    # [DETECT-EMBEDDED-STRUCTURAL] EN: spans that any pattern of any entity matches, with no validation and
+    #   no context requirement. A window strictly inside one of these is digging into a value that already
+    #   has the shape of a complete identifier of some other kind, and that is where the damage was: the
+    #   hyphen-delimited tail of a PIX UUID is twelve plain digits, `426614174000`, and a NIS window inside
+    #   it closed. Checking letters in the token was not enough, because that tail has none.
+    #   PT: spans q qualquer padrao de qualquer entidade casa, sem validar e sem exigir contexto. Janela
+    #   estritamente dentro de um deles esta cavando em valor q ja tem forma de identificador completo de
+    #   outro tipo. Olhar letra no token nao bastou: a cauda do UUID do PIX nao tem letra.
+    #   The span only protects when the value PASSES its own entity's check: shape alone would protect too
+    #   much, because a 13-digit card pattern matches the whole of `0052998224725` and would have shielded
+    #   the CPF inside it. Luhn fails there, so it is not a real card and the window goes through, while the
+    #   PIX UUID does validate and is left alone. Context is deliberately ignored, so a value nobody asked
+    #   for still protects its own digits.
+    #   PT: o span so protege se o valor PASSA no teste da propria entidade: forma sozinha protegeria demais,
+    #   pq um padrao de cartao de 13 digitos casa o `0052998224725` inteiro e blindaria o CPF dentro dele.
+    structural: list[tuple[int, int]] = []
+    for spec in ENTITIES.values():
+        for pat in spec.patterns:
+            for sm in pat.regex.finditer(norm):
+                if spec.validator is not None and not spec.validator(sm.group(0)):
+                    continue
+                # [DETECT-EMBEDDED-STRUCTURAL-CTX] EN: an entity that needs a context word only protects
+                #   where that word is present. Every built-in carries a validator, and BR_IPTU's is a
+                #   loose length and range check, so "passes its validator" alone let IPTU shield any
+                #   13-digit run and the embedded pass found nothing at all. Context is what separates a
+                #   value someone actually wrote from a shape that happens to fit.
+                #   PT: entidade q exige palavra de contexto so protege onde a palavra esta. Todas as
+                #   nativas tem validador, e o do BR_IPTU e so tamanho e faixa, entao "passa no validador"
+                #   sozinho deixava o IPTU blindar qualquer sequencia de 13 digitos.
+                if spec.context_required and not _has_context(norm, sm.start(), sm.end(), spec):
+                    continue
+                structural.append((sm.start(), sm.end()))
+
+    def _inside_structural(a: int, b: int) -> bool:
+        return any(sa <= a and b <= sb and (sb - sa) > (b - a) for sa, sb in structural)
+
+    for run in _DIGIT_RUN.finditer(norm):
+        r0, r1 = run.start(), run.end()
+        run_len = r1 - r0
+        if run_len < EMBEDDED_MIN_DIGITS:
+            continue
+        # [DETECT-EMBEDDED-GUARD] a run that is already a standalone token of an accepted length was found
+        #   by the ordinary pass, so there is nothing here. Only a longer run, or one glued to a letter,
+        #   gets the sliding window.
+        # [DETECT-EMBEDDED-NOLETTER] EN: the window is only taken inside a token made of digits. A letter
+        #   touching the run means another encoding, and the measurement showed what that costs: a PIX key
+        #   is a UUID, `123e4567-e89b-42d3-a456-426614174000` carries `26614174000`, which closes as a valid
+        #   NIS, and the NIS won the overlap and ERASED the PIX key. Accepting false positives was the
+        #   decision, destroying a true positive of another entity was not. So `x52998224725x` is NOT
+        #   detected and that stays a documented limit. Measured 03/10/2026.
+        #   PT: a janela so vale dentro de token de digitos. Letra encostada quer dizer outra codificacao, e
+        #   a medicao mostrou o preco: chave PIX e UUID, e o `26614174000` dentro dela fecha como NIS
+        #   valido, o NIS ganhou a sobreposicao e APAGOU a chave PIX. Aceitar falso positivo foi a decisao,
+        #   destruir verdadeiro positivo de outra entidade nao foi.
+        t0, t1 = r0, r1
+        while t0 > 0 and norm[t0 - 1].isalnum():
+            t0 -= 1
+        while t1 < len(norm) and norm[t1].isalnum():
+            t1 += 1
+        if any(c.isalpha() for c in norm[t0:t1]):
+            continue
+        glued = t1 - t0 > run_len or run_len > EMBEDDED_MIN_DIGITS
+        if not glued:
+            continue
+        # [DETECT-EMBEDDED-WINDOWS] a very long run is examined only at its two ends. A 400-digit field is
+        #   machine output, not a document where someone wrote an identifier, and walking all of it costs
+        #   one window per position per length per entity.
+        if run_len <= EMBEDDED_RUN_CAP:
+            windows: list[int] = list(range(r0, r1))
+        else:
+            windows = list(range(r0, r0 + EMBEDDED_RUN_CAP)) + list(range(r1 - EMBEDDED_RUN_CAP, r1))
+        for eid, spec in specs:
+            for pat_name, n in EMBEDDED_LENGTHS[eid]:
+                for a in windows:
+                    b = a + n
+                    if b > r1 or (a, b) in taken:
+                        continue
+                    if not glued and a == r0 and b == r1:
+                        continue
+                    if spec.validator is None or not spec.validator(norm[a:b]):
+                        continue
+                    if _inside_structural(a, b):
+                        continue
+                    ctx = _has_context(norm, a, b, spec)
+                    if not ctx:
+                        continue
+                    out.append(
+                        Match(
+                            spec.id,
+                            a,
+                            b,
+                            text[a:b],
+                            spec.score_with_context if ctx else spec.score_without_context,
+                            spec.tier,
+                            pat_name + "_embedded",
+                            ctx,
+                        )  # fmt: skip
+                    )
+                    taken.add((a, b))
+    return out
+
+
 def _evaded_candidates(text: str, ids: list[str], report_invalid: bool) -> list[Match]:
     """EN: Candidates that only appear once invisible characters are taken out of the text.
     PT: Candidatos q so aparecem depois de tirar os caracteres invisiveis do texto.
@@ -358,6 +519,8 @@ def find(
     #   PT: a passada extra alimenta a MESMA lista, antes da divisao e do resolve, p/ a uniao ser resolvida
     #   uma vez so. Juntar depois entregaria spans sobrepostos ao mask(), q corrompe o documento em silencio.
     found.extend(_evaded_candidates(text, ids, report_invalid))
+    # [FIND-EMBEDDED] same list, same reason as the evaded pass: one resolve over the union.
+    found.extend(_embedded_candidates(norm, text, ids, {(m.start, m.end) for m in found}))
     # [FIND-SPLIT] suspects never compete with valid matches
     suspects = [m for m in found if not m.valid_dv]
     found = [m for m in found if m.valid_dv and m.score >= min_score]

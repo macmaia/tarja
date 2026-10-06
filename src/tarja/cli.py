@@ -133,6 +133,21 @@ def _build_parser() -> argparse.ArgumentParser:
     # [CLI-SCAN]
     scan = sub.add_parser("scan", parents=[common, threshold], help="list findings / lista o q achou")
     scan.add_argument("--format", choices=("jsonl", "table"), default="jsonl")
+    # [CLI-FAIL-ON-SUSPECT] EN: the conservative gate. Without it `tarja scan f.txt && send.sh` sends a file
+    #   whose only finding is an ID-shaped value with a failing check digit, which is the accepted risk
+    #   recorded in docs/decisions.md. A CPF with one corrupted digit reconstructs to exactly one valid CPF
+    #   in 93% of 243 measured cases (search space 110), so whoever is not willing to accept that turns this
+    #   on and the suspect blocks the send. It changes the EXIT CODE only, never the report, so it is not a
+    #   display option deciding whether data leaves the machine.
+    #   PT: o portao conservador. Sem ele, valor c/ cara de ID e DV errado nao segura o envio, q e o risco
+    #   aceito registrado em decisions.md. Medido: CPF c/ 1 digito corrompido reconstroi p/ exatamente 1 CPF
+    #   valido em 93% de 243 casos. Quem nao aceita isso liga esta flag. Muda SO o exit code.
+    scan.add_argument(
+        "--fail-on-suspect",
+        action="store_true",
+        help="exit 1 when an ID-shaped value fails its check digit, even without --suspect "
+        "/ sai 1 tb quando valor c/ cara de ID tem DV errado",
+    )
     scan.add_argument(
         "--show-values",
         action="store_true",
@@ -193,17 +208,21 @@ def main(argv: list[str] | None = None) -> int:
         #   PT: suspeito e formato de ID c/ DV errado, normalmente erro de digitacao num identificador REAL.
         #   O default e AVISAR, nao apagar, pq nota fiscal e protocolo em forma de CPF tb sao suspeitos.
         n_suspect = sum(1 for m in found if not m.valid_dv)
+        # [CLI-MASK-FOUND] the full list, suspects included, kept before the report filter below
+        mask_found = list(found)
         if not args.suspect:
             found = [m for m in found if m.valid_dv]
         if args.command == "mask":
-            # [CLI-MASK-RUN]
-            if not args.suspect and n_suspect:
-                sys.stderr.write(
-                    f"tarja: warning: {n_suspect} ID-shaped value(s) with a wrong check digit left UNMASKED, "
-                    f"residual() will not see them by default. Use --suspect to mask them. / aviso: "
-                    f"{n_suspect} valor(es) c/ cara de ID e DV errado ficaram SEM MASCARA.\n"
-                )
-            sys.stdout.write(mask(text, strategy=args.strategy, salt=args.salt, matches=found))
+            # [CLI-MASK-SUSPECT] EN: mask always masks suspects from 0.10.0, matching mask() in the library,
+            #   and --suspect is therefore the default here. The old behaviour warned and left the value in
+            #   the output, which meant the command said it had masked the document while an eleven-digit
+            #   value sat in it in cleartext. A warning on stderr is not a substitute for the value being
+            #   gone, because the output goes to stdout and the pipeline keeps it. Breaking change.
+            #   PT: o mask passa a mascarar suspeito sempre, igual ao mask() da biblioteca, logo o --suspect
+            #   e o padrao aqui. Antes avisava e deixava o valor na saida, ou seja, dizia ter mascarado o
+            #   documento c/ um valor de 11 digitos em claro dentro dele. Aviso no stderr nao substitui o
+            #   valor ter saido, pq a saida vai p/ o stdout e o pipeline fica c/ ela. Quebra de contrato.
+            sys.stdout.write(mask(text, strategy=args.strategy, salt=args.salt, matches=mask_found))
             return 0
         # [CLI-REPORT] EN: the threshold applies to valid matches only, the same rule find() documents: a
         #   suspect always scores 0 and is never filtered out by a threshold.
@@ -227,10 +246,14 @@ def main(argv: list[str] | None = None) -> int:
         if not args.suspect and n_suspect:
             sys.stderr.write(
                 f"tarja: warning: {n_suspect} ID-shaped value(s) with a wrong check digit NOT reported and "
-                f"NOT counted in the exit code. Use --suspect to see them. / aviso: {n_suspect} valor(es) c/ "
+                f"NOT counted in the exit code. Use --suspect to see them, or --fail-on-suspect to block "
+                f"on them. / aviso: {n_suspect} valor(es) c/ "
                 f"cara de ID e DV errado nao foram reportados nem contados no exit code.\n"
             )
         # [CLI-EXIT] exit 1 over the set of VALID candidates, before the report threshold. Handy in CI.
+        #   --fail-on-suspect adds the suspects to that set for the exit code only, see CLI-FAIL-ON-SUSPECT.
+        if getattr(args, "fail_on_suspect", False) and n_suspect:
+            return 1
         return 1 if found else 0
     except (OSError, ValueError, UnicodeDecodeError) as exc:
         # [CLI-ERROR] clean message instead of a traceback

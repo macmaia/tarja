@@ -172,17 +172,22 @@ class TestMaskDoesNotLeakSuspectsSilently(unittest.TestCase):
     """
 
     @guarantees("G-SUSPECT-VISIBLE")
-    def test_mask_warns_about_unmasked_suspects(self):
-        code, out, err = run(["mask", "-"], stdin=BAD_CPF_TEXT)
-        self.assertEqual(code, 0)
-        self.assertEqual(out, BAD_CPF_TEXT, "a suspect is not masked by default")
-        self.assertIn("tarja: warning:", err)
-        self.assertIn("1 ID-shaped value", err)
+    def test_mask_output_never_carries_the_suspect_value(self):
+        # [B4-SUSPECT-MASKED] until 0.10.0 this test asserted the opposite: that mask left the suspect in
+        #   the output and warned on stderr. That was the promise being measured, and the promise was
+        #   wrong. stdout is what the pipeline keeps, stderr is not, so a command that says it masked the
+        #   document while an eleven-digit value sits in its output is not warning, it is lying with a
+        #   footnote. Changed on purpose in 0.10.0, both here and in mask() itself.
+        for argv in (["mask", "-"], ["mask", "-", "--suspect"]):
+            with self.subTest(argv=argv):
+                code, out, _ = run(argv, stdin=BAD_CPF_TEXT)
+                self.assertEqual(code, 0)
+                self.assertNotIn("111.222.333-44", out)
+                self.assertEqual(out, "CPF <BR_CPF> do cliente.\n")
 
-    def test_mask_suspect_masks_them_and_says_nothing(self):
-        code, out, err = run(["mask", "-", "--suspect"], stdin=BAD_CPF_TEXT)
-        self.assertEqual((code, out), (0, "CPF <BR_CPF> do cliente.\n"))
-        self.assertEqual(err, "")
+    def test_the_library_still_lets_the_caller_keep_a_suspect(self):
+        # the escape hatch is explicit and typed, not a flag nobody reads
+        self.assertIn("111.222.333-44", tarja.mask("CPF 111.222.333-44", report_invalid=False))
 
     def test_no_false_alarm_on_ordinary_text(self):
         code, _, err = run(["mask", "-"], stdin="cpf 529.982.247-25 e nada mais\n")

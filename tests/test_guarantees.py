@@ -37,13 +37,16 @@ NOT_A_CLAIM = ("test_guarantees.py",)
 
 # EN: the acknowledged gaps, pinned. Each was found by attacking the stated promise, not the code, and each
 #   is measured rather than suspected. Changing this list is a decision, which is the point of pinning it.
-EXPECTED_OPEN = {
-    # scan on a file whose only finding has a failing check digit exits 0, so `scan f.txt && send.sh`
-    # sends it. There is a stderr warning, and a warning does not stop &&. Kept deliberately: the exit code
-    # is an operational contract, and gating on suspects teaches people to write `|| true`, which removes
-    # the gate for everything. It is accepted risk, not an absence of risk. See docs/decisions.md.
-    "G-SUSPECT-EXIT",
-}
+# EN: empty since 03/10/2026. G-SUSPECT-EXIT was the last one, and it closed when --fail-on-suspect gave
+#   the idiom a way to block on a suspect. The DEFAULT exit code did not change and remains the accepted
+#   risk in docs/decisions.md: the guarantee was never about the default, it was about the idiom being
+#   achievable at all, and before the flag it was not achievable by any combination of options.
+#   An empty set is not a claim that nothing is open. It means nothing is open AND KNOWN, which is a much
+#   smaller statement, and the blind attack round exists because the gap between the two is where the
+#   defects live.
+#   PT: vazio desde 03/10/2026. Conjunto vazio nao afirma q nada esta aberto, afirma q nada esta aberto E
+#   CONHECIDO, q e afirmacao bem menor.
+EXPECTED_OPEN: set[str] = set()
 
 
 def _load() -> list[dict]:

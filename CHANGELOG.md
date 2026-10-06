@@ -7,6 +7,64 @@ onde um minor pode mudar comportamento.
 
 ## [Unreleased]
 
+## [0.11.0] - 2026-10-06
+
+EN: a round of review that started from the written promises instead of the code. Three of these survived
+97.97% line coverage and 71 killed mutants, which is the point.
+PT: uma rodada de revisão que partiu das promessas escritas, não do código. Três destes sobreviveram a
+97,97% de cobertura e 71 mutantes mortos.
+
+### Security / Segurança
+
+- **`mask()` no longer returns text containing a value whose check digit failed.** It defaulted to
+  `report_invalid=False`, so `mask("CPF 111.444.777-36 e CPF 111.444.777-35")` returned the first CPF
+  verbatim while the call succeeded. Eleven legible digits in the output of the function whose whole job is
+  that they are gone. The CLI warned on stderr, and stderr is not what a pipeline keeps.
+  PT: o `mask()` não devolve mais texto com valor de DV errado em claro. Ele forçava
+  `report_invalid=False`, então o valor ficava na saída enquanto a chamada dizia ter mascarado.
+
+- **A built-in entity can no longer be replaced.** `register_entity("BR_CPF", ..., tier="N1",
+  replace=True)` with a validator of the caller's choosing was accepted, so `BR_CPF` kept its name and
+  validated everything. `unregister_entity()` already refused to remove a built-in, which made the promise
+  look kept while the next door was open.
+  PT: entidade nativa não pode mais ser substituída. O `unregister_entity()` já recusava remover, e o
+  `replace=True` entrava pela porta seguinte.
+
+### Added / Novo
+
+- **`tarja scan --fail-on-suspect`.** Exits 1 when a value has the shape of an identifier and fails its
+  check digit. The default exit code is unchanged and stays what it was: a documented, accepted risk. What
+  was missing was any way at all to opt out of it, so `tarja scan f.txt && send.sh` could not be made
+  conservative by any combination of options. The flag changes the exit code only, never the report.
+  PT: sai 1 quando o valor tem cara de identificador e o DV não fecha. O padrão não mudou. O que faltava
+  era poder optar por não correr esse risco.
+
+- **An identifier glued to another digit is detected when a context word names it.** `cpf 0052998224725`
+  returned nothing at all, not even a suspect, because every pattern is anchored with a word boundary. In a
+  database dump or a concatenated log that is the ordinary shape of the data.
+
+  The window is kept only when the check digit closes **and** a context word is near. Requiring the check
+  digit alone was measured first and discarded: 90.1% of random 24-digit runs produced a false finding over
+  2000 draws per length, because a long run offers many windows and each closes a CPF about 1 in 100 times.
+  With the context word the same measurement gives 0.0% to 2.5%. An unlabelled run is therefore still not
+  detected, on purpose, and that is a documented limit rather than an oversight.
+  PT: identificador colado a outro dígito é detectado quando há palavra de contexto perto. Só o DV foi
+  medido primeiro e descartado: 90,1% de falso positivo em corrida de 24 dígitos. Com contexto, 0,0% a 2,5%.
+  Corrida sem rótulo segue não detectada, de propósito.
+
+### Changed / Mudou
+
+- **Breaking: `tarja mask` masks values with a failing check digit by default.** `--suspect` is now its
+  default behaviour. To keep one in the text, call the library with `mask(text, report_invalid=False)`,
+  which is explicit at the call site rather than a default nobody reads.
+  PT: quebra de contrato. O `tarja mask` mascara valor de DV errado por padrão.
+
+EN: **0.10.0 was never published to PyPI.** Its changes ship here, in 0.11.0, together with the ones
+below. 0.9.0 is yanked on release of this version: it masks a document while leaving an eleven-digit value
+with a failing check digit inside it, and it misses an identifier split by an invisible character.
+PT: a **0.10.0 nunca foi publicada no PyPI**. As mudancas dela saem aqui, na 0.11.0. A 0.9.0 e yanked no
+lancamento desta: ela mascara o documento deixando dentro dele um valor de 11 digitos c/ DV errado.
+
 ## [0.10.0] - 2026-10-01
 
 EN: a character you cannot see used to hide an identifier completely. Upgrade if you scan text that came

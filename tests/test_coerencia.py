@@ -13,7 +13,7 @@ import re
 import unittest
 from pathlib import Path
 
-from _guarantees import Swept, guarantees
+from _guarantees import Swept, guarantees, internal_guarantee
 
 from tarja.entities import ENTITIES
 
@@ -29,7 +29,14 @@ SKIP_PARTS = ("/.git/", "/_build/", "/node_modules/", "/__pycache__/", "/.ruff_c
 
 # EN: files deliberately outside the sweep. PENDING.md is internal working notes and keeps its history,
 #   including superseded counts. decisions.md is a dated log where old entries stay as written.
-SKIP_NAMES = ("PENDING.md", "decisions.md", "test_coerencia.py")
+#   revisao.md and guarantees-internal.yaml are internal too, and the sweep that forbids a PUBLISHED file
+#   from pointing at internal notes cannot sensibly police the internal notes themselves: the first thing
+#   revisao.md does is list which files are internal, and the sweep read that list as a leak. Every name
+#   here is in .gitignore, which is the one property that makes it internal, and the floor of 30 on the
+#   sweep is what stops this list from quietly growing into an exemption for everything.
+#   PT: arquivo interno fica fora da varredura. Todo nome aqui esta no .gitignore, q e a propriedade q o
+#   torna interno, e o piso de 30 na varredura e o q impede esta lista de virar isencao geral.
+SKIP_NAMES = ("PENDING.md", "decisions.md", "revisao.md", "guarantees-internal.yaml", "test_coerencia.py")
 
 # EN: number words that could stand in for an entity count, in both languages, mapped to their value.
 #   A count written as a word is exactly what slipped through twice: "catorze" and "sixteen".
@@ -177,7 +184,7 @@ class TestInvarianteDeTier(unittest.TestCase):
 class TestVarreduraNaoPassaVazia(unittest.TestCase):
     """EN: the counter that makes a vacuous sweep impossible, tested on itself."""
 
-    @guarantees("G-SWEEP-NONEMPTY")
+    @internal_guarantee("GI-SWEEP-NONEMPTY")
     def test_a_sweep_that_examined_nothing_fails(self):
         # [COER-SWEPT-SELF] EN: proved by sabotage on 01/10/2026: emptying _sweepable() made both sweeps in
         #   this file fail loudly instead of passing. Before the counter they passed, which is the whole
@@ -188,7 +195,7 @@ class TestVarreduraNaoPassaVazia(unittest.TestCase):
             empty.check(self)
         self.assertIn("examined 0 item", str(cm.exception))
 
-    @guarantees("G-SWEEP-NONEMPTY")
+    @internal_guarantee("GI-SWEEP-NONEMPTY")
     def test_a_sweep_below_its_floor_fails(self):
         # [COER-SWEPT-FLOOR] a sweep that shrank to a third still examined something, and "something" is
         #   the bar that let the three broken guards through. The floor is what makes it a real check.
@@ -198,7 +205,7 @@ class TestVarreduraNaoPassaVazia(unittest.TestCase):
             short.check(self)
         self.assertEqual(short.count, 3)
 
-    @guarantees("G-SWEEP-NONEMPTY")
+    @internal_guarantee("GI-SWEEP-NONEMPTY")
     def test_a_sweep_cannot_declare_a_floor_of_zero(self):
         # [COER-SWEPT-ZERO] minimum=0 would be the loophole: it turns the counter back into decoration.
         with self.assertRaises(ValueError):

@@ -149,8 +149,9 @@ tarja scan contrato.txt                  # JSON lines, values hidden / valores e
 tarja scan contrato.txt --format table
 tarja scan contrato.txt --show-values    # EN: raw values, careful / PT: valor cru, cuidado
 tarja scan contrato.txt --suspect        # EN: also wrong check digits / PT: tb DV errado
+tarja scan contrato.txt --fail-on-suspect  # EN: exit 1 on them too / PT: sai 1 neles tb
 tarja mask contrato.txt > limpo.txt
-tarja mask contrato.txt --suspect     # EN: mask wrong check digits too / PT: mascara tb DV errado
+tarja mask contrato.txt               # EN: wrong check digits are masked too / PT: DV errado tb
 tarja mask contrato.txt --strategy pseudonym_stable --salt "$TARJA_SALT"
 cat log.txt | tarja scan - --entities BR_CPF,BR_CNPJ   # EN: gate / PT: portão
 tarja scan contrato.txt --report-min-score 0.9         # EN: report filter only, NOT a gate
@@ -170,15 +171,19 @@ Raising the threshold hides rows from the report and never turns exit 1 into exi
 Narrowing `--entities` narrows it, because an entity nobody searches for cannot be found. And a value with
 the right shape and a WRONG check digit (a suspect, usually a typo or OCR noise on a real identifier) is not
 counted unless you pass `--suspect`, because an invoice or protocol number in CPF shape is a suspect too and
-would block every pipeline. Without `--suspect`, `scan` and `mask` both write a counted warning to stderr
-saying how many they ignored. `mask` has no threshold flag at all, because it has no report to filter.
+would block every pipeline. `--fail-on-suspect` is the opt-out: it adds suspects to the exit code without
+changing the report, for whoever would rather stop the send than accept that risk. Without either flag,
+`scan` writes a counted warning to stderr saying how many it ignored. `mask` has no threshold flag at all,
+because it has no report to filter, and since 0.10.0 it masks suspects by default: a command that replaces
+your document must not leave an eleven-digit value in it.
 PT: o exit code é decidido sobre todo candidato VÁLIDO achado, ANTES do `--report-min-score`. Subir o limiar
 esconde linhas do relatório e nunca vira exit 0, então `tarja scan f.txt && send.sh` continua falhando
 fechado. Duas coisas reduzem o portão, e as duas avisam. Reduzir o `--entities` reduz, pq entidade não
 procurada não é achada. E valor c/ a forma certa e DV ERRADO (suspeito, normalmente erro de digitação ou
 ruído de OCR num identificador real) não conta sem `--suspect`, pq nota fiscal e protocolo em forma de CPF
-também são suspeitos e travariam todo pipeline. Sem `--suspect`, o `scan` e o `mask` escrevem no stderr
-quantos ignoraram. O `mask` não tem flag de limiar, pq não tem relatório para filtrar.
+também são suspeitos e travariam todo pipeline. O `--fail-on-suspect` é a saída: soma suspeito ao exit code
+sem mudar o relatório. Sem nenhuma das duas flags, o `scan` escreve no stderr quantos ignorou. O `mask` não
+tem flag de limiar, pq não tem relatório para filtrar, e desde a 0.10.0 mascara suspeito por padrão.
 
 ## limits / limites
 
@@ -192,6 +197,7 @@ art. 12. Six things it does not do, on purpose:
 | **`Vault` keeps its map in memory, in one process.** | The map IS the personal data. Persisting it drags in key custody, access control, retention and audit, which are decisions about your risk, not a library default. |
 | **`pseudonym_stable` is reversible by whoever holds the key.** | Pseudonymisation, not anonymisation. Use `redact` when nothing may come back, or `Vault` when reversal must stay under your control. |
 | **Text in, text out.** No OCR, no scanned PDF. | Extract the text first, with a tool of your choice. |
+| **An identifier glued to other digits is only found when a context word names it.** `cpf 0052998224725` is found, `registro 0052998224725` is not. | The check digit alone is too weak a filter there: 90% of random 24-digit runs close some identifier by chance. Label your columns, or pre-split the runs. |
 | **A suspect is not debug output.** A number shaped like a document with a failing check digit is nearly always a REAL identifier with a typo. | Treat it like the identifier itself. `repr()` on a `Match` hides the value, so logs and tracebacks never carry it by accident. |
 
 EN: none of this removes your own obligations: legal basis, records, security measures and answering data
@@ -207,6 +213,7 @@ Seis coisas q ele não faz, de propósito:
 | **O `Vault` guarda o mapa em memória, num processo só.** | O mapa É o dado pessoal. Persistir puxa guarda de chave, controle de acesso, retenção e auditoria, q são decisões sobre o seu risco. |
 | **O `pseudonym_stable` é reversível por quem tem a chave.** | Pseudonimização, não anonimização. Use `redact` qdo nada pode voltar, ou o `Vault` qdo a reversão fica c/ você. |
 | **Entra texto, sai texto.** Sem OCR, sem PDF escaneado. | Extraia o texto antes. |
+| **Identificador colado a outros dígitos só é achado com palavra de contexto perto.** `cpf 0052998224725` acha, `registro 0052998224725` não. | O DV sozinho é filtro fraco ali: 90% das corridas de 24 dígitos fecham algum identificador por acaso. |
 | **Suspeito não é saída de depuração.** Número c/ cara de documento e DV errado quase sempre é identificador REAL c/ erro de digitação. | Trate como o próprio identificador. O `repr()` de um `Match` esconde o valor. |
 
 PT: nada disso tira as suas obrigações: base legal, registros, medidas de segurança e resposta ao titular

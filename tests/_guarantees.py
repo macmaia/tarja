@@ -40,6 +40,38 @@ def guarantees(*ids: str) -> Callable:
     return wrap
 
 
+# [GUAR-INTERNAL] EN: spec/guarantees.yaml is published, and the published file carries promises to the
+#   USER only. A rule about the test bench itself is not one of those, and G-SWEEP-NONEMPTY was in there by
+#   mistake: it says a sweep that examined nothing must fail, which no user of the library can observe.
+#   It moved to spec/guarantees-internal.yaml, which is gitignored, and that creates a trap: a published
+#   test claiming an id that lives in an untracked file is an orphan in any fresh clone, so CI would fail
+#   on a checkout that is perfectly correct. Hence a separate marker with a GI- prefix and its own
+#   attribute. The id stays visible on the test, which is the whole point (a test nobody can trace back to
+#   a reason gets deleted in two years as dead weight), and it is never counted as a public claim.
+#   PT: o guarantees.yaml e publico e carrega promessa ao USUARIO. Regra sobre a propria bancada de teste
+#   nao e promessa ao usuario, e a G-SWEEP-NONEMPTY estava lah por engano. Foi p/ o arquivo interno, q e
+#   gitignored, e teste publico reivindicando id de arquivo nao versionado quebraria o CI num clone limpo.
+#   Dai um marcador separado, prefixo GI-, atributo proprio. O id continua visivel no teste, q e o ponto.
+ATTRIBUTE_INTERNAL = "tarja_guarantees_internal"
+
+
+def internal_guarantee(*ids: str) -> Callable:
+    """EN: Mark a test as the check for an INTERNAL rule, described in spec/guarantees-internal.yaml.
+    PT: Marca o teste q confere regra INTERNA, descrita no spec/guarantees-internal.yaml.
+    """
+    if not ids:
+        raise ValueError("internal_guarantee() needs at least one id / precisa de pelo menos 1 id")
+    for i in ids:
+        if not i.startswith("GI-"):
+            raise ValueError(f"internal ids start with GI-: {i!r} / id interno comeca com GI-")
+
+    def wrap(fn: Callable) -> Callable:
+        setattr(fn, ATTRIBUTE_INTERNAL, tuple(ids))
+        return fn
+
+    return wrap
+
+
 # [GUAR-SWEPT] EN: a sweep that examined nothing passes. Three tests in this project did exactly that: a
 #   regex that matched no count, an exemption that emptied the set, a filter placed before the assertion.
 #   Each one passed in the precise case it had been written to catch, and each looked like a working test.
