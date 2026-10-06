@@ -95,7 +95,11 @@ jobs:
       - name: sbom of the published wheel / sbom da roda publicada
         run: |
           python -m venv --without-pip /tmp/sbomenv
-          pip install --python /tmp/sbomenv/bin/python --no-deps dist/*.whl
+          # [RELEASE-SBOM-PIPORDER] --python comes BEFORE the subcommand. pip used to tolerate it
+          #   after `install` and now refuses: "The --python option must be placed before the pip
+          #   subcommand name". Broke the v0.11.0 release on 06/10/2026, with nothing changed in the
+          #   project: pip is installed unpinned on the runner, so it moves under us.
+          pip --python /tmp/sbomenv/bin/python install --no-deps dist/*.whl
           cyclonedx-py environment /tmp/sbomenv/bin/python --output-format JSON > sbom.cdx.json
       # [RELEASE-SBOM-ASSERT] EN: the guard that would have caught the 51 components. The core ships itself
       #   and nothing else, so anything above 2 means the SBOM is describing the wrong environment again.
