@@ -117,6 +117,22 @@ M = [
         "        return True",
     ),
     (
+        # [MUT-DECIDE-DEFAULT] the default policy of the new primitive. Flipping it is silent: every test
+        #   that passes on_suspect explicitly keeps passing.
+        "decide allows suspect by default",
+        "src/tarja/decide.py",
+        '    on_suspect: str = "block",',
+        '    on_suspect: str = "allow",',
+    ),
+    (
+        # [MUT-DECIDE-BOOL] the sabotage that attribute tests cannot see. Decision.allowed stays correct
+        #   and every `if not decide(text)` stops gating.
+        "Decision is always truthy",
+        "src/tarja/decide.py",
+        "        return self.allowed\n",
+        "        return True\n",
+    ),
+    (
         "cpf always valid",
         "src/tarja/validators/cpf.py",
         "    return compute_check_digits(v[:9]) == v[9:]",

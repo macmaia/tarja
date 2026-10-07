@@ -15,7 +15,9 @@ requires-python = ">=3.10"
 license = "Apache-2.0"
 license-files = ["LICENSE", "NOTICE"]
 authors = [{ name = "Maria Alice Maia", email = "tarja@micah6ai.com" }]  # https://github.com/macmaia
-keywords = ["pii", "lgpd", "gdpr", "brazil", "cpf", "cnpj", "anonymisation", "presidio", "dlp"]
+keywords = ["pii", "lgpd", "gdpr", "brazil", "cpf", "cnpj", "anonymisation", "presidio", "dlp",
+            "rag", "llm", "redaction", "pseudonymisation", "de-identification", "tokenisation",
+            "data-masking", "portuguese", "privacy"]
 classifiers = [
   "Development Status :: 4 - Beta",
   "Intended Audience :: Developers",

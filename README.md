@@ -4,13 +4,31 @@
 
 Built for anyone shipping software in Brazil, incl. foreign companies adapting to the LGPD (Brazil's GDPR). Plenty of CPF/CNPJ validators exist already (brutils, validate-docbr). What's missing is finding the ID *inside* text, scoring it with Portuguese context, and covering what paid DLPs skip: alphanumeric CNPJ (Jul/2026), CNS (health card), CNJ case numbers.
 
-Status: alpha (`0.9.0`). The API can still change before 1.0.
+Status: alpha (`0.12.0`). The API can still change before 1.0.
 
 **PT** · Detecta, valida e mascara identificadores pessoais brasileiros em texto livre, c/ contexto em português e dígito verificador. Cobre o dado antes de mandar p/ LLM, log, BI, onde for.
 
 Serve p/ qq um q desenvolve p/ o Brasil, inclusive empresa gringa se adaptando à LGPD. Validador de CPF/CNPJ já tem de monte (brutils, validate-docbr). O q falta é achar o doc *dentro* do texto, dar score c/ contexto em pt-BR e cobrir o q os DLPs pagos ignoram: CNPJ alfanumérico (jul/2026), CNS, nº de processo CNJ.
 
-Status: alfa (`0.9.0`). A API ainda pode mudar antes da 1.0.
+Status: alfa (`0.12.0`). A API ainda pode mudar antes da 1.0.
+
+## when you'd reach for this / quando isso serve
+
+EN: five situations where tarja is the right tool. If yours is not one of them, it probably is not.
+
+- **Before text goes to an LLM.** You have a support archive, a case file, a set of medical notes, and you want to do RAG or summarising over it with a provider you do not control. Swap the identifiers out first. tarja gives the same identifier the same token in every document and every request, which is the part that matters here: destructive redaction breaks retrieval, and a token that changes per request breaks it just as badly.
+- **As a gate on the way out.** `tarja scan file.txt && send.sh` only sends a file that came back clean. Exit 1 when something is found, 0 when clean, 2 on error, which is what makes it usable in CI or in a cron job.
+- **To measure exposure.** Point it at an archive and get an answer to "how many documents carry a CPF, which kinds, and where". Compliance questions tend to arrive without a number attached, and this produces one.
+- **Before handing data to someone who should not see it.** An analyst, a vendor, a staging environment. Cover the identifier and the rest of the document still works.
+- **To check someone else's work.** `residual()` is a second pass over text that has already been masked, by you or by another tool, and it reports what survived.
+
+PT: cinco situações em que o tarja é a ferramenta certa. Se a sua não é uma delas, provavelmente não é.
+
+- **Antes do texto ir p/ um LLM.** Você tem um acervo de atendimento, processo, prontuário, e quer fazer RAG ou resumo com um provedor q não é seu. Troque os identificadores antes. O tarja dá ao mesmo identificador o mesmo token em todo documento e em toda requisição, e é isso q importa aqui: redação destrutiva quebra a busca, e token q muda a cada requisição quebra igual.
+- **Como portão de saída.** O `tarja scan arquivo.txt && enviar.sh` só envia arquivo q voltou limpo. Sai 1 se achou, 0 se limpo, 2 em erro, q é o q torna isso usável em CI ou em cron.
+- **P/ medir exposição.** Aponte p/ um acervo e tenha resposta p/ "quantos documentos têm CPF, de q tipo, e onde". Pergunta de conformidade costuma chegar sem número, e aqui sai um.
+- **Antes de entregar dado p/ quem não precisa dele.** Analista, fornecedor, ambiente de homologação. Cobre o identificador e o resto do documento continua servindo.
+- **P/ conferir o trabalho de outro.** O `residual()` é uma segunda passada em texto q já foi mascarado, por você ou por outra ferramenta, e diz o q sobrou.
 
 ## intended use / uso pretendido
 
@@ -184,6 +202,23 @@ ruído de OCR num identificador real) não conta sem `--suspect`, pq nota fiscal
 também são suspeitos e travariam todo pipeline. O `--fail-on-suspect` é a saída: soma suspeito ao exit code
 sem mudar o relatório. Sem nenhuma das duas flags, o `scan` escreve no stderr quantos ignorou. O `mask` não
 tem flag de limiar, pq não tem relatório para filtrar, e desde a 0.10.0 mascara suspeito por padrão.
+
+## three functions, three policies / três funções, três políticas
+
+EN: a **suspect** is a value shaped like an identifier whose check digit does not close. It is usually a
+real identifier with a typo: measured, about 93% of CPFs with one corrupted digit reconstruct to a single
+valid CPF. The three entry points treat it differently, on purpose.
+
+| | suspect | why / por quê |
+|---|---|---|
+| `mask()` | masked | the function promises the value is gone from the text it returns, so leaving an eleven-digit value in there would be a broken promise |
+| `tarja scan` | exit code unchanged | an exit code is a one-byte channel with nowhere to put a reason, and gating on suspects teaches people to write `\|\| true`, which removes the gate for valid identifiers too. `--fail-on-suspect` opts in |
+| `decide()` / `require_clean()` | blocked | returns an object, so it can say what it blocked and why. The person reading the reason is the person who decides. `on_suspect="allow"` opts out |
+
+PT: **suspeito** é valor c/ cara de identificador cujo DV não fecha, normalmente identificador real c/ erro
+de digitação. As três portas tratam diferente, de propósito: o `mask()` mascara, pq promete q o valor saiu
+do texto. O `scan` não muda o exit code, pq código de saída não tem onde pôr motivo e travar nele ensina a
+escrever `|| true`. O `decide()` barra, pq devolve objeto e consegue dizer o q barrou e por quê.
 
 ## limits / limites
 

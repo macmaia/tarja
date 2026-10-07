@@ -231,3 +231,21 @@ guarantees:
       unlabelled run stays a documented limit instead of a detection.
     implemented_in: tarja.detect:_embedded_candidates
     status: enforced
+
+  - id: G-DECIDE-BLOCKS-SUSPECT
+    blocks: decide must not allow text whose only finding is a value with a failing check digit, unless the
+      caller asked for that explicitly.
+    violated: the default of on_suspect flips to allow, or the suspect is filtered out before the policy is
+      applied, and a caller who wrote `if not decide(text)` ships the document. The measurement behind this
+      is that about 93% of CPFs with one corrupted digit reconstruct to a single valid CPF, so a suspect is
+      near-personal-data, not noise.
+    implemented_in: tarja.decide:decide
+    status: enforced
+
+  - id: G-DECIDE-FALSY-WHEN-BLOCKED
+    blocks: A blocked Decision must never be truthy.
+    violated: __bool__ returns True regardless, and every `if not decide(text)` in the world becomes a no-op
+      while every test that reads .allowed still passes. This is the sabotage that attribute tests cannot
+      see, which is why it is named here and carries its own mutant.
+    implemented_in: tarja.decide:Decision
+    status: enforced

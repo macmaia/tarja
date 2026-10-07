@@ -7,6 +7,42 @@ onde um minor pode mudar comportamento.
 
 ## [Unreleased]
 
+## [0.12.0] - 2026-10-06
+
+EN: 0.11.0 was tagged but never published, because the release workflow broke on an unrelated pip change.
+Its contents ship here. 0.9.0, the only version live on PyPI, is yanked on release of this one.
+PT: a 0.11.0 foi marcada e nunca publicada, pq o workflow de release quebrou numa mudanca do pip. O
+conteudo dela sai aqui. A 0.9.0, unica viva no PyPI, e yanked no lancamento desta.
+
+### Added / Novo
+
+- **`decide()` and `require_clean()`.** The fail-closed decision as a library call, not only as the exit
+  code of `tarja scan`. `decide(text)` returns a `Decision` that is falsy when blocked and carries
+  `blocked_by` and `reason()`, so `if not tarja.decide(text): refuse()` reads correctly and a log line can
+  say what was blocked without carrying the value. `require_clean(text)` is the same engine raising
+  `BlockedError` for code that would rather not branch.
+
+  **It blocks a value with a failing check digit by default, and `tarja scan` still does not.** That
+  difference is deliberate. An exit code is a one-byte channel with nowhere to put a reason, and gating it
+  on suspects teaches people to write `|| true`, which removes the gate for valid identifiers too.
+  `decide()` returns an object, so it can say why, and the person reading the reason is the person who
+  decides. `on_suspect="allow"` opts out. The README now carries a three-row table stating the policy of
+  `mask()`, `scan` and `decide()` side by side.
+  PT: a decisão de bloquear como chamada de biblioteca, e não só como código de saída do `tarja scan`. Ela
+  barra valor c/ DV errado por padrão, e o `scan` não, de propósito.
+
+- **`tarja scan` says the consequence, not just the count.** The stderr warning about ignored suspects now
+  states that about 93% of CPFs with one corrupted digit reconstruct to a single valid CPF, and names both
+  `--suspect` and `--fail-on-suspect`. A count in a CI log is not information.
+
+### Fixed / Corrigido
+
+- **The release workflow.** `pip install --python X` became `pip --python X install`: pip used to tolerate
+  the option after the subcommand and now refuses it. It broke the v0.11.0 release with nothing changed in
+  the project, because pip is installed unpinned on the runner.
+  PT: o `--python` do pip passou a exigir posição antes do subcomando, e quebrou o release sem nada ter
+  mudado no projeto.
+
 ## [0.11.0] - 2026-10-06
 
 EN: a round of review that started from the written promises instead of the code. Three of these survived

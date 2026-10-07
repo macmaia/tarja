@@ -35,5 +35,5 @@
 # an oversight. Raise it to the pytest number once measured where the dev extras are installed.
 # PT: 304 foi contado numa maquina SEM hypothesis, entao o numero real num dev completo e maior. Piso e
 # minimo, logo a contagem curta e a segura. Suba p/ o numero do pytest quando medir no ambiente completo.
-collected: 304          # measured 03/10/2026, see the note above
-tracked_files: 24       # test_*.py files git is tracking, measured 03/10/2026 (test_revisao5.py is new)
+collected: 315          # measured 06/10/2026 with decide(), same short-count caveat as the note above
+tracked_files: 25       # test_*.py files git is tracking, measured 06/10/2026 (test_decide.py is new)

@@ -4,6 +4,7 @@
 # author/autoria: https://github.com/macmaia
 
 # import the validator modules (one file per document type in validators/)
+from tarja.decide import BlockedError, Decision, decide, require_clean
 from tarja.detect import Match, find, resolve_overlaps
 from tarja.entities import ENTITIES
 from tarja.mask import mask
@@ -31,6 +32,10 @@ from tarja.vault import (
 
 # what "from tarja import *" exposes
 __all__ = [
+    "Decision",
+    "BlockedError",
+    "decide",
+    "require_clean",
     "ENTITIES",
     "Match",
     "ProtectedText",
@@ -62,7 +67,7 @@ __all__ = [
 ]
 
 # version read by hatch at build time (see pyproject.toml, [tool.hatch.version])
-__version__ = "0.11.0"
+__version__ = "0.12.0"
 
 
 def validate(entity: str, value: str) -> bool:
