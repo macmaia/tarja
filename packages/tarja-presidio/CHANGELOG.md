@@ -3,7 +3,12 @@
 EN: notable changes per release. The core library has its own `CHANGELOG.md` at the repository root.
 PT: mudanças relevantes por versão. A biblioteca do núcleo tem o `CHANGELOG.md` dela na raiz do repositório.
 
-## [0.1.1] - 2026-10-01
+## [0.1.1] - 2026-10-11
+
+EN: the floor on tarja moves to 0.12, because every earlier release is yanked on PyPI and a yank
+does not stop an install that pins the version. The upper bound is 1.0.
+PT: o piso do tarja sobe p/ 0.12, pq toda versao anterior esta yanked e yank nao impede instalacao
+de versao fixada. O teto e 1.0.
 
 ### Security / Segurança
 

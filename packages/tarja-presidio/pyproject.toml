@@ -35,7 +35,15 @@ classifiers = [
 #   fail-open defects plus removed strategy="hash". Raised to >=0.9 on 30/09/2026 so an older tarja cannot
 #   install underneath the plugin and reintroduce a defect the plugin's own tests do not cover.
 #   PT: o piso subiu p/ >=0.9 pq a 0.9.0 fechou cinco defeitos de falha-aberta.
-dependencies = ["tarja>=0.9", "presidio-analyzer>=2.2"]
+# [PKG-DEP-FLOOR] EN: the floor is 0.12 because every tarja before it is yanked on PyPI, and a yank
+#   does not stop an install that pins the version. Without this floor, a project pinning tarja==0.9.0
+#   installs this plugin on top of a core whose mask() leaves a value with a failing check digit in
+#   the text while reporting success. Raising the floor past a yanked release is what makes the yank
+#   reach through the dependency chain. The upper bound is 1.0 because that release changes the API
+#   on purpose, and a plugin should not promise to work with a version that does not exist yet.
+#   PT: o piso e 0.12 pq toda tarja anterior esta yanked, e yank nao impede instalacao de versao
+#   fixada. O teto e 1.0 pq aquela versao muda a API de proposito.
+dependencies = ["tarja>=0.12,<1.0", "presidio-analyzer>=2.2"]
 
 [project.optional-dependencies]
 dev = ["pytest>=8"]
