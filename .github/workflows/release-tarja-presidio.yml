@@ -50,15 +50,49 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
-          read -r ID STATUS CONCL SHA <<<"$(gh run list -R ${{ github.repository }} \
-            --workflow=audit.yml --branch main --limit 1 \
-            --json databaseId,status,conclusion,headSha \
-            --jq '.[0] | "\(.databaseId) \(.status) \(.conclusion) \(.headSha)"')"
-          echo "audit run=$ID status=$STATUS conclusion=$CONCL commit=$SHA"
+          # [RELEASE-AUDIT-WAIT] EN: wait for a run that is still going instead of refusing it. Pushing the
+          #   branch starts audit, pushing the tag starts this seconds later, so the gate read an audit that
+          #   its own push had just started and failed on status=in_progress. That blocked v0.12.0 for 25
+          #   minutes on 06/10/2026, on a run that then passed. Waiting is not a loosening: a red audit
+          #   still refuses, and a run that never finishes refuses too, which is the fail-closed half.
+          #   PT: espera o run em andamento em vez de recusar. O push da branch dispara o audit e o push da
+          #   tag dispara este segundos depois, entao o portao lia um audit que o proprio push comecara.
+          #
+          # [RELEASE-AUDIT-FIELDS] EN: one jq per field, not a single interpolated line read by `read`. A
+          #   run in progress has conclusion=null, jq printed it as empty, and `read` collapsed the two
+          #   spaces and shifted every field left: conclusion held the commit SHA and commit was empty. The
+          #   gate printed a diagnostic that was wrong in exactly the case where it is read, which sends
+          #   whoever is debugging to the wrong place. Found 07/10/2026 while reading that output.
+          #   PT: 1 jq por campo. Com o run em andamento, conclusion e nulo, o jq imprime vazio e o `read`
+          #   desloca os campos, entao a mensagem de erro mente justamente quando alguem a le.
+          deadline=$(( SECONDS + 900 ))
+          while :; do
+            gh run list -R ${{ github.repository }} --workflow=audit.yml --branch main --limit 1 \
+              --json databaseId,status,conclusion,headSha > audit.json
+            ID=$(jq -r '.[0].databaseId // ""' audit.json)
+            STATUS=$(jq -r '.[0].status // ""' audit.json)
+            CONCL=$(jq -r '.[0].conclusion // ""' audit.json)
+            SHA=$(jq -r '.[0].headSha // ""' audit.json)
+            echo "audit run=${ID:-<none>} status=${STATUS:-<none>} conclusion=${CONCL:-<none>} commit=${SHA:-<none>}"
+            if [ -z "$ID" ]; then
+              echo "no audit run on main at all, refusing to publish"
+              exit 1
+            fi
+            if [ "$STATUS" = "completed" ]; then
+              break
+            fi
+            if [ "$SECONDS" -ge "$deadline" ]; then
+              echo "audit is still $STATUS after 15 minutes, refusing to publish"
+              exit 1
+            fi
+            echo "audit is $STATUS, waiting 30s"
+            sleep 30
+          done
           echo "this tag  = ${{ github.sha }}"
-          test -n "$ID"
-          test "$STATUS" = "completed"
-          test "$CONCL" = "success"
+          if [ "$CONCL" != "success" ]; then
+            echo "the latest audit on main concluded $CONCL, refusing to publish"
+            exit 1
+          fi
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97  # v7.0.0
         with:

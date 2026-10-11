@@ -29,13 +29,6 @@ de versao fixada. O teto e 1.0.
   score base de 0.5. Quem filtra em 0.6 ou acima deixa de ver placa e telefone sem palavra de contexto perto,
   e isso é a correção, não regressão.
 
-### Fixed / Corrigido
-
-- The module header documented a fifth case, "entity with no check digit -> None", that never ran: every
-  built-in entity has a validator. The branch stays, because an entity added through tarja's
-  `register_entity()` may not have one, and the header now says so.
-  PT: o cabeçalho documentava um caso que nunca executava.
-
 ## [0.1.0] - 2026-09-26
 
 EN: first release. One `PatternRecognizer` per tarja entity, built from tarja's registry so regex, context
